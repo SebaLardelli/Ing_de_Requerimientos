@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Inyectar secretos en config.js
         env:
@@ -32,11 +32,8 @@ jobs:
           AI_KEY: ${{ secrets.AI_KEY }}
         run: node scripts/write-config.mjs
 
-      - name: Configurar Pages
-        uses: actions/configure-pages@v5
-
       - name: Subir sitio
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: docs
 
