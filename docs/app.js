@@ -126,6 +126,10 @@
     };
   }
 
+  function normalizarProveedor(valor) {
+    return valor === "gemini" ? "gemini" : "groq";
+  }
+
   function claveDelModelo(proveedor) {
     const g = cfgGlobal();
     if (proveedor === "groq") return (g.aiKeyGroq || g.aiKey || "").trim();
@@ -137,7 +141,7 @@
     const saved = loadJSON(LS.ai, { proveedor: "" });
     const g = cfgGlobal();
     const select = $("ai-proveedor");
-    const proveedor = (select && select.value) || saved.proveedor || g.aiProvider || "pollinations";
+    const proveedor = normalizarProveedor((select && select.value) || saved.proveedor || g.aiProvider);
     return {
       proveedor,
       clave: claveDelModelo(proveedor)
@@ -665,7 +669,7 @@
 
   async function chatAI(messages, { json = false } = {}) {
     const cfg = cfgAI();
-    const proveedor = $("ai-proveedor").value || cfg.proveedor || "pollinations";
+    const proveedor = normalizarProveedor($("ai-proveedor").value || cfg.proveedor);
     const clave = (cfg.clave || "").trim();
 
     if (proveedor === "groq") {
@@ -708,23 +712,7 @@
       return data.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
     }
 
-    const res = await fetch("https://text.pollinations.ai/openai", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "openai",
-        messages,
-        temperature: 0.7
-      })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return data.choices?.[0]?.message?.content || data.content || String(data);
-    }
-    const plano = messages.map((m) => `${m.role}: ${m.content}`).join("\n\n");
-    const fallback = await fetch("https://text.pollinations.ai/" + encodeURIComponent(plano) + "?model=openai");
-    if (!fallback.ok) throw new Error("Pollinations no respondió. Probá Groq en Ajustes.");
-    return fallback.text();
+    throw new Error("Elegí Groq o Gemini en Ajustes.");
   }
 
   function promptGerente(sesion) {
@@ -1156,11 +1144,9 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
   function pintarAjustesAI() {
     const saved = loadJSON(LS.ai, { proveedor: "" });
     const g = cfgGlobal();
-    $("ai-proveedor").value = saved.proveedor || g.aiProvider || "pollinations";
+    $("ai-proveedor").value = normalizarProveedor(saved.proveedor || g.aiProvider);
     const cfg = cfgAI();
-    if (cfg.proveedor === "pollinations") {
-      $("ai-estado").textContent = "Modelo activo: Pollinations.";
-    } else if (cfg.clave) {
+    if (cfg.clave) {
       $("ai-estado").textContent = "Modelo activo: " + cfg.proveedor + ".";
     } else if (cfg.proveedor === "groq") {
       $("ai-estado").textContent = "Falta el secreto AI_KEY_GROQ (o el AI_KEY viejo de Groq).";

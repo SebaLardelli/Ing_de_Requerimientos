@@ -3,7 +3,7 @@
 Object.assign(window.IR_CONFIG || (window.IR_CONFIG = {}), {
   supabaseUrl: "",
   supabaseAnonKey: "",
-  aiProvider: "pollinations",
+  aiProvider: "groq",
   aiKey: "",
   aiKeyGroq: "",
   aiKeyGemini: ""
