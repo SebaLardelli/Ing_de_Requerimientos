@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,6 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles.css" />
+  <script>
+    (function () {
+      var t = localStorage.getItem("ir.tema") || "dark";
+      document.documentElement.setAttribute("data-theme", t === "light" ? "light" : "dark");
+    })();
+  </script>
 </head>
 <body>
   <header class="app-header">
@@ -18,19 +24,25 @@
         <p>Teoría compartida · entrevista al dominio · especificación</p>
       </div>
     </div>
-    <div class="who">
-      <div>
-        <span>Trabajás como</span>
-        <b id="nombre-actual">sin registrar</b>
+    <div class="header-actions">
+      <div class="theme-toggle" role="group" aria-label="Tema">
+        <button class="theme-btn" id="btn-tema-oscuro" type="button" data-tema="dark">Oscuro</button>
+        <button class="theme-btn" id="btn-tema-claro" type="button" data-tema="light">Claro</button>
       </div>
-      <button class="btn small" id="btn-nombre" type="button">Registrar nombre</button>
+      <div class="who">
+        <div>
+          <span>Trabajás como</span>
+          <b id="nombre-actual">sin registrar</b>
+        </div>
+        <button class="btn small" id="btn-nombre" type="button">Registrar nombre</button>
+      </div>
     </div>
   </header>
 
   <nav class="tabs" aria-label="Secciones">
     <button class="tab active" data-tab="teoria" type="button">Teoría</button>
     <button class="tab" data-tab="taller" type="button">Taller de análisis</button>
-    <button class="tab" data-tab="historial" type="button">Historial del aula</button>
+    <button class="tab" data-tab="historial" type="button">Historial</button>
     <button class="tab" data-tab="ajustes" type="button">Ajustes y despliegue</button>
   </nav>
 
@@ -39,7 +51,7 @@
       <div class="layout">
         <aside class="card side">
           <h2>Temas</h2>
-          <p class="hint">Cualquier compañero puede editar. El cambio se guarda para todos y queda el rastro.</p>
+          <p class="hint">Cualquier compañero puede editar o sumar un apartado dentro de cada clase.</p>
           <div id="lista-temas" class="topic-list"></div>
         </aside>
         <article class="card article">
@@ -56,6 +68,14 @@
           <p class="lead" id="tema-resumen"></p>
           <div id="tema-contenido" class="content"></div>
           <div id="editor-teoria" class="hidden">
+            <div class="field">
+              <label for="teoria-titulo">Título del apartado</label>
+              <input id="teoria-titulo" />
+            </div>
+            <div class="field">
+              <label for="teoria-resumen">Resumen</label>
+              <input id="teoria-resumen" />
+            </div>
             <label class="hint" for="teoria-md">Editá en texto (podés usar títulos con ## y listas con -).</label>
             <textarea id="teoria-md" class="editor"></textarea>
             <div class="row" style="margin-top:10px">
@@ -124,7 +144,11 @@
           </div>
 
           <h3 style="margin-top:18px">Requerimientos</h3>
-          <p class="hint">Ejemplo: <code>El sistema debe registrar cada préstamo con usuario, ejemplar y fecha límite.</code></p>
+          <p class="hint">Escríbanlos a partir del debate. Uno por enunciado, atómico.<br>
+          RF / necesidad / deseo / sistema: <code>El sistema debe + verbo + objeto + condición observable.</code><br>
+          RFN / expectativa: una cualidad medible (tiempo, disponibilidad, usabilidad).<br>
+          Usuario: <code>El usuario quiere…</code> en lenguaje de negocio, sin detalle técnico.<br>
+          La IA compara lo debatido con lo escrito, corrige la forma y deja todo en el historial.</p>
           <div class="req-form">
             <select id="req-tipo">
               <option value="necesidad">Necesidad (RF)</option>
@@ -139,7 +163,7 @@
           </div>
           <div class="row">
             <button class="btn primary" id="btn-agregar-req" type="button">Agregar</button>
-            <button class="btn" id="btn-corregir-req" type="button">Que la IA corrija</button>
+            <button class="btn" id="btn-corregir-req" type="button">Comparar debate y corregir</button>
           </div>
           <div id="lista-req" class="req-list" style="margin-top:12px"></div>
           <div id="feedback-ia" class="content" style="margin-top:12px"></div>
@@ -150,9 +174,9 @@
     <section id="panel-historial" class="panel">
       <div class="history-grid">
         <aside class="card block">
-          <h2>Casos del aula</h2>
-          <p class="hint">Conversaciones, dominio y requerimientos de todos. Filtrá por compañero si hace falta.</p>
-          <input id="filtro-autor" placeholder="Filtrar por nombre" style="width:100%;margin:8px 0 12px;padding:8px 10px;border:1px solid var(--line);border-radius:10px" />
+          <h2>Casos</h2>
+          <p class="hint">Acá queda lo que debatieron con la IA y los requerimientos que escribió cada compañero, con la corrección. Filtrá por nombre si hace falta.</p>
+          <input id="filtro-autor" placeholder="Filtrar por nombre" />
           <div id="lista-sesiones" class="session-list"></div>
         </aside>
         <article class="card block">
@@ -179,21 +203,17 @@
         <article class="card article">
           <div class="kicker">Modelo de IA</div>
           <h2>Debate sobre el dominio, sin pagar</h2>
-          <p class="hint">Pollinations no pide clave. Si el docente cargó Groq o Gemini en los secretos del repo, el aula ya los usa. Si querés, podés poner una clave propia solo en tu navegador.</p>
+          <p class="hint">Elegí el modelo. La clave la carga el docente en los secretos del repositorio; acá no se pide ni se guarda ninguna API key.</p>
           <div class="field">
-            <label for="ai-proveedor">Proveedor</label>
+            <label for="ai-proveedor">Modelo</label>
             <select id="ai-proveedor">
               <option value="pollinations">Pollinations (sin clave)</option>
               <option value="groq">Groq · Llama 3.3</option>
               <option value="gemini">Google Gemini Flash</option>
             </select>
           </div>
-          <div class="field">
-            <label for="ai-clave">Clave propia (opcional, solo este navegador)</label>
-            <input id="ai-clave" type="password" placeholder="Si el aula ya tiene modelo, podés dejarlo vacío" autocomplete="off" />
-          </div>
           <div class="row">
-            <button class="btn primary" id="btn-guardar-ai" type="button">Guardar preferencia</button>
+            <button class="btn primary" id="btn-guardar-ai" type="button">Guardar modelo</button>
             <button class="btn" id="btn-probar-ai" type="button">Probar IA</button>
           </div>
           <p class="hint" id="ai-estado"></p>
@@ -201,6 +221,29 @@
       </div>
     </section>
   </main>
+
+  <div class="modal-back" id="modal-apartado">
+    <div class="modal">
+      <h2 style="font-family:var(--serif);margin:0 0 8px">Nuevo apartado</h2>
+      <p class="hint" id="apartado-clase-hint">Se agrega dentro de la clase elegida. Todos lo van a ver.</p>
+      <div class="field">
+        <label for="nuevo-clase">Clase</label>
+        <input id="nuevo-clase" />
+      </div>
+      <div class="field">
+        <label for="nuevo-titulo">Título</label>
+        <input id="nuevo-titulo" placeholder="Por ejemplo: Trazabilidad de requerimientos" />
+      </div>
+      <div class="field">
+        <label for="nuevo-resumen">Resumen breve</label>
+        <input id="nuevo-resumen" placeholder="Una o dos frases" />
+      </div>
+      <div class="row">
+        <button class="btn primary" id="btn-crear-apartado" type="button">Crear y escribir</button>
+        <button class="btn ghost" id="btn-cancelar-apartado" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-back" id="modal-nombre">
     <div class="modal">

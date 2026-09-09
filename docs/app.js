@@ -9,7 +9,8 @@
     reqs: "ir.reqs",
     revisionesReq: "ir.revisionesReq",
     dominio: "ir.dominio",
-    dominios: "ir.dominios"
+    dominios: "ir.dominios",
+    tema: "ir.tema"
   };
 
   const CASOS = {
@@ -71,6 +72,20 @@
     $("nombre-actual").textContent = state.nombre || "sin registrar";
   }
 
+  function temaActual() {
+    return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+  }
+
+  function aplicarTema(tema) {
+    const t = tema === "light" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", t);
+    localStorage.setItem(LS.tema, t);
+    const oscuro = $("btn-tema-oscuro");
+    const claro = $("btn-tema-claro");
+    if (oscuro) oscuro.classList.toggle("active", t === "dark");
+    if (claro) claro.classList.toggle("active", t === "light");
+  }
+
   function loadJSON(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
@@ -112,12 +127,11 @@
   }
 
   function cfgAI() {
-    const saved = loadJSON(LS.ai, { proveedor: "", clave: "" });
+    const saved = loadJSON(LS.ai, { proveedor: "" });
     const g = cfgGlobal();
     return {
       proveedor: saved.proveedor || g.aiProvider || "pollinations",
-      clave: (saved.clave || g.aiKey || "").trim(),
-      deRepositorio: !saved.clave && !!(g.aiKey || "").trim()
+      clave: (g.aiKey || "").trim()
     };
   }
 
@@ -317,16 +331,107 @@
     saveJSON(localKey, list);
   }
 
+  function slugify(texto) {
+    const base = String(texto || "apartado")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40) || "apartado";
+    return base + "-" + Date.now().toString(36);
+  }
+
+  function clasesDeTemas() {
+    const orden = [];
+    state.temas.forEach((t) => {
+      if (t.clase && !orden.includes(t.clase)) orden.push(t.clase);
+    });
+    ["Clase 1", "Clase 2", "Práctica"].forEach((c) => {
+      if (!orden.includes(c)) orden.push(c);
+    });
+    return orden;
+  }
+
+  function abrirModalApartado(clase) {
+    if (!exigeNombre()) return;
+    $("nuevo-clase").value = clase || state.temaActual?.clase || "Clase 1";
+    $("nuevo-titulo").value = "";
+    $("nuevo-resumen").value = "";
+    $("apartado-clase-hint").textContent = "Se agrega dentro de " + ($("nuevo-clase").value || "la clase") + ". Todos lo van a ver.";
+    $("modal-apartado").classList.add("show");
+    $("nuevo-titulo").focus();
+  }
+
+  async function crearApartado() {
+    if (!exigeNombre()) return;
+    const clase = $("nuevo-clase").value.trim();
+    const titulo = $("nuevo-titulo").value.trim();
+    const resumen = $("nuevo-resumen").value.trim();
+    if (!clase) return toast("Indicá la clase.");
+    if (titulo.length < 3) return toast("Escribí un título para el apartado.");
+
+    const deClase = state.temas.filter((t) => t.clase === clase);
+    const orden = (deClase.length
+      ? Math.max(...deClase.map((t) => Number(t.orden) || 0))
+      : Math.max(0, ...state.temas.map((t) => Number(t.orden) || 0))) + 1;
+
+    const tema = {
+      id: uid(),
+      slug: slugify(titulo),
+      clase,
+      titulo,
+      resumen: resumen || "Apartado agregado por " + state.nombre + ".",
+      contenido: "## " + titulo + "\n\nEscribí acá la explicación, formal y sencilla, con un ejemplo.",
+      orden,
+      actualizado_por: state.nombre,
+      actualizado_en: now()
+    };
+
+    try {
+      if (state.sb) {
+        const { error } = await state.sb.from("temas_teoria").insert(tema);
+        if (error) throw error;
+      }
+      state.temas.push(tema);
+      state.temas.sort((a, b) => (a.orden || 0) - (b.orden || 0));
+      saveJSON(LS.temas, state.temas);
+      $("modal-apartado").classList.remove("show");
+      mostrarTema(tema.slug);
+      $("tema-contenido").classList.add("hidden");
+      $("editor-teoria").classList.remove("hidden");
+      $("teoria-titulo").value = tema.titulo;
+      $("teoria-resumen").value = tema.resumen;
+      $("teoria-md").focus();
+      toast("Apartado creado en " + clase + ".");
+    } catch (err) {
+      toast("No se pudo crear: " + err.message);
+    }
+  }
+
   function renderListaTemas() {
     const box = $("lista-temas");
-    box.innerHTML = state.temas.map((t) => `
-      <button class="topic-btn ${state.temaActual && state.temaActual.slug === t.slug ? "active" : ""}" data-slug="${t.slug}" type="button">
-        <small>${escapeHtml(t.clase)}</small>
-        ${escapeHtml(t.titulo)}
-      </button>
-    `).join("");
+    box.innerHTML = clasesDeTemas().map((clase) => {
+      const temas = state.temas.filter((t) => t.clase === clase);
+      const items = temas.map((t) => `
+        <button class="topic-btn ${state.temaActual && state.temaActual.slug === t.slug ? "active" : ""}" data-slug="${t.slug}" type="button">
+          ${escapeHtml(t.titulo)}
+        </button>
+      `).join("");
+      return `
+        <div class="clase-grupo">
+          <div class="clase-cab">
+            <strong>${escapeHtml(clase)}</strong>
+            <button class="btn-add-apartado" type="button" data-clase="${escapeHtml(clase)}">+ Apartado</button>
+          </div>
+          ${items || "<p class='hint'>Todavía no hay apartados.</p>"}
+        </div>
+      `;
+    }).join("");
     box.querySelectorAll(".topic-btn").forEach((btn) => {
       btn.onclick = () => mostrarTema(btn.dataset.slug);
+    });
+    box.querySelectorAll(".btn-add-apartado").forEach((btn) => {
+      btn.onclick = () => abrirModalApartado(btn.dataset.clase);
     });
   }
 
@@ -340,6 +445,8 @@
     $("tema-contenido").innerHTML = markdown(tema.contenido);
     $("tema-contenido").classList.remove("hidden");
     $("editor-teoria").classList.add("hidden");
+    $("teoria-titulo").value = tema.titulo || "";
+    $("teoria-resumen").value = tema.resumen || "";
     $("teoria-md").value = tema.contenido;
     renderListaTemas();
     renderRevisionesTema();
@@ -367,20 +474,27 @@
   async function guardarTeoria() {
     if (!exigeNombre() || !state.temaActual) return;
     const nuevo = $("teoria-md").value.trim();
+    const titulo = ($("teoria-titulo")?.value || state.temaActual.titulo || "").trim();
+    const resumen = ($("teoria-resumen")?.value || "").trim();
+    if (!titulo) return toast("El apartado necesita un título.");
     if (!nuevo) return toast("El tema no puede quedar vacío.");
     const anterior = state.temaActual.contenido;
-    if (anterior === nuevo) return toast("No hay cambios.");
+    if (anterior === nuevo && titulo === state.temaActual.titulo && resumen === (state.temaActual.resumen || "")) {
+      return toast("No hay cambios.");
+    }
 
     const rev = {
       id: uid(),
       tema_id: state.temaActual.id,
-      titulo: state.temaActual.titulo,
+      titulo,
       contenido_anterior: anterior,
       contenido_nuevo: nuevo,
       autor: state.nombre,
       creado_en: now()
     };
 
+    state.temaActual.titulo = titulo;
+    state.temaActual.resumen = resumen;
     state.temaActual.contenido = nuevo;
     state.temaActual.actualizado_por = state.nombre;
     state.temaActual.actualizado_en = now();
@@ -388,6 +502,8 @@
     try {
       if (state.sb) {
         const { error: e1 } = await state.sb.from("temas_teoria").update({
+          titulo,
+          resumen,
           contenido: nuevo,
           actualizado_por: state.nombre,
           actualizado_en: state.temaActual.actualizado_en
@@ -541,10 +657,10 @@
   async function chatAI(messages, { json = false } = {}) {
     const cfg = cfgAI();
     const proveedor = $("ai-proveedor").value || cfg.proveedor || "pollinations";
-    const clave = ($("ai-clave").value.trim() || cfg.clave || "").trim();
+    const clave = (cfg.clave || "").trim();
 
     if (proveedor === "groq") {
-      if (!clave) throw new Error("Falta la clave de Groq.");
+      if (!clave) throw new Error("Groq no está configurado en el repositorio.");
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -564,7 +680,7 @@
     }
 
     if (proveedor === "gemini") {
-      if (!clave) throw new Error("Falta la clave de Gemini.");
+      if (!clave) throw new Error("Gemini no está configurado en el repositorio.");
       const contents = messages
         .filter((m) => m.role !== "system")
         .map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
@@ -779,6 +895,9 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
 
   async function agregarReq() {
     if (!exigeNombre() || !state.sesionActual) return toast("Abrí un caso primero.");
+    if (mensajesDe(state.sesionActual.id).filter((m) => m.rol === "analista").length < 1) {
+      return toast("Primero debatan con la IA. Los requerimientos salen de esa conversación.");
+    }
     const enunciado = $("req-texto").value.trim();
     const tipo = $("req-tipo").value;
     if (!enunciado) return;
@@ -795,44 +914,137 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
       await upsert("requerimientos", row, LS.reqs, "reqs");
       $("req-texto").value = "";
       renderReqs();
+      toast("Requerimiento guardado. Queda en el historial para tus compañeros.");
     } catch (err) {
       toast("No se pudo guardar el requerimiento: " + err.message);
     }
   }
 
+  function parseJSONRespuesta(raw) {
+    const limpio = String(raw || "").replace(/```json|```/g, "").trim();
+    const inicio = limpio.indexOf("{");
+    const fin = limpio.lastIndexOf("}");
+    if (inicio < 0 || fin < inicio) throw new Error("La IA no devolvió un JSON usable.");
+    return JSON.parse(limpio.slice(inicio, fin + 1));
+  }
+
+  function promptCorreccionReq() {
+    return `Sos docente de ingeniería de requerimientos. Comparás el DEBATE (entrevista al gerente) con los REQUERIMIENTOS que escribieron los analistas.
+
+Reglas de un buen enunciado:
+- Atómico: una sola idea. Si hay dos acciones unidas con "y", partilo.
+- Verificable: se puede imaginar una prueba.
+- Sin ambigüedad: nada de "rápido", "amigable", "etc.", "flexible" sin criterio.
+- RF / necesidad / deseo / funcional / sistema: "El sistema debe" + verbo + objeto + condición observable.
+- RFN / expectativa / no_funcional: una cualidad medible (tiempo, disponibilidad, usabilidad).
+- Usuario: "El usuario quiere…" en lenguaje de negocio, sin diseño técnico.
+- No inventes hechos que no estén en el debate. Si falta en el debate, decilo.
+
+Devolvé SOLO un JSON válido con:
+{
+  "comparacion": "texto markdown: qué se debatió y se escribió bien; qué se debatió y no se escribió; qué se escribió y no salió del debate",
+  "correcciones": [
+    {
+      "id": "id del requerimiento original",
+      "codigo": "RF1",
+      "tipo": "necesidad|deseo|expectativa|usuario|sistema|funcional|no_funcional",
+      "enunciado_original": "...",
+      "enunciado_corregido": "...",
+      "motivo": "por qué se corrige"
+    }
+  ],
+  "faltantes": [
+    {
+      "tipo": "sistema",
+      "enunciado": "El sistema debe...",
+      "fundamento": "En el debate se dijo que..."
+    }
+  ]
+}
+Incluí todos los requerimientos en correcciones, aunque estén bien (enunciado_corregido igual al original y motivo "sin cambios").
+faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
+  }
+
+  function informeCorreccion(data, originales) {
+    const corr = (data.correcciones || []).map((c) => {
+      const cambio = (c.enunciado_original || "").trim() !== (c.enunciado_corregido || "").trim();
+      return `**${c.codigo || ""}** (${etiquetaTipo(c.tipo)})${cambio ? " — corregido" : " — bien"}\n- Original: ${c.enunciado_original || ""}\n- Corregido: ${c.enunciado_corregido || ""}\n- ${c.motivo || ""}`;
+    }).join("\n\n");
+    const faltan = (data.faltantes || []).map((f) =>
+      `- (${etiquetaTipo(f.tipo)}) ${f.enunciado}\n  Fundamento: ${f.fundamento || ""}`
+    ).join("\n");
+    const escritos = originales.map((r) => `- ${r.codigo} [${r.tipo}] (${r.autor}): ${r.enunciado}`).join("\n");
+    return [
+      "## Debate vs. lo escrito",
+      data.comparacion || "Sin comparación.",
+      "## Requerimientos que escribieron",
+      escritos || "Ninguno.",
+      "## Corrección (forma atómica y estructura)",
+      corr || "Sin correcciones.",
+      "## Lo debatido que no habían escrito",
+      faltan || "Nada evidente."
+    ].join("\n\n");
+  }
+
   async function corregirReqs() {
     if (!exigeNombre() || !state.sesionActual) return;
     const lista = reqsDe(state.sesionActual.id);
-    if (!lista.length) return toast("Carguen al menos un requerimiento.");
+    if (!lista.length) return toast("Escriban los requerimientos a partir del debate, después la IA los compara y corrige.");
+    if (mensajesDe(state.sesionActual.id).length < 3) {
+      return toast("Debatan un poco más con la IA antes de pedir la corrección.");
+    }
     if (state.aiBusy) return;
     state.aiBusy = true;
     $("btn-corregir-req").disabled = true;
     try {
-      const payload = lista.map((r) => `${r.codigo} [${r.tipo}] (${r.autor}): ${r.enunciado}`).join("\n");
-      const texto = await chatAI([
-        {
-          role: "system",
-          content: `Sos docente de ingeniería de requerimientos. Corregís enunciados del aula.
-Criterios: formato "El sistema debe…"; atomicidad; verificabilidad; ambigüedad (rápido, amigable, etc.);
-clasificación necesidad/deseo/expectativa y RF/RFN; usuario vs sistema.
-Señalá lo que está bien. Proponé una reescritura cuando haga falta.
-No inventes dominio que no esté en la entrevista. Español claro, con viñetas.`
-        },
+      const payload = lista.map((r) =>
+        `id=${r.id} | ${r.codigo} [${r.tipo}] (${r.autor}): ${r.enunciado}`
+      ).join("\n");
+      const raw = await chatAI([
+        { role: "system", content: promptCorreccionReq() },
         {
           role: "user",
-          content: `Caso: ${state.sesionActual.titulo}\nEntrevista:\n${transcripcion(state.sesionActual)}\n\nDominio:\n${JSON.stringify(dominioDe(state.sesionActual.id))}\n\nRequerimientos:\n${payload}`
+          content: `Caso: ${state.sesionActual.titulo}\n\nDEBATE:\n${transcripcion(state.sesionActual)}\n\nDOMINIO:\n${JSON.stringify(dominioDe(state.sesionActual.id))}\n\nREQUERIMIENTOS ESCRITOS:\n${payload}`
         }
-      ]);
-      $("feedback-ia").innerHTML = "<h3>Corrección de la IA</h3>" + markdown(texto);
+      ], { json: true });
+      const data = parseJSONRespuesta(raw);
+      const informe = informeCorreccion(data, lista);
+      $("feedback-ia").innerHTML = "<h3>Comparación y corrección</h3>" + markdown(informe);
+
+      for (const c of data.correcciones || []) {
+        const req = lista.find((r) => r.id === c.id) || lista.find((r) => r.codigo === c.codigo);
+        if (!req || !c.enunciado_corregido) continue;
+        req.enunciado = String(c.enunciado_corregido).trim();
+        if (c.tipo) req.tipo = c.tipo;
+        await upsert("requerimientos", req, LS.reqs, "reqs");
+      }
+
+      for (const f of data.faltantes || []) {
+        if (!f.enunciado) continue;
+        const tipo = f.tipo || "sistema";
+        const row = {
+          id: uid(),
+          sesion_id: state.sesionActual.id,
+          codigo: codigoReq(tipo, state.sesionActual.id),
+          tipo,
+          enunciado: String(f.enunciado).trim(),
+          autor: "IA · " + state.nombre,
+          creado_en: now()
+        };
+        await upsert("requerimientos", row, LS.reqs, "reqs");
+      }
+
       const rev = {
         id: uid(),
         sesion_id: state.sesionActual.id,
         requerimiento_id: null,
         autor: "IA · " + state.nombre,
-        comentario: texto,
+        comentario: informe,
         creado_en: now()
       };
       await upsert("revisiones_req", rev, LS.revisionesReq, "revisionesReq");
+      renderReqs();
+      toast("La IA comparó el debate, corrigió los enunciados y lo dejó en el historial.");
     } catch (err) {
       toast("No se pudo corregir: " + err.message);
     } finally {
@@ -856,12 +1068,15 @@ No inventes dominio que no esté en la entrevista. Español claro, con viñetas.
       box.innerHTML = "<p class='hint'>Aún no hay casos en el historial.</p>";
       return;
     }
-    box.innerHTML = lista.map((s) => `
+    box.innerHTML = lista.map((s) => {
+      const nMsg = mensajesDe(s.id).length;
+      const nReq = reqsDe(s.id).length;
+      return `
       <button class="session-btn ${state.sesionActual && state.sesionActual.id === s.id ? "active" : ""}" data-id="${s.id}" type="button">
         <strong>${escapeHtml(s.titulo)}</strong><br>
-        <small>${escapeHtml(s.creado_por)} · ${new Date(s.creado_en).toLocaleString("es-AR")}</small>
-      </button>
-    `).join("");
+        <small>${escapeHtml(s.creado_por)} · ${nMsg} mensajes · ${nReq} requerimientos</small>
+      </button>`;
+    }).join("");
     box.querySelectorAll(".session-btn").forEach((btn) => {
       btn.onclick = () => {
         state.sesionActual = state.sesiones.find((s) => s.id === btn.dataset.id);
@@ -877,7 +1092,7 @@ No inventes dominio que no esté en la entrevista. Español claro, con viñetas.
     if (!s) {
       $("hist-titulo").textContent = "Elegí un caso";
       $("hist-meta").textContent = "";
-      $("hist-cuerpo").innerHTML = "<p class='hint'>Acá se ve la entrevista completa, el dominio y los requerimientos que escribió cada compañero, más las correcciones de la IA.</p>";
+      $("hist-cuerpo").innerHTML = "<p class='hint'>Elegí un caso para ver el debate con la IA, los requerimientos que escribió cada compañero y cómo los corrigió la IA.</p>";
       return;
     }
     $("hist-kicker").textContent = s.organizacion;
@@ -903,12 +1118,12 @@ No inventes dominio que no esté en la entrevista. Español claro, con viñetas.
       <p><strong>Hoy.</strong> ${escapeHtml(d.hoy || "sin cargar")}</p>
       <p><strong>Objetivo.</strong> ${escapeHtml(d.objetivo || "sin cargar")}</p>
       <p><strong>Desconocido.</strong> ${escapeHtml(d.desconocido || "sin cargar")}</p>
-      <h3>Debate</h3>
-      ${msgs || "<p class='hint'>Sin mensajes.</p>"}
-      <h3>Requerimientos</h3>
-      <ul>${reqs || "<li>Todavía no hay.</li>"}</ul>
-      <h3>Correcciones</h3>
-      ${revs || "<p class='hint'>Nadie pidió corrección todavía.</p>"}
+      <h3>1. Debate con la IA</h3>
+      ${msgs || "<p class='hint'>Todavía no debatieron.</p>"}
+      <h3>2. Requerimientos (versión actual, ya corregida si pidieron corrección)</h3>
+      <ul>${reqs || "<li>Todavía no escribieron requerimientos.</li>"}</ul>
+      <h3>3. Comparación y corrección</h3>
+      ${revs || "<p class='hint'>Todavía no compararon el debate con lo escrito.</p>"}
     `;
     const seguir = $("btn-seguir-caso");
     if (seguir) seguir.onclick = () => {
@@ -930,29 +1145,23 @@ No inventes dominio que no esté en la entrevista. Español claro, con viñetas.
   }
 
   function pintarAjustesAI() {
-    const saved = loadJSON(LS.ai, { proveedor: "", clave: "" });
+    const saved = loadJSON(LS.ai, { proveedor: "" });
     const g = cfgGlobal();
     $("ai-proveedor").value = saved.proveedor || g.aiProvider || "pollinations";
-    $("ai-clave").value = saved.clave || "";
     const cfg = cfgAI();
     if (cfg.proveedor === "pollinations") {
-      $("ai-estado").textContent = "Modelo activo: Pollinations. No hace falta clave.";
-    } else if (cfg.deRepositorio) {
-      $("ai-estado").textContent = "Modelo del aula configurado en el repositorio.";
+      $("ai-estado").textContent = "Modelo activo: Pollinations.";
     } else if (cfg.clave) {
-      $("ai-estado").textContent = "Usando la clave que cargaste en este navegador.";
+      $("ai-estado").textContent = "Modelo activo: " + cfg.proveedor + ".";
     } else {
-      $("ai-estado").textContent = "Falta una clave para " + cfg.proveedor + ".";
+      $("ai-estado").textContent = "Ese modelo necesita la clave del repositorio. Pedile al docente que cargue AI_KEY o usá Pollinations.";
     }
   }
 
   function guardarAI() {
-    saveJSON(LS.ai, {
-      proveedor: $("ai-proveedor").value,
-      clave: $("ai-clave").value.trim()
-    });
+    saveJSON(LS.ai, { proveedor: $("ai-proveedor").value });
     pintarAjustesAI();
-    toast("Preferencia de modelo guardada en este navegador.");
+    toast("Modelo guardado en este navegador.");
   }
 
   async function probarAI() {
@@ -994,6 +1203,11 @@ No inventes dominio que no esté en la entrevista. Español claro, con viñetas.
     };
     $("btn-cancelar-teoria").onclick = () => mostrarTema(state.temaActual.slug);
     $("btn-guardar-teoria").onclick = guardarTeoria;
+    $("btn-crear-apartado").onclick = crearApartado;
+    $("btn-cancelar-apartado").onclick = () => $("modal-apartado").classList.remove("show");
+    $("nuevo-titulo").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") crearApartado();
+    });
     $("btn-ver-cambios").onclick = () => {
       $("revisiones-teoria").classList.toggle("hidden");
       renderRevisionesTema();
@@ -1021,10 +1235,13 @@ No inventes dominio que no esté en la entrevista. Español claro, con viñetas.
     $("filtro-autor").addEventListener("input", renderListaSesiones);
     $("btn-guardar-ai").onclick = guardarAI;
     $("btn-probar-ai").onclick = probarAI;
+    $("btn-tema-oscuro").onclick = () => aplicarTema("dark");
+    $("btn-tema-claro").onclick = () => aplicarTema("light");
   }
 
   async function init() {
     eventos();
+    aplicarTema(localStorage.getItem(LS.tema) || temaActual());
     renderNombre();
     if (!state.nombre) $("modal-nombre").classList.add("show");
     await cargarScriptOpcional("./config.local.js");
