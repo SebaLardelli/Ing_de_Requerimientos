@@ -74,11 +74,11 @@ a { color: var(--accent); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 22px;
+  gap: 18px;
+  padding: 12px 22px;
   background: var(--header);
   border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
 }
 
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -124,30 +124,39 @@ a { color: var(--accent); }
 
 .who {
   display: flex; align-items: center; gap: 10px;
-  padding: 6px 8px 6px 12px;
-  background: var(--paper-2);
+  padding: 4px 6px 4px 10px;
+  background: transparent;
   border: 1px solid var(--line);
   border-radius: 999px;
 }
-.who b { font-size: 0.92rem; }
-.who span { color: var(--muted); font-size: 0.78rem; }
+.who b { font-size: 0.88rem; font-weight: 500; }
+.who span { color: var(--muted); font-size: 0.74rem; }
 
 .tabs {
-  display: flex; gap: 6px; flex-wrap: wrap;
-  padding: 12px 22px 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  justify-content: center;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-fade);
+  max-width: 520px;
 }
 .tab {
-  border: 1px solid transparent;
+  border: 0;
   background: transparent;
   color: var(--muted);
-  padding: 8px 12px;
-  border-radius: 10px 10px 0 0;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  letter-spacing: 0.01em;
 }
+.tab:hover { color: var(--ink); }
 .tab.active {
-  background: var(--paper-2);
+  background: var(--accent-fade);
   color: var(--ink);
-  border-color: var(--line);
-  border-bottom-color: var(--paper-2);
 }
 
 .panel { display: none; padding: 0 22px 40px; }
@@ -184,33 +193,43 @@ a { color: var(--accent); }
   font-family: var(--serif);
   margin: 0 0 8px;
 }
-.topic-list { display: flex; flex-direction: column; gap: 14px; max-height: 68vh; overflow: auto; }
-.clase-grupo { display: flex; flex-direction: column; gap: 6px; }
+.topic-list { display: flex; flex-direction: column; gap: 18px; max-height: 68vh; overflow: auto; padding-right: 4px; }
+.clase-grupo { display: flex; flex-direction: column; gap: 2px; }
 .clase-cab {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  margin-bottom: 2px;
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 6px;
 }
 .clase-cab strong {
-  font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500;
 }
 .btn-add-apartado {
-  border: 1px dashed var(--accent-fade);
-  background: var(--accent-dim);
+  border: 0;
+  background: transparent;
   color: var(--accent);
-  border-radius: 8px;
-  padding: 4px 8px;
-  font-size: 0.75rem;
+  opacity: 0.7;
+  border-radius: 6px;
+  padding: 2px 4px;
+  font-size: 0.72rem;
 }
+.btn-add-apartado:hover { opacity: 1; background: var(--accent-dim); }
 .topic-btn {
   text-align: left;
-  border: 1px solid transparent;
-  background: var(--paper-3);
-  color: var(--ink);
-  border-radius: 10px;
-  padding: 9px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: 8px;
+  padding: 8px 10px;
+  border-left: 2px solid transparent;
 }
+.topic-btn:hover { color: var(--ink); background: var(--accent-dim); }
 .topic-btn small { display: block; color: var(--muted); }
-.topic-btn.active { border-color: var(--accent-fade); background: var(--accent-dim); }
+.topic-btn.active {
+  color: var(--ink);
+  background: var(--accent-dim);
+  border-left-color: var(--accent);
+}
 
 .article { padding: 22px 26px 28px; }
 .article-head {
@@ -357,9 +376,12 @@ html[data-theme="light"] .modal-back { background: rgba(28, 25, 21, 0.35); }
 }
 html[data-theme="dark"] .toast { color: #0f1110; }
 
+@media (max-width: 1100px) {
+  .app-header { flex-wrap: wrap; }
+  .tabs { order: 3; flex: 1 1 100%; max-width: none; justify-content: flex-start; }
+}
 @media (max-width: 980px) {
   .layout, .taller, .history-grid, .diff { grid-template-columns: 1fr; }
   .side { position: static; }
-  .app-header { flex-wrap: wrap; }
   .chat { height: auto; min-height: 520px; }
 }

@@ -126,12 +126,21 @@
     };
   }
 
+  function claveDelModelo(proveedor) {
+    const g = cfgGlobal();
+    if (proveedor === "groq") return (g.aiKeyGroq || g.aiKey || "").trim();
+    if (proveedor === "gemini") return (g.aiKeyGemini || "").trim();
+    return "";
+  }
+
   function cfgAI() {
     const saved = loadJSON(LS.ai, { proveedor: "" });
     const g = cfgGlobal();
+    const select = $("ai-proveedor");
+    const proveedor = (select && select.value) || saved.proveedor || g.aiProvider || "pollinations";
     return {
-      proveedor: saved.proveedor || g.aiProvider || "pollinations",
-      clave: (g.aiKey || "").trim()
+      proveedor,
+      clave: claveDelModelo(proveedor)
     };
   }
 
@@ -1153,8 +1162,10 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
       $("ai-estado").textContent = "Modelo activo: Pollinations.";
     } else if (cfg.clave) {
       $("ai-estado").textContent = "Modelo activo: " + cfg.proveedor + ".";
+    } else if (cfg.proveedor === "groq") {
+      $("ai-estado").textContent = "Falta el secreto AI_KEY_GROQ (o el AI_KEY viejo de Groq).";
     } else {
-      $("ai-estado").textContent = "Ese modelo necesita la clave del repositorio. Pedile al docente que cargue AI_KEY o usá Pollinations.";
+      $("ai-estado").textContent = "Falta el secreto AI_KEY_GEMINI.";
     }
   }
 
@@ -1234,6 +1245,7 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
     $("btn-corregir-req").onclick = corregirReqs;
     $("filtro-autor").addEventListener("input", renderListaSesiones);
     $("btn-guardar-ai").onclick = guardarAI;
+    $("ai-proveedor").addEventListener("change", pintarAjustesAI);
     $("btn-probar-ai").onclick = probarAI;
     $("btn-tema-oscuro").onclick = () => aplicarTema("dark");
     $("btn-tema-claro").onclick = () => aplicarTema("light");

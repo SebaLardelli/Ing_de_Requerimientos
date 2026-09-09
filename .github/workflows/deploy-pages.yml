@@ -30,6 +30,8 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY }}
           AI_PROVIDER: ${{ vars.AI_PROVIDER }}
           AI_KEY: ${{ secrets.AI_KEY }}
+          AI_KEY_GROQ: ${{ secrets.AI_KEY_GROQ }}
+          AI_KEY_GEMINI: ${{ secrets.AI_KEY_GEMINI }}
         run: node scripts/write-config.mjs
 
       - name: Subir sitio

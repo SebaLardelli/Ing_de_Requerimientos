@@ -8,7 +8,9 @@ const config = {
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
   aiProvider: process.env.AI_PROVIDER || "pollinations",
-  aiKey: process.env.AI_KEY || ""
+  aiKey: process.env.AI_KEY || "",
+  aiKeyGroq: process.env.AI_KEY_GROQ || "",
+  aiKeyGemini: process.env.AI_KEY_GEMINI || ""
 };
 
 writeFileSync(

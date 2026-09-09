@@ -5,5 +5,7 @@ window.IR_CONFIG = {
   supabaseUrl: "",
   supabaseAnonKey: "",
   aiProvider: "pollinations",
-  aiKey: ""
+  aiKey: "",
+  aiKeyGroq: "",
+  aiKeyGemini: ""
 };

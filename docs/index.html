@@ -37,14 +37,13 @@
         <button class="btn small" id="btn-nombre" type="button">Registrar nombre</button>
       </div>
     </div>
+    <nav class="tabs" aria-label="Secciones">
+      <button class="tab active" data-tab="teoria" type="button">Teoría</button>
+      <button class="tab" data-tab="taller" type="button">Taller</button>
+      <button class="tab" data-tab="historial" type="button">Historial</button>
+      <button class="tab" data-tab="ajustes" type="button">Ajustes</button>
+    </nav>
   </header>
-
-  <nav class="tabs" aria-label="Secciones">
-    <button class="tab active" data-tab="teoria" type="button">Teoría</button>
-    <button class="tab" data-tab="taller" type="button">Taller de análisis</button>
-    <button class="tab" data-tab="historial" type="button">Historial</button>
-    <button class="tab" data-tab="ajustes" type="button">Ajustes y despliegue</button>
-  </nav>
 
   <main>
     <section id="panel-teoria" class="panel active">
@@ -194,7 +193,7 @@
           <div class="kicker">Aula compartida</div>
           <h2>Conexión del laboratorio</h2>
           <p class="hint">La URL y las claves de Supabase no se muestran ni se guardan en el repositorio. El docente las carga como secretos de GitHub; al publicar, el sitio las usa sin exponerlas en el código.</p>
-          <p class="hint">En el repositorio: <strong>Settings → Secrets and variables → Actions</strong>. Secretos: <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>. Opcional: <code>AI_KEY</code>. Variable: <code>AI_PROVIDER</code> (pollinations, groq o gemini).</p>
+          <p class="hint">En el repositorio: <strong>Settings → Secrets and variables → Actions</strong>. Secretos: <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, <code>AI_KEY_GROQ</code>, <code>AI_KEY_GEMINI</code>. Variable: <code>AI_PROVIDER</code> (pollinations, groq o gemini). El <code>AI_KEY</code> viejo sigue valiendo como respaldo de Groq.</p>
           <p class="hint">Después: <strong>Settings → Pages → Source → GitHub Actions</strong>. Cada push vuelve a publicar el laboratorio.</p>
           <div class="row" style="margin-top:12px">
             <span id="sb-estado" class="hint"><span class="status-dot" id="sb-dot"></span> <span id="sb-texto">Todavía no hay aula remota. El trabajo queda en este navegador.</span></span>
@@ -203,7 +202,7 @@
         <article class="card article">
           <div class="kicker">Modelo de IA</div>
           <h2>Debate sobre el dominio, sin pagar</h2>
-          <p class="hint">Elegí el modelo. La clave la carga el docente en los secretos del repositorio; acá no se pide ni se guarda ninguna API key.</p>
+          <p class="hint">Elegí el modelo. Groq y Gemini usan cada uno su secreto en el repositorio. Pollinations no necesita clave.</p>
           <div class="field">
             <label for="ai-proveedor">Modelo</label>
             <select id="ai-proveedor">
