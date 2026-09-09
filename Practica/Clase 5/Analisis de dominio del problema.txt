@@ -1,0 +1,14 @@
+ENTREGA 1 – DOMINIO DEL PROBLEMA
+Etapa 1
+El grupo deberá elaborar el enunciado del dominio del problema que utilizará como caso de estudio durante todo el Trabajo Práctico.
+
+El enunciado deberá permitir comprender:
+
+el contexto en el que se encuentra el problema;
+la organización, institución o ámbito involucrado;
+la situación o necesidad que da origen al proyecto;
+cómo se realizan actualmente las actividades relacionadas con el problema;
+el objetivo general del sistema que se pretende desarrollar.
+También podrán señalar información que aún no conocen y que sería necesario obtener.
+
+En esta etapa el objetivo es comprender el problema. No se espera que el grupo defina todavía todos los requerimientos del sistema.

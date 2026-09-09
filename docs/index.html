@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Laboratorio de Ingeniería de Requerimientos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="mark">IR</div>
+      <div>
+        <h1>Laboratorio de Requerimientos</h1>
+        <p>Teoría compartida · entrevista al dominio · especificación</p>
+      </div>
+    </div>
+    <div class="who">
+      <div>
+        <span>Trabajás como</span>
+        <b id="nombre-actual">sin registrar</b>
+      </div>
+      <button class="btn small" id="btn-nombre" type="button">Registrar nombre</button>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Secciones">
+    <button class="tab active" data-tab="teoria" type="button">Teoría</button>
+    <button class="tab" data-tab="taller" type="button">Taller de análisis</button>
+    <button class="tab" data-tab="historial" type="button">Historial del aula</button>
+    <button class="tab" data-tab="ajustes" type="button">Ajustes y despliegue</button>
+  </nav>
+
+  <main>
+    <section id="panel-teoria" class="panel active">
+      <div class="layout">
+        <aside class="card side">
+          <h2>Temas</h2>
+          <p class="hint">Cualquier compañero puede editar. El cambio se guarda para todos y queda el rastro.</p>
+          <div id="lista-temas" class="topic-list"></div>
+        </aside>
+        <article class="card article">
+          <div class="article-head">
+            <div>
+              <div class="kicker" id="tema-clase"></div>
+              <h2 id="tema-titulo"></h2>
+            </div>
+            <div class="row">
+              <button class="btn" id="btn-editar-teoria" type="button">Editar</button>
+              <button class="btn ghost" id="btn-ver-cambios" type="button">Qué cambió</button>
+            </div>
+          </div>
+          <p class="lead" id="tema-resumen"></p>
+          <div id="tema-contenido" class="content"></div>
+          <div id="editor-teoria" class="hidden">
+            <label class="hint" for="teoria-md">Editá en texto (podés usar títulos con ## y listas con -).</label>
+            <textarea id="teoria-md" class="editor"></textarea>
+            <div class="row" style="margin-top:10px">
+              <button class="btn primary" id="btn-guardar-teoria" type="button">Guardar para el aula</button>
+              <button class="btn ghost" id="btn-cancelar-teoria" type="button">Cancelar</button>
+            </div>
+          </div>
+          <div id="revisiones-teoria" class="rev hidden">
+            <h3>Historial de ediciones</h3>
+            <div id="lista-revisiones"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="panel-taller" class="panel">
+      <div class="taller">
+        <div class="card block chat">
+          <div class="row" style="justify-content:space-between">
+            <div>
+              <div class="kicker">Entrevista</div>
+              <h2 id="sesion-titulo">Todavía no hay un caso abierto</h2>
+              <p class="hint" id="sesion-meta">Elegí un escenario o pedile a la IA uno nuevo. Vos preguntás como analista; la IA responde como gerente y no entrega todo de una vez.</p>
+            </div>
+          </div>
+          <div class="row" style="margin:10px 0">
+            <button class="btn primary" id="btn-caso-nuevo" type="button">Nuevo caso (IA)</button>
+            <button class="btn" id="btn-caso-hospital" type="button">Hospital</button>
+            <button class="btn" id="btn-caso-biblioteca" type="button">Biblioteca</button>
+          </div>
+          <div id="chat-log" class="chat-log"></div>
+          <div class="composer">
+            <textarea id="pregunta" placeholder="Preguntá por el contexto, cómo trabajan hoy, quién decide, qué significa una palabra del negocio…"></textarea>
+            <button class="btn primary" id="btn-preguntar" type="button">Preguntar</button>
+          </div>
+        </div>
+
+        <div class="card block">
+          <div class="kicker">Especificación</div>
+          <h2>Dominio y requerimientos</h2>
+          <p class="hint">Primero el dominio (etapa 1). Después los requerimientos, con el formato de la práctica: RF / RFN, necesidades, deseos, expectativas, usuario o sistema.</p>
+
+          <div class="field">
+            <label for="dom-contexto">Contexto</label>
+            <textarea id="dom-contexto" rows="2" placeholder="Ámbito, momento, presión que da origen al proyecto"></textarea>
+          </div>
+          <div class="field">
+            <label for="dom-org">Organización</label>
+            <textarea id="dom-org" rows="2" placeholder="Institución, sectores, quién encarga el sistema"></textarea>
+          </div>
+          <div class="field">
+            <label for="dom-hoy">Cómo se hace hoy</label>
+            <textarea id="dom-hoy" rows="2" placeholder="Actividades actuales, herramientas, dolores"></textarea>
+          </div>
+          <div class="field">
+            <label for="dom-objetivo">Objetivo general del sistema</label>
+            <textarea id="dom-objetivo" rows="2" placeholder="Para qué se pretende construir"></textarea>
+          </div>
+          <div class="field">
+            <label for="dom-desconocido">Lo que todavía no sabemos</label>
+            <textarea id="dom-desconocido" rows="2" placeholder="Información que falta obtener"></textarea>
+          </div>
+          <div class="row">
+            <button class="btn" id="btn-guardar-dominio" type="button">Guardar dominio</button>
+            <button class="btn ghost" id="btn-sintesis-ia" type="button">Pedir síntesis a la IA</button>
+          </div>
+
+          <h3 style="margin-top:18px">Requerimientos</h3>
+          <p class="hint">Ejemplo: <code>El sistema debe registrar cada préstamo con usuario, ejemplar y fecha límite.</code></p>
+          <div class="req-form">
+            <select id="req-tipo">
+              <option value="necesidad">Necesidad (RF)</option>
+              <option value="deseo">Deseo (RF)</option>
+              <option value="expectativa">Expectativa (RFN)</option>
+              <option value="usuario">Usuario</option>
+              <option value="sistema">Sistema</option>
+              <option value="funcional">Funcional (RF)</option>
+              <option value="no_funcional">No funcional (RFN)</option>
+            </select>
+            <input id="req-texto" placeholder="El sistema debe…" />
+          </div>
+          <div class="row">
+            <button class="btn primary" id="btn-agregar-req" type="button">Agregar</button>
+            <button class="btn" id="btn-corregir-req" type="button">Que la IA corrija</button>
+          </div>
+          <div id="lista-req" class="req-list" style="margin-top:12px"></div>
+          <div id="feedback-ia" class="content" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-historial" class="panel">
+      <div class="history-grid">
+        <aside class="card block">
+          <h2>Casos del aula</h2>
+          <p class="hint">Conversaciones, dominio y requerimientos de todos. Filtrá por compañero si hace falta.</p>
+          <input id="filtro-autor" placeholder="Filtrar por nombre" style="width:100%;margin:8px 0 12px;padding:8px 10px;border:1px solid var(--line);border-radius:10px" />
+          <div id="lista-sesiones" class="session-list"></div>
+        </aside>
+        <article class="card block">
+          <div class="kicker" id="hist-kicker">Detalle</div>
+          <h2 id="hist-titulo">Elegí un caso</h2>
+          <p class="hint" id="hist-meta"></p>
+          <div id="hist-cuerpo" class="content"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="panel-ajustes" class="panel">
+      <div class="layout">
+        <article class="card article">
+          <div class="kicker">Aula compartida</div>
+          <h2>Conexión del laboratorio</h2>
+          <p class="hint">La URL y las claves de Supabase no se muestran ni se guardan en el repositorio. El docente las carga como secretos de GitHub; al publicar, el sitio las usa sin exponerlas en el código.</p>
+          <p class="hint">En el repositorio: <strong>Settings → Secrets and variables → Actions</strong>. Secretos: <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>. Opcional: <code>AI_KEY</code>. Variable: <code>AI_PROVIDER</code> (pollinations, groq o gemini).</p>
+          <p class="hint">Después: <strong>Settings → Pages → Source → GitHub Actions</strong>. Cada push vuelve a publicar el laboratorio.</p>
+          <div class="row" style="margin-top:12px">
+            <span id="sb-estado" class="hint"><span class="status-dot" id="sb-dot"></span> <span id="sb-texto">Todavía no hay aula remota. El trabajo queda en este navegador.</span></span>
+          </div>
+        </article>
+        <article class="card article">
+          <div class="kicker">Modelo de IA</div>
+          <h2>Debate sobre el dominio, sin pagar</h2>
+          <p class="hint">Pollinations no pide clave. Si el docente cargó Groq o Gemini en los secretos del repo, el aula ya los usa. Si querés, podés poner una clave propia solo en tu navegador.</p>
+          <div class="field">
+            <label for="ai-proveedor">Proveedor</label>
+            <select id="ai-proveedor">
+              <option value="pollinations">Pollinations (sin clave)</option>
+              <option value="groq">Groq · Llama 3.3</option>
+              <option value="gemini">Google Gemini Flash</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ai-clave">Clave propia (opcional, solo este navegador)</label>
+            <input id="ai-clave" type="password" placeholder="Si el aula ya tiene modelo, podés dejarlo vacío" autocomplete="off" />
+          </div>
+          <div class="row">
+            <button class="btn primary" id="btn-guardar-ai" type="button">Guardar preferencia</button>
+            <button class="btn" id="btn-probar-ai" type="button">Probar IA</button>
+          </div>
+          <p class="hint" id="ai-estado"></p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-back" id="modal-nombre">
+    <div class="modal">
+      <h2 style="font-family:var(--serif);margin:0 0 8px">¿Cómo te registrás en el aula?</h2>
+      <p class="hint">El nombre viaja con tus ediciones, preguntas y requerimientos. Tus compañeros van a ver quién escribió cada cosa.</p>
+      <div class="field">
+        <label for="input-nombre">Nombre y apellido</label>
+        <input id="input-nombre" placeholder="Ana Pérez" />
+      </div>
+      <div class="row">
+        <button class="btn primary" id="btn-guardar-nombre" type="button">Entrar al laboratorio</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="./theory.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

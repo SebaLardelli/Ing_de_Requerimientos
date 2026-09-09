@@ -1,0 +1,21 @@
+Cada grupo tiene que responder:
+
+1.¿Qué es?
+
+2.¿Cómo funciona?
+
+3.¿Qué lugar ocupan los requerimientos?
+
+4.¿Qué ventaja presenta?
+
+5.¿Qué dificultad presenta?
+
+6.¿Por qué debería importarle esto a un analista de requerimientos?
+
+7.Un ejemplo sencillo.
+
+
+
+Imaginen que ustedes son los especialistas invitados al Congreso de Ingeniería de Requerimientos. Tienen 3 minutos para convencer al resto de que entiendan su tema.
+
+Metodologias SCRUM, Modelado en V, RUP, Plano arquitectónico del software, scrum vs rup, equipos distribuidos

@@ -1,0 +1,61 @@
+Contenido de la evaluación
+Pregunta 1
+1
+Ensayo
+Considerar el ejercicio del Sistema de la Biblioteca de la Facultad de clase anterior
+
+Enunciar al menos tres ejemplos de:
+
+• Necesidades
+
+• Deseos
+
+• Expectativas
+
+Respuesta
+Necesidades
+RF1: El sistema debe permitir registrar el préstamo y la devolución de material bibliográfico.
+RF2: El sistema debe llevar un registro actualizado del stock disponible de cada material.
+RF3: El sistema debe identificar a cada usuario (alumno, docente, no docente) para asociarlo a los préstamos que realiza.
+Deseos
+RF4: El sistema debe enviar notificaciones automáticas por correo electrónico recordando la fecha de vencimiento de un préstamo.
+RF5: El sistema debe permitir al usuario reservar un libro en línea antes de acercarse físicamente a la biblioteca.
+RF6: El sistema debe sugerir material relacionado según el historial de préstamos del usuario.
+Expectativas
+RFN1: El sistema debe responder una consulta de disponibilidad de un libro en un tiempo prácticamente instantáneo (rendimiento).
+RFN2: El sistema debe estar disponible durante todo el horario de atención de la biblioteca, sin caídas frecuentes (disponibilidad).
+RFN3: El sistema debe contar con una interfaz simple e intuitiva, que no requiera capacitación previa para el personal (usabilidad).
+Pregunta 2
+2
+Ensayo
+Explique las diferencias entre los requerimientos del usuario y los requerimientos del sistema
+
+Respuesta
+Los requerimientos del usuario son enunciados de alto nivel, en lenguaje natural, que describen lo que el usuario necesita del sistema, sin entrar en detalle técnico.
+
+Los requerimientos del sistema son la traducción técnica y detallada de esos requerimientos, que especifican con precisión cómo debe comportarse el sistema para satisfacer esa necesidad, sirviendo de base para el diseño y desarrollo.
+
+
+
+Ambos tipos de requerimientos surgen del mismo proceso de comunicación con clientes y stakeholders (entrevistas, reuniones, talleres), ya que son ellos quienes conocen el problema. La diferencia está en que el analista es quien interpreta esa información y define el perfil de cada requerimiento. Si queda como una necesidad de alto nivel (usuario) o se traduce en una especificación técnica precisa (sistema), sirviendo esta última de base para el diseño y desarrollo.
+
+Pregunta 3
+3
+Ensayo
+Considerar el ejercicio del Sistema de la Biblioteca de la Facultad de clase anterior.
+
+Enunciar al menos tres ejemplos de:
+
+• Requerimientos del usuario
+
+• Requerimientos del sistema
+
+Respuesta
+Requerimientos del Usuario
+El usuario quiere registrar el préstamo y la devolución de un material bibliográfico de forma rápida.
+El usuario quiere consultar si un libro está disponible antes de acercarse a la biblioteca.
+El usuario quiere recibir un aviso de cuando se acerca la fecha de vencimiento de un préstamo, para evitar sanciones.
+Requerimientos del Sistema
+El sistema debe registrar cada préstamo indicando usuario, ejemplar, fecha de préstamo y fecha límite de devolución.
+El sistema debe actualizar automáticamente el estado del ejemplar como disponible o prestado.
+El sistema debe notificar por correo al usuario 48 horas antes del vencimiento del préstamo.
