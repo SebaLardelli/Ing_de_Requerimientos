@@ -219,13 +219,6 @@
     };
   }
 
-  function mergePorId(remoto, local) {
-    const map = new Map();
-    (local || []).forEach((x) => { if (x?.id) map.set(String(x.id), x); });
-    (remoto || []).forEach((x) => { if (x?.id) map.set(String(x.id), { ...(map.get(String(x.id)) || {}), ...x }); });
-    return [...map.values()].sort((a, b) => String(b.creado_en || "").localeCompare(String(a.creado_en || "")));
-  }
-
   function uuidONuevo(id, remap) {
     if (!id) return id;
     const raw = String(id);
@@ -310,7 +303,6 @@
     if (!state._pulsoAula) {
       state._pulsoAula = setInterval(() => refrescarAula(), 8000);
     }
-    vaciarHistorialAula().catch(() => {});
     pintarEstadoAula();
     return true;
   }
@@ -349,27 +341,6 @@
     if (localStorage.getItem(LS.wipeTrabajos) === WIPE_TRABAJOS) return;
     vaciarHistorialLocal();
     localStorage.setItem(LS.wipeTrabajos, WIPE_TRABAJOS);
-  }
-
-  async function vaciarHistorialAula() {
-    if (!state.sb) return;
-    const corte = "2026-09-10T02:20:00.000Z";
-    const pasos = [
-      ["revisiones_req", "creado_en"],
-      ["requerimientos", "creado_en"],
-      ["mensajes", "creado_en"],
-      ["dominios", "actualizado_en"],
-      ["sesiones", "creado_en"]
-    ];
-    let fallo = "";
-    for (const [tabla, col] of pasos) {
-      const { error: e } = await state.sb.from(tabla).delete().lt(col, corte);
-      if (e) fallo = e.message;
-    }
-    if (fallo) {
-      state.aulaError = "No se pudo vaciar Trabajos: " + fallo;
-      pintarEstadoAula();
-    }
   }
 
   function pintarEstadoAula() {
@@ -450,42 +421,6 @@
     if (tabla === "revisiones_req") return filaRev(row);
     if (tabla === "dominios") return filaDominio(row);
     return row;
-  }
-
-  async function subirLocalAlAula() {
-    if (!state.sb) return;
-    let primerError = "";
-    const marcar = (error) => {
-      if (error && !primerError) primerError = error.message;
-    };
-    const sesiones = loadJSON(LS.sesiones, state.sesiones || []);
-    for (const s of sesiones) {
-      const { error } = await state.sb.from("sesiones").upsert(filaSesion(s));
-      marcar(error);
-    }
-    for (const m of loadJSON(LS.mensajes, state.mensajes || [])) {
-      const { error } = await state.sb.from("mensajes").upsert(filaMensaje(m));
-      marcar(error);
-    }
-    for (const r of loadJSON(LS.reqs, state.reqs || [])) {
-      const { error } = await state.sb.from("requerimientos").upsert(filaReq(r));
-      marcar(error);
-    }
-    for (const r of loadJSON(LS.revisionesReq, state.revisionesReq || [])) {
-      const { error } = await state.sb.from("revisiones_req").upsert(filaRev(r));
-      marcar(error);
-    }
-    const dominios = Object.values(loadJSON(LS.dominios, state.dominios || {}));
-    for (const d of dominios) {
-      if (!d.sesion_id) continue;
-      const { error } = await state.sb.from("dominios").upsert(filaDominio(d));
-      marcar(error);
-    }
-    if (primerError) {
-      state.aulaError = primerError;
-      toast("No se pudieron compartir las prácticas: " + primerError);
-    }
-    pintarEstadoAula();
   }
 
   function escucharRealtime() {
