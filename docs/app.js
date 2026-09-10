@@ -939,11 +939,11 @@
     if (proveedor === "gemini") {
       if (!clave) throw new Error("Falta la clave de Gemini en el repo (secreto AI_KEY_GEMINI). La de Groq no sirve para Gemini.");
       const { system, contents } = contenidosGemini(messages);
-      const modelos = ["gemini-2.0-flash-lite", "gemini-2.0-flash"];
+      const modelos = ["gemini-3.6-flash", "gemini-3.5-flash"];
       let ultimoError = "Gemini rechazó el pedido.";
       for (const model of modelos) {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 12000);
+        const timer = setTimeout(() => ctrl.abort(), 14000);
         let res;
         let data = {};
         try {
@@ -957,6 +957,7 @@
               generationConfig: {
                 maxOutputTokens: json ? 700 : 220,
                 temperature: 0.7,
+                thinkingConfig: { thinkingLevel: "MINIMAL" },
                 ...(json ? { responseMimeType: "application/json" } : {})
               }
             })
@@ -1467,7 +1468,7 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
   }
 
   function etiquetaModelo(proveedor) {
-    return proveedor === "gemini" ? "Modelo activo: Gemini Flash Lite." : "Modelo activo: Groq (rápido).";
+    return proveedor === "gemini" ? "Modelo activo: Gemini 3.6 Flash." : "Modelo activo: Groq (rápido).";
   }
 
   function pintarAjustesAI() {
