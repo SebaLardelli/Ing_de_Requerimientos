@@ -292,6 +292,7 @@ a { color: var(--accent); }
 .article-head {
   display: flex; justify-content: space-between; gap: 16px;
   align-items: flex-start; margin-bottom: 16px;
+  scroll-margin-top: 12px;
 }
 .kicker {
   display: block;

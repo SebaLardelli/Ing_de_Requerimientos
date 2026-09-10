@@ -808,14 +808,23 @@
       `;
     }).join("");
     box.querySelectorAll(".topic-btn").forEach((btn) => {
-      btn.onclick = () => mostrarTema(btn.dataset.slug);
+      btn.onclick = () => mostrarTema(btn.dataset.slug, { ir: true });
     });
     box.querySelectorAll(".btn-add-apartado").forEach((btn) => {
       btn.onclick = () => abrirModalApartado(btn.dataset.clase);
     });
   }
 
-  function mostrarTema(slug) {
+  function llevarAlTema() {
+    const art = $("tema-leido") || document.querySelector("#panel-teoria .article");
+    if (!art) return;
+    const rect = art.getBoundingClientRect();
+    const visible = rect.top < window.innerHeight * 0.42 && rect.bottom > 140;
+    if (visible) return;
+    art.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function mostrarTema(slug, { ir = false } = {}) {
     const tema = state.temas.find((t) => t.slug === slug) || state.temas[0];
     if (!tema) return;
     state.temaActual = tema;
@@ -830,6 +839,7 @@
     $("teoria-md").value = tema.contenido;
     renderListaTemas();
     renderRevisionesTema();
+    if (ir) requestAnimationFrame(llevarAlTema);
   }
 
   function renderRevisionesTema() {
