@@ -394,6 +394,42 @@ a { color: var(--accent); }
   background: var(--paper);
 }
 
+@media (min-width: 981px) {
+  .practica {
+    align-items: start;
+  }
+  .practica > .card { min-height: 0; }
+  .practica > .chat {
+    position: sticky;
+    top: 16px;
+    height: calc(100dvh - 176px);
+    max-height: calc(100dvh - 176px);
+    min-height: 0;
+    overflow: hidden;
+  }
+  .chat-log { min-height: 0; }
+  .composer {
+    flex-shrink: 0;
+    align-items: flex-end;
+    margin-top: 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    background: var(--card);
+  }
+  .composer textarea {
+    min-height: 56px;
+    max-height: 120px;
+    resize: none;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1100px) {
+  .practica > .chat {
+    height: calc(100dvh - 230px);
+    max-height: calc(100dvh - 230px);
+  }
+}
+
 .req-form { display: grid; grid-template-columns: 90px 1fr; gap: 8px; margin: 10px 0; }
 .req-grupo { margin: 14px 0 8px; }
 .req-grupo h4 {
