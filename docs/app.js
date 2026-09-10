@@ -291,8 +291,10 @@
       return false;
     }
     const client = window.supabase.createClient(cfg.url, cfg.key);
-    const teoria = await client.from("temas_teoria").select("id").limit(1);
-    const practicas = await client.from("sesiones").select("id").limit(1);
+    const [teoria, practicas] = await Promise.all([
+      client.from("temas_teoria").select("id").limit(1),
+      client.from("sesiones").select("id").limit(1)
+    ]);
     if (teoria.error && practicas.error) {
       state.aulaError = practicas.error.message || teoria.error.message;
       pintarEstadoAula();
@@ -301,20 +303,29 @@
     state.sb = client;
     state.aulaError = practicas.error
       ? "La teoría conecta, pero las prácticas no: " + practicas.error.message
-      : "";
+      : teoria.error
+        ? "Las prácticas conectan, pero la teoría no: " + teoria.error.message
+        : "";
     escucharRealtime();
     if (!state._pulsoAula) {
-      state._pulsoAula = setInterval(() => refrescarAula(), 12000);
+      state._pulsoAula = setInterval(() => refrescarAula(), 8000);
     }
-    await vaciarHistorialAula();
-    await subirLocalAlAula();
+    vaciarHistorialAula().then(() => subirLocalAlAula()).catch(() => {});
     pintarEstadoAula();
     return true;
   }
 
   async function refrescarAula() {
     if (!state.sb) return;
-    await Promise.all([cargarSesiones(), cargarMensajes(), cargarReqs(), cargarRevisionesReq(), cargarDominios()]);
+    await Promise.all([
+      cargarTemas({ sembrar: false, liviano: true }),
+      cargarRevisiones(),
+      cargarSesiones(),
+      cargarMensajes(),
+      cargarReqs(),
+      cargarRevisionesReq(),
+      cargarDominios()
+    ]);
     if (state.tab === "trabajos") renderTrabajos();
   }
 
@@ -480,9 +491,8 @@
   function escucharRealtime() {
     if (!state.sb) return;
     const ch = state.sb.channel("aula-ir")
-      .on("postgres_changes", { event: "*", schema: "public", table: "temas_teoria" }, async () => {
-        await cargarTemas();
-        if (state.temaActual) mostrarTema(state.temaActual.slug);
+      .on("postgres_changes", { event: "*", schema: "public", table: "temas_teoria" }, (payload) => {
+        aplicarTemaRemoto(payload);
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "revisiones_teoria" }, cargarRevisiones)
       .on("postgres_changes", { event: "*", schema: "public", table: "sesiones" }, cargarSesiones)
@@ -533,67 +543,98 @@
     return (lista || []).map(normalizarTema).filter((t) => t.slug && (t.titulo || t.contenido));
   }
 
-  async function cargarTemas() {
-    const local = temasUsables(loadJSON(LS.temas, []));
-    const fallback = local.length ? local : temasDesdeMaterial();
-    if (state.sb) {
-      const { data, error } = await state.sb.from("temas_teoria").select("*").order("orden");
-      if (error) {
-        state.temas = fallback;
-      } else if (temasUsables(data).length) {
-        state.temas = temasUsables(data);
-      } else {
-        const sembrado = await sembrarTeoria();
-        const second = await state.sb.from("temas_teoria").select("*").order("orden");
-        const remotos = temasUsables(second.data);
-        state.temas = remotos.length ? remotos : fallback;
-        if (!remotos.length && (sembrado?.error || second.error)) {
-          toast("La teoría se muestra del material de clase. El aula no la pudo guardar.");
-        }
-      }
-      saveJSON(LS.temas, state.temas);
-      await alinearTeoriaBase();
-      renderListaTemas();
-      return;
-    }
-    state.temas = fallback;
-    saveJSON(LS.temas, state.temas);
-    await alinearTeoriaBase();
-    renderListaTemas();
+  function editandoTeoria() {
+    const ed = $("editor-teoria");
+    return !!(ed && !ed.classList.contains("hidden"));
   }
 
-  async function alinearTeoriaBase() {
-    const mapa = Object.fromEntries(TEORIA_INICIAL.map((t) => [t.slug, t]));
-    for (const tema of state.temas) {
-      const base = mapa[tema.slug];
-      if (!base) continue;
-      const oficial = !tema.actualizado_por || tema.actualizado_por === "material de clase";
-      const igual =
-        tema.clase === base.clase &&
-        Number(tema.orden) === Number(base.orden) &&
-        (!oficial || (tema.titulo === base.titulo && tema.resumen === base.resumen && tema.contenido === base.contenido));
-      if (igual) continue;
-      tema.clase = base.clase;
-      tema.orden = base.orden;
-      const patch = { clase: base.clase, orden: base.orden };
-      if (oficial) {
-        tema.titulo = base.titulo;
-        tema.resumen = base.resumen;
-        tema.contenido = base.contenido;
-        tema.actualizado_por = "material de clase";
-        Object.assign(patch, {
-          titulo: base.titulo,
-          resumen: base.resumen,
-          contenido: base.contenido,
-          actualizado_por: "material de clase"
-        });
-      }
-      if (state.sb) {
-        await state.sb.from("temas_teoria").update(patch).eq("id", tema.id);
-      }
+  function pintarTeoriaInicial() {
+    const local = temasUsables(loadJSON(LS.temas, []));
+    state.temas = local.length ? local : temasDesdeMaterial();
+    renderListaTemas();
+    if (!state.temaActual) mostrarTema(state.temas[0]?.slug);
+  }
+
+  function aplicarTemaRemoto(payload) {
+    const row = payload?.new || payload?.old;
+    if (!row) {
+      cargarTemas({ sembrar: false });
+      return;
     }
+    const tipo = payload.eventType || payload.event;
+    if (tipo === "DELETE") {
+      state.temas = state.temas.filter((t) => !mismoId(t.id, row.id) && t.slug !== row.slug);
+      saveJSON(LS.temas, state.temas);
+      if (state.temaActual && (mismoId(state.temaActual.id, row.id) || state.temaActual.slug === row.slug)) {
+        if (!editandoTeoria()) mostrarTema(state.temas[0]?.slug);
+        else renderListaTemas();
+      } else renderListaTemas();
+      return;
+    }
+    const n = normalizarTema(payload.new);
+    const i = state.temas.findIndex((t) => mismoId(t.id, n.id) || t.slug === n.slug);
+    if (i >= 0) state.temas[i] = { ...state.temas[i], ...n };
+    else state.temas.push(n);
+    state.temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+    saveJSON(LS.temas, state.temas);
+    const abierto = state.temaActual && (mismoId(state.temaActual.id, n.id) || state.temaActual.slug === n.slug);
+    if (abierto && !editandoTeoria()) mostrarTema(n.slug);
+    else renderListaTemas();
+  }
+
+  function firmaTemas(lista) {
+    return (lista || []).map((t) => [t.slug, t.actualizado_en || "", t.titulo || "", t.actualizado_por || ""].join(":")).join("|");
+  }
+
+  async function cargarTemas({ sembrar = true, liviano = false } = {}) {
+    if (!state.sb) {
+      if (!state.temas.length) pintarTeoriaInicial();
+      return;
+    }
+    if (liviano && state.temas.length) {
+      const { data, error } = await state.sb
+        .from("temas_teoria")
+        .select("id,slug,titulo,clase,orden,actualizado_en,actualizado_por")
+        .order("orden");
+      if (error || !data) return;
+      if (data.length === state.temas.length && firmaTemas(data) === firmaTemas(state.temas)) return;
+    }
+    const { data, error } = await state.sb.from("temas_teoria").select("*").order("orden");
+    if (error) {
+      if (!state.temas.length) pintarTeoriaInicial();
+      return;
+    }
+    const remotos = temasUsables(data);
+    if (remotos.length) {
+      if (firmaTemas(remotos) === firmaTemas(state.temas)) {
+        if (sembrar) completarTemasFaltantes();
+        return;
+      }
+      const slugAbierto = state.temaActual?.slug;
+      state.temas = remotos;
+      saveJSON(LS.temas, state.temas);
+      if (!editandoTeoria()) mostrarTema(slugAbierto || state.temas[0]?.slug);
+      else renderListaTemas();
+      if (sembrar) completarTemasFaltantes();
+      return;
+    }
+    if (!state.temas.length) pintarTeoriaInicial();
+    if (sembrar && !state._sembrandoTeoria) {
+      state._sembrandoTeoria = true;
+      sembrarTeoria()
+        .then(async (res) => {
+          if (!res?.error) await cargarTemas({ sembrar: false });
+        })
+        .finally(() => { state._sembrandoTeoria = false; });
+    }
+  }
+
+  async function completarTemasFaltantes() {
+    if (!state.sb || state._completarTemas) return;
     const existentes = new Set(state.temas.map((t) => t.slug));
     const faltan = TEORIA_INICIAL.filter((t) => !existentes.has(t.slug));
+    if (!faltan.length) return;
+    state._completarTemas = true;
     for (const t of faltan) {
       const row = {
         id: uid(),
@@ -606,17 +647,12 @@
         actualizado_por: "material de clase",
         actualizado_en: now()
       };
-      if (state.sb) {
-        const { error } = await state.sb.from("temas_teoria").insert(row);
-        if (error) {
-          state.temas.push(row);
-          continue;
-        }
-      }
-      state.temas.push(row);
+      const { error } = await state.sb.from("temas_teoria").insert(row);
+      if (!error || !state.temas.some((x) => x.slug === row.slug)) state.temas.push(row);
     }
     state.temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
     saveJSON(LS.temas, state.temas);
+    renderListaTemas();
   }
 
   async function sembrarTeoria() {
@@ -949,18 +985,33 @@
 
     try {
       if (state.sb) {
-        const { error: e1 } = await state.sb.from("temas_teoria").update({
+        const patch = {
           titulo,
           resumen,
           contenido: nuevo,
           actualizado_por: state.nombre,
           actualizado_en: state.temaActual.actualizado_en
-        }).eq("id", state.temaActual.id);
-        if (e1) throw e1;
+        };
+        const porId = await state.sb.from("temas_teoria").update(patch).eq("id", state.temaActual.id).select("id");
+        if (porId.error || !(porId.data && porId.data.length)) {
+          const porSlug = await state.sb.from("temas_teoria").update(patch).eq("slug", state.temaActual.slug).select("id");
+          if (porSlug.error) throw porSlug.error;
+          if (porSlug.data?.[0]?.id) state.temaActual.id = porSlug.data[0].id;
+          if (!(porSlug.data && porSlug.data.length)) {
+            const { error: ins } = await state.sb.from("temas_teoria").insert({
+              id: state.temaActual.id,
+              slug: state.temaActual.slug,
+              clase: state.temaActual.clase,
+              orden: state.temaActual.orden,
+              ...patch
+            });
+            if (ins) throw ins;
+          }
+        }
         const { error: e2 } = await state.sb.from("revisiones_teoria").insert(rev);
         if (e2) throw e2;
       }
-      const i = state.temas.findIndex((t) => t.id === state.temaActual.id);
+      const i = state.temas.findIndex((t) => mismoId(t.id, state.temaActual.id) || t.slug === state.temaActual.slug);
       if (i >= 0) state.temas[i] = state.temaActual;
       saveJSON(LS.temas, state.temas);
       state.revisiones.unshift(rev);
@@ -1871,9 +1922,17 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     await cargarScriptOpcional("./config.local.js");
     pintarAjustesAI();
     vaciarHistorialLocalSiHaceFalta();
+    pintarTeoriaInicial();
     await conectarSupabase();
-    await Promise.all([cargarTemas(), cargarRevisiones(), cargarSesiones(), cargarMensajes(), cargarReqs(), cargarRevisionesReq(), cargarDominios()]);
-    mostrarTema(state.temas[0]?.slug);
+    await Promise.all([
+      cargarTemas({ sembrar: true }),
+      cargarRevisiones(),
+      cargarSesiones(),
+      cargarMensajes(),
+      cargarReqs(),
+      cargarRevisionesReq(),
+      cargarDominios()
+    ]);
     pintarSesionEnUI();
     pintarEstadoAula();
     renderListaSesiones();
