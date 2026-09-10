@@ -10,8 +10,17 @@
     revisionesReq: "ir.revisionesReq",
     dominio: "ir.dominio",
     dominios: "ir.dominios",
+    clases: "ir.clases",
     tema: "ir.tema"
   };
+
+  const TIPOS_PRACTICA = [
+    { tipo: "necesidad", titulo: "Necesidad" },
+    { tipo: "deseo", titulo: "Deseo" },
+    { tipo: "expectativa", titulo: "Expectativa" },
+    { tipo: "usuario", titulo: "Usuario" },
+    { tipo: "sistema", titulo: "Sistema" }
+  ];
 
   const CASOS = {
     hospital: {
@@ -19,14 +28,14 @@
       organizacion: "Hospital público de la facultad / red municipal",
       rol: "Jefa de Administración",
       nombre: "Laura Gómez",
-      escenario: "El hospital quiere un sistema para que los pacientes soliciten, consulten, modifiquen y cancelen turnos, y para que el personal gestione agendas y la atención. Hoy gran parte se resuelve por ventanilla, papel y llamadas. Laura no es técnica: describe situaciones, no soluciones."
+      escenario: "Laura quiere que le desarrollen una aplicación de turnos. Los pacientes deberían poder pedir, consultar, cambiar y cancelar turnos; el personal, manejar agendas y la atención. Hoy se resuelve por ventanilla, papel y llamadas. Ella no es técnica: cuenta cómo trabajan y qué le duele, no diseña la solución."
     },
     biblioteca: {
       titulo: "Biblioteca de la facultad",
       organizacion: "Biblioteca central de la facultad",
       rol: "Director de Biblioteca",
       nombre: "Martín Alegre",
-      escenario: "La biblioteca necesita registrar préstamos y devoluciones, stock, usuarios (alumno, docente, no docente) y, si se puede, reservas y avisos. Hoy se anota en planillas y a veces se pierde el rastro de un ejemplar. Martín habla el idioma de la biblioteca, no el de sistemas."
+      escenario: "Martín quiere que le desarrollen una aplicación para la biblioteca: préstamos y devoluciones, stock, usuarios (alumno, docente, no docente) y, si se puede, reservas y avisos. Hoy se anota en planillas y a veces se pierde un ejemplar. Habla el idioma de la biblioteca, no el de sistemas."
     }
   };
 
@@ -41,6 +50,7 @@
     reqs: [],
     revisionesReq: [],
     dominios: {},
+    clasesExtra: [],
     sesionActual: null,
     sb: null,
     canales: [],
@@ -213,6 +223,7 @@
           state.temas = data;
         }
         saveJSON(LS.temas, state.temas);
+        await alinearTeoriaBase();
         renderListaTemas();
         return;
       }
@@ -225,7 +236,44 @@
       actualizado_en: now()
     }));
     saveJSON(LS.temas, state.temas);
+    await alinearTeoriaBase();
     renderListaTemas();
+  }
+
+  async function alinearTeoriaBase() {
+    const mapa = Object.fromEntries(TEORIA_INICIAL.map((t) => [t.slug, t]));
+    for (const tema of state.temas) {
+      const base = mapa[tema.slug];
+      if (!base) continue;
+      if (tema.clase === base.clase && Number(tema.orden) === Number(base.orden)) continue;
+      tema.clase = base.clase;
+      tema.orden = base.orden;
+      if (state.sb) {
+        await state.sb.from("temas_teoria").update({ clase: base.clase, orden: base.orden }).eq("id", tema.id);
+      }
+    }
+    const existentes = new Set(state.temas.map((t) => t.slug));
+    const faltan = TEORIA_INICIAL.filter((t) => !existentes.has(t.slug));
+    for (const t of faltan) {
+      const row = {
+        id: uid(),
+        slug: t.slug,
+        clase: t.clase,
+        titulo: t.titulo,
+        resumen: t.resumen,
+        contenido: t.contenido,
+        orden: t.orden,
+        actualizado_por: "material de clase",
+        actualizado_en: now()
+      };
+      if (state.sb) {
+        const { error } = await state.sb.from("temas_teoria").insert(row);
+        if (error) continue;
+      }
+      state.temas.push(row);
+    }
+    state.temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+    saveJSON(LS.temas, state.temas);
   }
 
   async function sembrarTeoria() {
@@ -355,24 +403,28 @@
   }
 
   function clasesDeTemas() {
-    const orden = [];
+    const orden = ["Clase 1", "Clase 2", "Clase 3", "Clase 4", "Clase 5"];
     state.temas.forEach((t) => {
       if (t.clase && !orden.includes(t.clase)) orden.push(t.clase);
     });
-    ["Clase 1", "Clase 2", "Práctica"].forEach((c) => {
-      if (!orden.includes(c)) orden.push(c);
+    (state.clasesExtra || []).forEach((c) => {
+      if (c && !orden.includes(c)) orden.push(c);
     });
     return orden;
   }
 
-  function abrirModalApartado(clase) {
+  function abrirModalApartado(clase, { nuevaClase = false } = {}) {
     if (!exigeNombre()) return;
-    $("nuevo-clase").value = clase || state.temaActual?.clase || "Clase 1";
+    $("nuevo-clase").value = nuevaClase ? "" : (clase || state.temaActual?.clase || "Clase 1");
     $("nuevo-titulo").value = "";
     $("nuevo-resumen").value = "";
-    $("apartado-clase-hint").textContent = "Se agrega dentro de " + ($("nuevo-clase").value || "la clase") + ". Todos lo van a ver.";
+    $("modal-apartado-titulo").textContent = nuevaClase ? "Nueva clase" : "Nuevo apartado";
+    $("apartado-clase-hint").textContent = nuevaClase
+      ? "Escribí el nombre de la clase. El título del apartado es opcional: si lo dejás vacío, se crea la clase vacía."
+      : "Se agrega dentro de " + ($("nuevo-clase").value || "la clase") + ". Todos lo van a ver.";
     $("modal-apartado").classList.add("show");
-    $("nuevo-titulo").focus();
+    if (nuevaClase) $("nuevo-clase").focus();
+    else $("nuevo-titulo").focus();
   }
 
   async function crearApartado() {
@@ -381,6 +433,16 @@
     const titulo = $("nuevo-titulo").value.trim();
     const resumen = $("nuevo-resumen").value.trim();
     if (!clase) return toast("Indicá la clase.");
+    if (!titulo) {
+      if (!state.clasesExtra.includes(clase) && !state.temas.some((t) => t.clase === clase)) {
+        state.clasesExtra.push(clase);
+        saveJSON(LS.clases, state.clasesExtra);
+      }
+      $("modal-apartado").classList.remove("show");
+      renderListaTemas();
+      toast("Clase agregada. Ahora podés sumar apartados.");
+      return;
+    }
     if (titulo.length < 3) return toast("Escribí un título para el apartado.");
 
     const deClase = state.temas.filter((t) => t.clase === clase);
@@ -424,7 +486,7 @@
   function renderListaTemas() {
     const box = $("lista-temas");
     box.innerHTML = clasesDeTemas().map((clase) => {
-      const temas = state.temas.filter((t) => t.clase === clase);
+      const temas = state.temas.filter((t) => t.clase === clase).sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
       const items = temas.map((t) => `
         <button class="topic-btn ${state.temaActual && state.temaActual.slug === t.slug ? "active" : ""}" data-slug="${t.slug}" type="button">
           ${escapeHtml(t.titulo)}
@@ -559,7 +621,7 @@
   function renderChat() {
     const log = $("chat-log");
     if (!state.sesionActual) {
-      log.innerHTML = "<div class='bubble sistema'><b>Aula</b>Abrí un caso para empezar la entrevista. No asumas información: preguntá.</div>";
+      log.innerHTML = "<div class='bubble sistema'><b>Práctica</b>Abrí un caso. El chat es el contexto: preguntá a la persona que quiere la aplicación. No asumas información.</div>";
       return;
     }
     const msgs = mensajesDe(state.sesionActual.id);
@@ -574,9 +636,64 @@
 
   function codigoReq(tipo, sesionId) {
     const lista = reqsDe(sesionId);
-    const esN = tipo === "expectativa" || tipo === "no_funcional";
-    const n = lista.filter((r) => (esN ? /RFN/i.test(r.codigo) : /^RF\d/i.test(r.codigo))).length + 1;
-    return esN ? `RFN${n}` : `RF${n}`;
+    const prefijo = tipo === "expectativa" || tipo === "no_funcional" ? "RFN"
+      : tipo === "usuario" ? "RU"
+        : tipo === "sistema" ? "RS"
+          : "RF";
+    const n = lista.filter((r) => String(r.codigo || "").startsWith(prefijo)).length + 1;
+    return prefijo + n;
+  }
+
+  function slotId(tipo, i) {
+    return "req-" + tipo + "-" + i;
+  }
+
+  function pintarSlotsReq(lista) {
+    TIPOS_PRACTICA.forEach((def) => {
+      const deTipo = (lista || []).filter((r) => r.tipo === def.tipo);
+      for (let i = 0; i < 2; i++) {
+        const el = $(slotId(def.tipo, i));
+        if (el) el.value = deTipo[i] ? deTipo[i].enunciado : "";
+      }
+    });
+  }
+
+  function slotsIncompletos() {
+    return TIPOS_PRACTICA.filter((def) =>
+      [0, 1].some((i) => !($(slotId(def.tipo, i))?.value || "").trim())
+    ).map((def) => def.titulo);
+  }
+
+  async function persistirSlotsReq() {
+    if (!state.sesionActual) return [];
+    const sid = state.sesionActual.id;
+    const guardados = [];
+    for (const def of TIPOS_PRACTICA) {
+      const deTipo = reqsDe(sid).filter((r) => r.tipo === def.tipo);
+      for (let i = 0; i < 2; i++) {
+        const enunciado = ($(slotId(def.tipo, i))?.value || "").trim();
+        if (!enunciado) continue;
+        if (deTipo[i]) {
+          deTipo[i].enunciado = enunciado;
+          await upsert("requerimientos", deTipo[i], LS.reqs, "reqs");
+          guardados.push(deTipo[i]);
+        } else {
+          const row = {
+            id: uid(),
+            sesion_id: sid,
+            codigo: codigoReq(def.tipo, sid),
+            tipo: def.tipo,
+            enunciado,
+            autor: state.nombre,
+            creado_en: now()
+          };
+          await upsert("requerimientos", row, LS.reqs, "reqs");
+          deTipo.push(row);
+          guardados.push(row);
+        }
+      }
+    }
+    return guardados;
   }
 
   function etiquetaTipo(tipo) {
@@ -598,11 +715,16 @@
       return;
     }
     const lista = reqsDe(state.sesionActual.id);
-    if (!lista.length) {
-      box.innerHTML = "<p class='hint'>Todavía no cargaron requerimientos de este caso.</p>";
+    const extras = lista.filter((r) => {
+      const deTipo = lista.filter((x) => x.tipo === r.tipo);
+      const idx = deTipo.findIndex((x) => x.id === r.id);
+      return idx > 1 || !TIPOS_PRACTICA.some((d) => d.tipo === r.tipo);
+    });
+    if (!extras.length) {
+      box.innerHTML = "";
       return;
     }
-    box.innerHTML = lista.map((r) => `
+    box.innerHTML = extras.map((r) => `
       <div class="req">
         <span class="chip">${escapeHtml(r.codigo)}</span>
         <span class="chip">${escapeHtml(etiquetaTipo(r.tipo))}</span>
@@ -616,20 +738,22 @@
     const s = state.sesionActual;
     if (!s) {
       $("sesion-titulo").textContent = "Todavía no hay un caso abierto";
-      $("sesion-meta").textContent = "Elegí un escenario o pedile a la IA uno nuevo.";
+      $("sesion-meta").textContent = "Elegí un escenario o pedile a la IA uno nuevo. El chat es el contexto.";
       ["dom-contexto", "dom-org", "dom-hoy", "dom-objetivo", "dom-desconocido"].forEach((id) => { $(id).value = ""; });
+      pintarSlotsReq([]);
       renderChat();
       renderReqs();
       return;
     }
     $("sesion-titulo").textContent = s.titulo;
-    $("sesion-meta").textContent = `${s.nombre_gerente} · ${s.rol_gerente} · ${s.organizacion} · abierto por ${s.creado_por}`;
+    $("sesion-meta").textContent = `${s.nombre_gerente} quiere desarrollar una aplicación · ${s.rol_gerente} · ${s.organizacion}`;
     const d = dominioDe(s.id);
     $("dom-contexto").value = d.contexto || "";
     $("dom-org").value = d.org || s.organizacion || "";
     $("dom-hoy").value = d.hoy || "";
     $("dom-objetivo").value = d.objetivo || "";
     $("dom-desconocido").value = d.desconocido || "";
+    pintarSlotsReq(reqsDe(s.id));
     renderChat();
     renderReqs();
   }
@@ -651,7 +775,7 @@
       sesion_id: sesion.id,
       autor: caso.nombre,
       rol: "gerente",
-      contenido: `Hola, soy ${caso.nombre}, ${caso.rol}. El equipo de sistemas me dijo que ustedes van a relevarmi el problema. Yo no manejo jerga técnica: cuéntenme qué necesitan saber y les hablo de cómo trabajamos. ¿Por dónde quieren empezar?`,
+      contenido: `Hola, soy ${caso.nombre}, ${caso.rol}. Quiero que me desarrollen una aplicación para esto que les voy a contar. No soy de sistemas: les hablo de cómo trabajamos y de lo que me gustaría resolver. Pregúntenme, que no se me ocurre todo de una. ¿Por dónde quieren empezar?`,
       creado_en: now()
     };
     try {
@@ -660,8 +784,7 @@
       state.sesionActual = sesion;
       state.sesiones = [sesion, ...state.sesiones.filter((x) => x.id !== sesion.id)];
       pintarSesionEnUI();
-      renderListaSesiones();
-      toast("Caso abierto. Entrevisten: no inventen el dominio.");
+      toast("Caso abierto. El chat es el contexto; la especificación se arma acá y no va al historial hasta Corregir.");
     } catch (err) {
       toast("No se pudo crear el caso: " + err.message);
     }
@@ -717,20 +840,21 @@
 
   function promptGerente(sesion) {
     return `Sos ${sesion.nombre_gerente}, ${sesion.rol_gerente} de ${sesion.organizacion}.
-Te están entrevistando analistas de requerimientos de una materia universitaria.
+Querés que te desarrollen una aplicación. Te están entrevistando analistas de requerimientos de una materia universitaria.
 
 Contexto interno (NO lo vuelques de una vez):
 ${sesion.escenario}
 
 Reglas estrictas:
-- Respondé SIEMPRE en español, en primera persona, como esa persona de negocio.
-- NO seas técnico. No hables de bases de datos, APIs, pantallas ni arquitectura.
+- Respondé SIEMPRE en español, en primera persona, como la persona que pide la aplicación.
+- Contá el problema de tu organización y lo que te imaginás resolver. NO seas el programador.
+- NO hables de bases de datos, APIs, pantallas ni arquitectura.
 - NO entregues toda la información en un solo mensaje. Si preguntan una necesidad, contá primero la situación o el problema.
 - Inventá detalles coherentes (nombres de sectores, horarios, excepciones, quejas, política interna).
 - Dejá entrever conflictos entre áreas sin etiquetarlos como "conflicto".
 - Si usan una palabra del dominio, usala como la usa la organización, aunque sea ambigua.
-- Si no les preguntaron algo importante, no lo ofrezcas entero: insinuá que "eso lo maneja otro sector".
-- Nunca diseñes el sistema ni listes requerimientos.
+- Si no les preguntaron algo importante, no lo ofrezcas entero: insinuá que "eso lo ve otro sector" o "eso lo pensamos después".
+- Nunca diseñes el sistema ni listes requerimientos numerados.
 - Mensajes de 80 a 160 palabras, salvo que pidan un recuento puntual.`;
   }
 
@@ -793,10 +917,10 @@ Reglas estrictas:
       const raw = await chatAI([
         {
           role: "system",
-          content: `Generá UN caso nuevo para un taller de ingeniería de requerimientos en español.
+          content: `Generá UN caso nuevo para una práctica de ingeniería de requerimientos en español.
 Devolvé SOLO un JSON válido con las claves:
 titulo, organizacion, rol, nombre, escenario
-El escenario (120-180 palabras) describe la organización, el dolor actual, cómo trabajan hoy y que el interlocutor no es técnico.
+El escenario (120-180 palabras) describe a una persona que QUIERE que le desarrollen una aplicación: la organización, el dolor actual, cómo trabajan hoy. No es técnica.
 Evitá hospital y biblioteca. Elegí un dominio cotidiano argentino (club, municipio, comercio, cooperativa, facultad, taller, ONG).`
         },
         { role: "user", content: "Nuevo caso, distinto a los anteriores." }
@@ -862,7 +986,7 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
     }
   }
 
-  async function persistirDominio() {
+  async function persistirDominio({ silent = false } = {}) {
     if (!state.sesionActual) return;
     const row = {
       sesion_id: state.sesionActual.id,
@@ -884,36 +1008,9 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
         const { error } = await state.sb.from("dominios").upsert(row);
         if (error) throw error;
       }
-      toast(state.sb ? "Dominio guardado para todo el aula." : "Dominio guardado en este navegador.");
+      if (!silent) toast(state.sb ? "Dominio guardado para todo el aula." : "Dominio guardado en este navegador.");
     } catch (err) {
       toast("El dominio quedó local, pero Supabase no lo tomó: " + err.message);
-    }
-  }
-
-  async function agregarReq() {
-    if (!exigeNombre() || !state.sesionActual) return toast("Abrí un caso primero.");
-    if (mensajesDe(state.sesionActual.id).filter((m) => m.rol === "analista").length < 1) {
-      return toast("Primero debatan con la IA. Los requerimientos salen de esa conversación.");
-    }
-    const enunciado = $("req-texto").value.trim();
-    const tipo = $("req-tipo").value;
-    if (!enunciado) return;
-    const row = {
-      id: uid(),
-      sesion_id: state.sesionActual.id,
-      codigo: codigoReq(tipo, state.sesionActual.id),
-      tipo,
-      enunciado,
-      autor: state.nombre,
-      creado_en: now()
-    };
-    try {
-      await upsert("requerimientos", row, LS.reqs, "reqs");
-      $("req-texto").value = "";
-      renderReqs();
-      toast("Requerimiento guardado. Queda en el historial para tus compañeros.");
-    } catch (err) {
-      toast("No se pudo guardar el requerimiento: " + err.message);
     }
   }
 
@@ -926,7 +1023,7 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
   }
 
   function promptCorreccionReq() {
-    return `Sos docente de ingeniería de requerimientos. Comparás el DEBATE (entrevista al gerente) con los REQUERIMIENTOS que escribieron los analistas.
+    return `Sos docente de ingeniería de requerimientos. Recibís TODA la ESPECIFICACIÓN de la práctica (dominio + requerimientos) y, si hay, el debate con el gerente.
 
 Reglas de un buen enunciado:
 - Atómico: una sola idea. Si hay dos acciones unidas con "y", partilo.
@@ -935,11 +1032,19 @@ Reglas de un buen enunciado:
 - RF / necesidad / deseo / funcional / sistema: "El sistema debe" + verbo + objeto + condición observable.
 - RFN / expectativa / no_funcional: una cualidad medible (tiempo, disponibilidad, usabilidad).
 - Usuario: "El usuario quiere…" en lenguaje de negocio, sin diseño técnico.
-- No inventes hechos que no estén en el debate. Si falta en el debate, decilo.
+- El dominio (contexto, organización, cómo se hace hoy, objetivo, desconocido) debe ser concreto y coherente. Señalá huecos.
+- No inventes hechos que no estén en la especificación ni en el debate. Si falta, decilo.
 
 Devolvé SOLO un JSON válido con:
 {
-  "comparacion": "texto markdown: qué se debatió y se escribió bien; qué se debatió y no se escribió; qué se escribió y no salió del debate",
+  "comparacion": "texto markdown: revisión de toda la especificación (dominio y requerimientos); coherencia; qué falta o sobra",
+  "dominio": {
+    "contexto": "versión revisada o la misma si está bien",
+    "organizacion": "versión revisada",
+    "hoy": "versión revisada",
+    "objetivo": "versión revisada",
+    "desconocido": "versión revisada"
+  },
   "correcciones": [
     {
       "id": "id del requerimiento original",
@@ -954,12 +1059,42 @@ Devolvé SOLO un JSON válido con:
     {
       "tipo": "sistema",
       "enunciado": "El sistema debe...",
-      "fundamento": "En el debate se dijo que..."
+      "fundamento": "En la especificación o el debate se dijo que..."
     }
   ]
 }
+La práctica pide DOS requerimientos de cada tipo: necesidad, deseo, expectativa, usuario y sistema. Revisá que estén completos, atómicos y sacados del chat.
 Incluí todos los requerimientos en correcciones, aunque estén bien (enunciado_corregido igual al original y motivo "sin cambios").
-faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
+faltantes: solo lo que la especificación o el chat sostienen y nadie escribió. Máximo 5.`;
+  }
+
+  function textoEspecificacion(sesion) {
+    const d = dominioDe(sesion.id);
+    const reqs = reqsDe(sesion.id).map((r) =>
+      `id=${r.id} | ${r.codigo} [${r.tipo}] (${r.autor}): ${r.enunciado}`
+    ).join("\n");
+    return [
+      `Caso: ${sesion.titulo}`,
+      "",
+      "ESPECIFICACIÓN — DOMINIO",
+      `Contexto: ${d.contexto || "(vacío)"}`,
+      `Organización: ${d.org || sesion.organizacion || "(vacío)"}`,
+      `Cómo se hace hoy: ${d.hoy || "(vacío)"}`,
+      `Objetivo general: ${d.objetivo || "(vacío)"}`,
+      `Lo que todavía no sabemos: ${d.desconocido || "(vacío)"}`,
+      "",
+      "ESPECIFICACIÓN — REQUERIMIENTOS",
+      reqs || "(ninguno escrito)",
+      "",
+      "CONTEXTO (chat con quien quiere la aplicación)",
+      transcripcion(sesion) || "(sin chat)"
+    ].join("\n");
+  }
+
+  function specVacia(sesion) {
+    const d = dominioDe(sesion.id);
+    const hayDom = [d.contexto, d.org, d.hoy, d.objetivo, d.desconocido].some((x) => String(x || "").trim());
+    return !hayDom && slotsIncompletos().length === TIPOS_PRACTICA.length;
   }
 
   function informeCorreccion(data, originales) {
@@ -971,42 +1106,63 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
       `- (${etiquetaTipo(f.tipo)}) ${f.enunciado}\n  Fundamento: ${f.fundamento || ""}`
     ).join("\n");
     const escritos = originales.map((r) => `- ${r.codigo} [${r.tipo}] (${r.autor}): ${r.enunciado}`).join("\n");
+    const dom = data.dominio || {};
     return [
-      "## Debate vs. lo escrito",
-      data.comparacion || "Sin comparación.",
+      "## Revisión de la especificación",
+      data.comparacion || "Sin revisión.",
+      "## Dominio revisado",
+      `- Contexto: ${dom.contexto || "sin cambios sugeridos"}`,
+      `- Organización: ${dom.organizacion || "sin cambios sugeridos"}`,
+      `- Hoy: ${dom.hoy || "sin cambios sugeridos"}`,
+      `- Objetivo: ${dom.objetivo || "sin cambios sugeridos"}`,
+      `- Desconocido: ${dom.desconocido || "sin cambios sugeridos"}`,
       "## Requerimientos que escribieron",
       escritos || "Ninguno.",
       "## Corrección (forma atómica y estructura)",
       corr || "Sin correcciones.",
-      "## Lo debatido que no habían escrito",
+      "## Lo que faltaba escribir",
       faltan || "Nada evidente."
     ].join("\n\n");
   }
 
+  async function aplicarDominioCorregido(dom) {
+    if (!dom || !state.sesionActual) return;
+    if (dom.contexto) $("dom-contexto").value = dom.contexto;
+    if (dom.organizacion) $("dom-org").value = dom.organizacion;
+    if (dom.hoy) $("dom-hoy").value = dom.hoy;
+    if (dom.objetivo) $("dom-objetivo").value = dom.objetivo;
+    if (dom.desconocido) $("dom-desconocido").value = dom.desconocido;
+    await persistirDominio({ silent: true });
+  }
+
   async function corregirReqs() {
-    if (!exigeNombre() || !state.sesionActual) return;
-    const lista = reqsDe(state.sesionActual.id);
-    if (!lista.length) return toast("Escriban los requerimientos a partir del debate, después la IA los compara y corrige.");
-    if (mensajesDe(state.sesionActual.id).length < 3) {
-      return toast("Debatan un poco más con la IA antes de pedir la corrección.");
-    }
+    if (!exigeNombre() || !state.sesionActual) return toast("Abrí un caso primero.");
     if (state.aiBusy) return;
+    await persistirDominio({ silent: true });
+    await persistirSlotsReq();
+    const faltanTipos = slotsIncompletos();
+    if (faltanTipos.length) {
+      return toast("Para practicar escribí 2 de cada tipo. Faltan: " + faltanTipos.join(", ") + ".");
+    }
+    if (mensajesDe(state.sesionActual.id).filter((m) => m.rol === "analista").length < 1) {
+      return toast("El contexto es el chat: hacé al menos una pregunta antes de corregir.");
+    }
+    if (specVacia(state.sesionActual)) {
+      return toast("Completá el dominio a partir del chat antes de corregir.");
+    }
+    const lista = reqsDe(state.sesionActual.id);
     state.aiBusy = true;
     $("btn-corregir-req").disabled = true;
     try {
-      const payload = lista.map((r) =>
-        `id=${r.id} | ${r.codigo} [${r.tipo}] (${r.autor}): ${r.enunciado}`
-      ).join("\n");
       const raw = await chatAI([
         { role: "system", content: promptCorreccionReq() },
-        {
-          role: "user",
-          content: `Caso: ${state.sesionActual.titulo}\n\nDEBATE:\n${transcripcion(state.sesionActual)}\n\nDOMINIO:\n${JSON.stringify(dominioDe(state.sesionActual.id))}\n\nREQUERIMIENTOS ESCRITOS:\n${payload}`
-        }
+        { role: "user", content: textoEspecificacion(state.sesionActual) }
       ], { json: true });
       const data = parseJSONRespuesta(raw);
       const informe = informeCorreccion(data, lista);
-      $("feedback-ia").innerHTML = "<h3>Comparación y corrección</h3>" + markdown(informe);
+      $("feedback-ia").innerHTML = "<h3>Corrección de la especificación</h3>" + markdown(informe);
+
+      await aplicarDominioCorregido(data.dominio);
 
       for (const c of data.correcciones || []) {
         const req = lista.find((r) => r.id === c.id) || lista.find((r) => r.codigo === c.codigo);
@@ -1040,8 +1196,13 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
         creado_en: now()
       };
       await upsert("revisiones_req", rev, LS.revisionesReq, "revisionesReq");
+      pintarSlotsReq(reqsDe(state.sesionActual.id));
       renderReqs();
-      toast("La IA comparó el debate, corrigió los enunciados y lo dejó en el historial.");
+      if (state.tab === "historial") {
+        renderListaSesiones();
+        renderHistorial();
+      }
+      toast("La especificación se corrigió y ahora sí quedó en el historial.");
     } catch (err) {
       toast("No se pudo corregir: " + err.message);
     } finally {
@@ -1050,11 +1211,20 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
     }
   }
 
+  function idsEnHistorial() {
+    return new Set(state.revisionesReq.map((r) => r.sesion_id).filter(Boolean));
+  }
+
+  function sesionesEnHistorial() {
+    const ids = idsEnHistorial();
+    return state.sesiones.filter((s) => ids.has(s.id));
+  }
+
   function renderListaSesiones() {
     const filtro = ($("filtro-autor")?.value || "").trim().toLowerCase();
     const box = $("lista-sesiones");
     if (!box) return;
-    const lista = state.sesiones.filter((s) => {
+    const lista = sesionesEnHistorial().filter((s) => {
       if (!filtro) return true;
       const msgs = mensajesDe(s.id);
       const reqs = reqsDe(s.id);
@@ -1062,7 +1232,7 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
       return blob.includes(filtro);
     });
     if (!lista.length) {
-      box.innerHTML = "<p class='hint'>Aún no hay casos en el historial.</p>";
+      box.innerHTML = "<p class='hint'>El historial está vacío. Las prácticas aparecen acá después de Corregir.</p>";
       return;
     }
     box.innerHTML = lista.map((s) => {
@@ -1085,11 +1255,14 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
   }
 
   function renderHistorial() {
-    const s = state.sesionActual;
+    const visible = sesionesEnHistorial();
+    const s = state.sesionActual && visible.some((x) => x.id === state.sesionActual.id)
+      ? state.sesionActual
+      : null;
     if (!s) {
-      $("hist-titulo").textContent = "Elegí un caso";
+      $("hist-titulo").textContent = "Elegí una práctica";
       $("hist-meta").textContent = "";
-      $("hist-cuerpo").innerHTML = "<p class='hint'>Elegí un caso para ver el debate con la IA, los requerimientos que escribió cada compañero y cómo los corrigió la IA.</p>";
+      $("hist-cuerpo").innerHTML = "<p class='hint'>Acá solo está lo que ya mandaron a Corregir: la especificación y la corrección.</p>";
       return;
     }
     $("hist-kicker").textContent = s.organizacion;
@@ -1115,17 +1288,19 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
       <p><strong>Hoy.</strong> ${escapeHtml(d.hoy || "sin cargar")}</p>
       <p><strong>Objetivo.</strong> ${escapeHtml(d.objetivo || "sin cargar")}</p>
       <p><strong>Desconocido.</strong> ${escapeHtml(d.desconocido || "sin cargar")}</p>
-      <h3>1. Debate con la IA</h3>
-      ${msgs || "<p class='hint'>Todavía no debatieron.</p>"}
-      <h3>2. Requerimientos (versión actual, ya corregida si pidieron corrección)</h3>
+      <h3>1. Especificación — dominio</h3>
+      <p class="hint">Lo de arriba es el dominio enviado a Corregir.</p>
+      <h3>2. Especificación — requerimientos</h3>
       <ul>${reqs || "<li>Todavía no escribieron requerimientos.</li>"}</ul>
-      <h3>3. Comparación y corrección</h3>
-      ${revs || "<p class='hint'>Todavía no compararon el debate con lo escrito.</p>"}
+      <h3>3. Debate (si hubo)</h3>
+      ${msgs || "<p class='hint'>No hubo entrevista guardada.</p>"}
+      <h3>4. Corrección</h3>
+      ${revs || "<p class='hint'>Todavía no hay corrección.</p>"}
     `;
     const seguir = $("btn-seguir-caso");
     if (seguir) seguir.onclick = () => {
       pintarSesionEnUI();
-      irTab("taller");
+      irTab("practica");
     };
   }
 
@@ -1165,7 +1340,7 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
     try {
       const t = await chatAI([
         { role: "system", content: "Respondé en una frase, en español." },
-        { role: "user", content: "Confirmá que estás listo para simular un gerente en un taller de requerimientos." }
+        { role: "user", content: "Confirmá que estás listo para simular un gerente en una práctica de requerimientos." }
       ]);
       $("ai-estado").innerHTML = "<span class='ok'>Respuesta: " + escapeHtml(t) + "</span>";
     } catch (err) {
@@ -1200,6 +1375,7 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
     };
     $("btn-cancelar-teoria").onclick = () => mostrarTema(state.temaActual.slug);
     $("btn-guardar-teoria").onclick = guardarTeoria;
+    $("btn-nueva-clase").onclick = () => abrirModalApartado("", { nuevaClase: true });
     $("btn-crear-apartado").onclick = crearApartado;
     $("btn-cancelar-apartado").onclick = () => $("modal-apartado").classList.remove("show");
     $("nuevo-titulo").addEventListener("keydown", (e) => {
@@ -1224,10 +1400,6 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
       await persistirDominio();
     };
     $("btn-sintesis-ia").onclick = sintesisIA;
-    $("btn-agregar-req").onclick = agregarReq;
-    $("req-texto").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") agregarReq();
-    });
     $("btn-corregir-req").onclick = corregirReqs;
     $("filtro-autor").addEventListener("input", renderListaSesiones);
     $("btn-guardar-ai").onclick = guardarAI;
@@ -1239,6 +1411,7 @@ faltantes: solo lo que el debate sostiene y nadie escribió. Máximo 5.`;
 
   async function init() {
     eventos();
+    state.clasesExtra = loadJSON(LS.clases, []);
     aplicarTema(localStorage.getItem(LS.tema) || temaActual());
     renderNombre();
     if (!state.nombre) $("modal-nombre").classList.add("show");

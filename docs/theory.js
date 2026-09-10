@@ -327,10 +327,36 @@ No es “el cliente siempre tiene razón” ni “el técnico manda”. Es una r
 El gerente dice “quiero algo moderno”. El analista tiene derecho a traducir eso a alternativas concretas (y costos). El gerente tiene el deber de elegir. Si nadie elige, no hay requerimiento: hay una frase decorativa.`
   },
   {
-    slug: "necesidades-deseos-expectativas",
-    clase: "Práctica",
-    titulo: "Necesidades, deseos y expectativas",
+    slug: "resumen-clase-3",
+    clase: "Clase 3",
+    titulo: "Resumen de la clase 3",
     orden: 14,
+    resumen: "Las metodologías no reemplazan los requerimientos: cambian cuándo se escriben, con qué formalidad y cómo se validan.",
+    contenido: `## De qué trata esta clase
+
+En clase se miran **SCRUM**, el **modelo en V**, **RUP**, el **plano arquitectónico del software**, la comparación **SCRUM vs RUP** y el trabajo en **equipos distribuidos**.
+
+La práctica es poder explicar cada tema como si hablaran tres minutos en un congreso:
+
+1. ¿Qué es?
+2. ¿Cómo funciona?
+3. ¿Qué lugar ocupan los requerimientos?
+4. ¿Qué ventaja presenta?
+5. ¿Qué dificultad presenta?
+6. ¿Por qué debería importarle a un analista de requerimientos?
+7. Un ejemplo sencillo.
+
+## Idea para llevarse
+
+Un método ágil no significa “no hay requerimientos”. Una historia mal escrita es un requerimiento mal escrito. Un método formal no significa que el documento reemplace entender el dominio.
+
+El analista elige el *nivel de formalidad* según el riesgo del problema, no según la moda.`
+  },
+  {
+    slug: "necesidades-deseos-expectativas",
+    clase: "Clase 4",
+    titulo: "Necesidades, deseos y expectativas",
+    orden: 17,
     resumen: "No todo lo que se pide pesa igual. Distinguir estos tres evita tratar un lujo como si fuera el corazón del sistema.",
     contenido: `## Las tres capas
 
@@ -360,10 +386,34 @@ En la práctica de la biblioteca se usó esta distinción con códigos RF (funci
 Al entrevistar a un gerente, preguntá: *si esto no existiera el primer día, ¿el sector podría trabajar?* Eso separa necesidad de deseo.`
   },
   {
+    slug: "resumen-clase-4",
+    clase: "Clase 4",
+    titulo: "Resumen de la clase 4",
+    orden: 16,
+    resumen: "Se practica escribir necesidades, deseos, expectativas, y distinguir requerimientos de usuario y de sistema.",
+    contenido: `## De qué trata esta clase
+
+A partir de un caso (en la materia, la biblioteca de la facultad) se pide enunciar ejemplos de:
+
+- **Necesidades** (RF): sin esto el sistema no cumple su razón de ser.
+- **Deseos** (RF): mejoras; el sistema podría arrancar sin ellas.
+- **Expectativas** (RFN): calidad que a veces nadie nombra (tiempo, disponibilidad, usabilidad).
+- **Requerimientos de usuario**: *El usuario quiere…*, en lenguaje de negocio.
+- **Requerimientos de sistema**: *El sistema debe…*, precisos y verificables.
+
+En este laboratorio se piden **dos de cada tipo**. No se inventan: salen del chat con la persona que quiere desarrollar la aplicación.
+
+## Cómo se escribe
+
+> El sistema debe + verbo + objeto + condición observable.
+
+Un enunciado, una idea. Si hay un “y”, casi siempre hay dos requerimientos.`
+  },
+  {
     slug: "usuario-vs-sistema",
-    clase: "Práctica",
+    clase: "Clase 4",
     titulo: "Requerimientos de usuario y de sistema",
-    orden: 15,
+    orden: 18,
     resumen: "El de usuario dice qué necesita una persona, en su lenguaje. El de sistema dice con precisión cómo debe comportarse el software.",
     contenido: `## La diferencia
 
@@ -389,9 +439,9 @@ El primero se entiende en una reunión. El segundo ya se puede diseñar y probar
   },
   {
     slug: "funcionales-y-no-funcionales",
-    clase: "Práctica",
+    clase: "Clase 4",
     titulo: "Requerimientos funcionales y no funcionales",
-    orden: 16,
+    orden: 19,
     resumen: "Los funcionales dicen qué hace el sistema. Los no funcionales dicen qué tan bien, bajo qué condiciones de calidad.",
     contenido: `## Cómo se escriben en este curso
 
@@ -415,10 +465,33 @@ Mejor:
 La segunda versión se puede discutir, priorizar y testear.`
   },
   {
+    slug: "resumen-clase-5",
+    clase: "Clase 5",
+    titulo: "Resumen de la clase 5",
+    orden: 20,
+    resumen: "Antes de listar requerimientos hay que entender el dominio: organización, cómo se trabaja hoy y qué se quiere lograr.",
+    contenido: `## De qué trata esta clase
+
+La primera entrega pide el enunciado del **dominio del problema**. Tiene que permitir comprender:
+
+1. El **contexto**. En este laboratorio el contexto es el **chat** con quien quiere la aplicación.
+2. La **organización**, institución o ámbito.
+3. La **situación o necesidad** que da origen al proyecto.
+4. **Cómo se hacen hoy** las actividades.
+5. El **objetivo general** del sistema.
+6. Lo que **todavía no se sabe** y habría que preguntar.
+
+En esta etapa el objetivo es comprender el problema. **No** se espera definir todavía todos los requerimientos.
+
+## Cómo se trabaja acá
+
+Se entrevista a la IA. Habla como la persona que quiere desarrollar una aplicación: cuenta situaciones, no entrega un listado técnico. Preguntando se arma el dominio; de esa misma conversación salen después los requerimientos de la clase 4.`
+  },
+  {
     slug: "dominio-del-problema",
-    clase: "Práctica",
+    clase: "Clase 5",
     titulo: "Dominio del problema",
-    orden: 17,
+    orden: 21,
     resumen: "Antes de listar requerimientos hay que entender el mundo en el que vive el problema. Esa es la etapa 1 del trabajo práctico.",
     contenido: `## Qué tiene que permitir comprender el enunciado
 
@@ -431,7 +504,7 @@ La segunda versión se puede discutir, priorizar y testear.`
 
 En esta etapa el objetivo es comprender. **No** se espera definir todavía todos los requerimientos.
 
-## Cómo se obtiene (taller)
+## Cómo se obtiene (práctica)
 
 No se inventa el dominio en el escritorio. Se entrevista. El interlocutor (en clase, la IA en rol de gerente) no entrega todo de una vez: describe situaciones. El analista pregunta, interpreta y vuelve a preguntar.
 
@@ -451,9 +524,9 @@ Al cerrar una exploración conviene sintetizar:
   },
   {
     slug: "metodologias",
-    clase: "Práctica",
+    clase: "Clase 3",
     titulo: "Metodologías y el lugar de los requerimientos",
-    orden: 18,
+    orden: 15,
     resumen: "SCRUM, RUP y el modelo en V no eliminan los requerimientos: cambian cuándo, cómo y con qué formalidad aparecen.",
     contenido: `## Preguntas que un analista le hace a cualquier método
 
