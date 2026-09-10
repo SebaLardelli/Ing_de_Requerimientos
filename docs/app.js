@@ -11,8 +11,11 @@
     dominio: "ir.dominio",
     dominios: "ir.dominios",
     clases: "ir.clases",
-    tema: "ir.tema"
+    tema: "ir.tema",
+    wipeTrabajos: "ir.wipeTrabajos"
   };
+
+  const WIPE_TRABAJOS = "20260910";
 
   const TIPOS_PRACTICA = [
     { tipo: "necesidad", titulo: "Necesidad" },
@@ -303,6 +306,7 @@
     if (!state._pulsoAula) {
       state._pulsoAula = setInterval(() => refrescarAula(), 12000);
     }
+    await vaciarHistorialAula();
     await subirLocalAlAula();
     pintarEstadoAula();
     return true;
@@ -312,6 +316,49 @@
     if (!state.sb) return;
     await Promise.all([cargarSesiones(), cargarMensajes(), cargarReqs(), cargarRevisionesReq(), cargarDominios()]);
     if (state.tab === "trabajos") renderTrabajos();
+  }
+
+  function vaciarHistorialLocal() {
+    state.sesiones = [];
+    state.mensajes = [];
+    state.reqs = [];
+    state.revisionesReq = [];
+    state.dominios = {};
+    state.sesionActual = null;
+    state.trabajoAbierto = null;
+    saveJSON(LS.sesiones, []);
+    saveJSON(LS.mensajes, []);
+    saveJSON(LS.reqs, []);
+    saveJSON(LS.revisionesReq, []);
+    saveJSON(LS.dominios, {});
+    saveJSON(LS.dominio, {});
+  }
+
+  function vaciarHistorialLocalSiHaceFalta() {
+    if (localStorage.getItem(LS.wipeTrabajos) === WIPE_TRABAJOS) return;
+    vaciarHistorialLocal();
+    localStorage.setItem(LS.wipeTrabajos, WIPE_TRABAJOS);
+  }
+
+  async function vaciarHistorialAula() {
+    if (!state.sb) return;
+    const corte = "2026-09-10T02:20:00.000Z";
+    const pasos = [
+      ["revisiones_req", "creado_en"],
+      ["requerimientos", "creado_en"],
+      ["mensajes", "creado_en"],
+      ["dominios", "actualizado_en"],
+      ["sesiones", "creado_en"]
+    ];
+    let fallo = "";
+    for (const [tabla, col] of pasos) {
+      const { error: e } = await state.sb.from(tabla).delete().lt(col, corte);
+      if (e) fallo = e.message;
+    }
+    if (fallo) {
+      state.aulaError = "No se pudo vaciar Trabajos: " + fallo;
+      pintarEstadoAula();
+    }
   }
 
   function pintarEstadoAula() {
@@ -1823,6 +1870,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     if (!state.nombre) $("modal-nombre").classList.add("show");
     await cargarScriptOpcional("./config.local.js");
     pintarAjustesAI();
+    vaciarHistorialLocalSiHaceFalta();
     await conectarSupabase();
     await Promise.all([cargarTemas(), cargarRevisiones(), cargarSesiones(), cargarMensajes(), cargarReqs(), cargarRevisionesReq(), cargarDominios()]);
     mostrarTema(state.temas[0]?.slug);
