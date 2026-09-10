@@ -1007,7 +1007,7 @@ Mejor, dos enunciados:
     clase: "Práctica",
     titulo: "Cómo se trabaja la práctica",
     orden: 40,
-    resumen: "El chat es el contexto. De ahí sale el dominio y, después, dos requerimientos de cada tipo. Corregir manda la especificación al historial.",
+    resumen: "El chat es el contexto. De ahí sale el dominio y, después, dos requerimientos de cada tipo. Corregir revisa formato, coherencia y qué mejorar.",
     contenido: `## Qué se practica acá
 
 En la pestaña **Práctica** no se diseña ni se programa. Se hace el trabajo del analista: preguntar, interpretar y escribir.
@@ -1017,7 +1017,7 @@ En la pestaña **Práctica** no se diseña ni se programa. Se hace el trabajo de
 3. Ese chat **es el contexto**. No se inventa el dominio en el escritorio.
 4. Se completa el dominio (organización, cómo se hace hoy, objetivo, lo que falta saber).
 5. Se escriben **dos requerimientos de cada tipo**: necesidad, deseo, expectativa, usuario y sistema.
-6. **Corregir** envía toda la especificación. Recién ahí entra al historial.
+6. **Corregir** revisa el formato, si es coherente con el chat y aconseja qué mejorar. El trabajo queda en **Trabajos**, cerrado, para que cada compañero abra el que le interesa.
 
 ## Relación con las clases
 

@@ -54,7 +54,8 @@
     sesionActual: null,
     sb: null,
     canales: [],
-    aiBusy: false
+    aiBusy: false,
+    trabajoAbierto: null
   };
 
   const $ = (id) => document.getElementById(id);
@@ -206,13 +207,39 @@
     state.canales = [];
     state.sb = null;
 
-    if (!cfg.url || !cfg.key || !window.supabase) return false;
+    if (!cfg.url || !cfg.key || !window.supabase) {
+      pintarEstadoAula();
+      return false;
+    }
     const client = window.supabase.createClient(cfg.url, cfg.key);
     const { error } = await client.from("temas_teoria").select("id").limit(1);
-    if (error) return false;
+    if (error) {
+      pintarEstadoAula();
+      return false;
+    }
     state.sb = client;
     escucharRealtime();
+    if (!state._pulsoAula) {
+      state._pulsoAula = setInterval(() => refrescarAula(), 12000);
+    }
+    pintarEstadoAula();
     return true;
+  }
+
+  async function refrescarAula() {
+    if (!state.sb) return;
+    await Promise.all([cargarSesiones(), cargarMensajes(), cargarReqs(), cargarRevisionesReq(), cargarDominios()]);
+    if (state.tab === "trabajos") renderTrabajos();
+  }
+
+  function pintarEstadoAula() {
+    const txt = state.sb
+      ? "Aula conectada: los trabajos se ven entre todos."
+      : "Aula desconectada: lo que hagas queda solo en este navegador.";
+    ["aula-estado", "aula-estado-ajustes"].forEach((id) => {
+      const el = $(id);
+      if (el) el.textContent = txt;
+    });
   }
 
   function escucharRealtime() {
@@ -227,18 +254,18 @@
       .on("postgres_changes", { event: "*", schema: "public", table: "mensajes" }, async () => {
         await cargarMensajes();
         renderChat();
-        if (state.tab === "historial") renderHistorial();
+        if (state.tab === "trabajos") renderTrabajos();
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "requerimientos" }, async () => {
         await cargarReqs();
         renderReqs();
-        if (state.tab === "historial") renderHistorial();
+        if (state.tab === "trabajos") renderTrabajos();
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "revisiones_req" }, cargarRevisionesReq)
       .on("postgres_changes", { event: "*", schema: "public", table: "dominios" }, async () => {
         await cargarDominios();
         pintarSesionEnUI();
-        if (state.tab === "historial") renderHistorial();
+        if (state.tab === "trabajos") renderTrabajos();
       })
       .subscribe();
     state.canales.push(ch);
@@ -413,6 +440,7 @@
       if (!error && data) {
         state.revisionesReq = data;
         saveJSON(LS.revisionesReq, data);
+        if (state.tab === "trabajos") renderTrabajos();
         return;
       }
     }
@@ -855,7 +883,8 @@
       state.sesionActual = sesion;
       state.sesiones = [sesion, ...state.sesiones.filter((x) => x.id !== sesion.id)];
       pintarSesionEnUI();
-      toast("Caso abierto. El chat es el contexto; la especificación se arma acá y no va al historial hasta Corregir.");
+      await refrescarAula();
+      toast(state.sb ? "Caso abierto. Ya lo pueden ver tus compañeros en Trabajos." : "Caso abierto solo en este navegador: el aula no está conectada.");
     } catch (err) {
       toast("No se pudo crear el caso: " + err.message);
     }
@@ -1190,30 +1219,31 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
   }
 
   function promptCorreccionReq() {
-    return `Sos docente de ingeniería de requerimientos. Recibís TODA la ESPECIFICACIÓN de la práctica (dominio + requerimientos) y, si hay, el debate con el gerente.
+    return `Sos docente de ingeniería de requerimientos. Revisá TODO el trabajo: dominio, los 10 requerimientos y el chat.
 
-Reglas de un buen enunciado:
-- Atómico: una sola idea. Si hay dos acciones unidas con "y", partilo.
-- Verificable: se puede imaginar una prueba.
-- Sin ambigüedad: nada de "rápido", "amigable", "etc.", "flexible" sin criterio.
-- RF / necesidad / deseo / funcional / sistema: "El sistema debe" + verbo + objeto + condición observable.
-- RFN / expectativa / no_funcional: una cualidad medible (tiempo, disponibilidad, usabilidad).
-- Usuario: "El usuario quiere…" en lenguaje de negocio, sin diseño técnico.
-- El dominio (contexto, organización, cómo se hace hoy, objetivo, desconocido) debe ser concreto y coherente. Señalá huecos.
-- No inventes hechos que no estén en la especificación ni en el debate. Si falta, decilo.
+Mirás cuatro cosas:
+1) FORMATO. Necesidad, deseo y sistema: "El sistema debe" + verbo + objeto + condición observable. Expectativa: cualidad MEDIBLE. Usuario: "El usuario quiere…" sin diseño técnico. Atómico (una idea), verificable, sin "rápido/amigable/etc.".
+2) COHERENCIA. Lo escrito tiene que salir del chat. Si un req no se sostiene, o el dominio se contradice, marcalo.
+3) REDACCIÓN. Mayúscula al empezar, punto al final, tildes, ortografía, concordancia y frases claras. Si falta un punto o arranca en minúscula, corregilo.
+4) CONSEJO. Decí qué mejorar: qué preguntar, qué reescribir, qué falta.
 
-Devolvé SOLO un JSON válido y CORTO con:
+No inventes hechos. Si falta evidencia en el chat, decilo.
+
+Devolvé SOLO un JSON válido:
 {
-  "comparacion": "6 a 10 líneas: coherencia, forma y huecos",
+  "formato": "qué tan bien escribieron la forma; 4 a 8 líneas",
+  "coherencia": "si dominio, chat y reqs se sostienen entre sí; 4 a 8 líneas",
+  "redaccion": "mayúsculas, puntos, tildes y claridad; 4 a 8 líneas. Nombrá ejemplos concretos.",
+  "consejos": ["consejo concreto 1", "consejo 2", "consejo 3"],
   "dominio": { "contexto": "", "organizacion": "", "hoy": "", "objetivo": "", "desconocido": "" },
   "correcciones": [
-    { "id": "id original", "codigo": "RF1", "tipo": "necesidad", "enunciado_original": "...", "enunciado_corregido": "...", "motivo": "por qué" }
+    { "id": "id", "codigo": "RF1", "tipo": "necesidad", "enunciado_original": "...", "enunciado_corregido": "...", "motivo": "formato, coherencia o redacción" }
   ],
   "faltantes": [
     { "tipo": "sistema", "enunciado": "El sistema debe...", "fundamento": "En el chat se dijo que..." }
   ]
 }
-La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar. En faltantes, máximo 3 y solo si el chat lo sostiene.`;
+correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltantes: máximo 3 y solo si el chat lo sostiene. consejos: 3 a 5, accionables.`;
   }
 
   function textoEspecificacion(sesion) {
@@ -1253,11 +1283,18 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
     const faltan = (data.faltantes || []).map((f) =>
       `- (${etiquetaTipo(f.tipo)}) ${f.enunciado}\n  Fundamento: ${f.fundamento || ""}`
     ).join("\n");
+    const consejos = (data.consejos || []).map((c) => `- ${c}`).join("\n");
     const escritos = originales.map((r) => `- ${r.codigo} [${r.tipo}] (${r.autor}): ${r.enunciado}`).join("\n");
     const dom = data.dominio || {};
     return [
-      "## Revisión de la especificación",
-      data.comparacion || "Sin revisión.",
+      "## Formato",
+      data.formato || data.comparacion || "Sin revisión de formato.",
+      "## Coherencia",
+      data.coherencia || "Sin revisión de coherencia.",
+      "## Redacción",
+      data.redaccion || "Sin revisión de mayúsculas, puntos u ortografía.",
+      "## Qué mejorar",
+      consejos || "Nada puntual.",
       "## Dominio revisado",
       `- Contexto: ${dom.contexto || "sin cambios sugeridos"}`,
       `- Organización: ${dom.organizacion || "sin cambios sugeridos"}`,
@@ -1266,9 +1303,9 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
       `- Desconocido: ${dom.desconocido || "sin cambios sugeridos"}`,
       "## Requerimientos que escribieron",
       escritos || "Ninguno.",
-      "## Corrección (forma atómica y estructura)",
-      corr || "Sin correcciones.",
-      "## Lo que faltaba escribir",
+      "## Enunciados reescritos",
+      corr || "Ninguno hacía falta reescribir.",
+      "## Lo que faltaba (si el chat lo sostiene)",
       faltan || "Nada evidente."
     ].join("\n\n");
   }
@@ -1302,7 +1339,7 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
     state.aiBusy = true;
     $("btn-corregir-req").disabled = true;
     $("btn-corregir-req").textContent = "Corrigiendo…";
-    toast("Corrigiendo. Cuando termine, esta práctica va al historial.");
+    toast("Corrigiendo formato, coherencia, redacción y consejos…");
     try {
       const raw = await chatAI([
         { role: "system", content: promptCorreccionReq() },
@@ -1340,19 +1377,16 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
       const rev = {
         id: uid(),
         sesion_id: state.sesionActual.id,
-        requerimiento_id: null,
         autor: "IA · " + state.nombre,
         comentario: informe,
         creado_en: now()
       };
       await upsert("revisiones_req", rev, LS.revisionesReq, "revisionesReq");
+      await refrescarAula();
       pintarSlotsReq(reqsDe(state.sesionActual.id));
       renderReqs();
-      if (state.tab === "historial") {
-        renderListaSesiones();
-        renderHistorial();
-      }
-      toast("La especificación se corrigió y ahora sí quedó en el historial.");
+      if (state.tab === "trabajos") renderTrabajos();
+      toast("Listo. Abajo está la revisión: formato, coherencia, redacción y qué mejorar.");
     } catch (err) {
       toast("No se pudo corregir: " + err.message);
     } finally {
@@ -1367,11 +1401,41 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
   }
 
   function sesionesEnHistorial() {
-    const ids = idsEnHistorial();
-    return state.sesiones.filter((s) => ids.has(s.id));
+    return (state.sesiones || []).slice();
   }
 
-  function renderListaSesiones() {
+  function cuerpoTrabajo(s) {
+    const d = dominioDe(s.id);
+    const msgs = mensajesDe(s.id).map((m) =>
+      `<p><strong>${escapeHtml(m.rol === "gerente" ? s.nombre_gerente : "Analista " + m.autor)}</strong> — ${escapeHtml(m.contenido)}</p>`
+    ).join("");
+    const reqs = reqsDe(s.id).map((r) =>
+      `<li><strong>${escapeHtml(r.codigo)}</strong> (${escapeHtml(etiquetaTipo(r.tipo))}, ${escapeHtml(r.autor)}): ${escapeHtml(r.enunciado)}</li>`
+    ).join("");
+    const revs = state.revisionesReq.filter((r) => r.sesion_id === s.id).map((r) =>
+      `<div class="rev-item"><strong>${escapeHtml(r.autor)}</strong><div class="content">${markdown(r.comentario)}</div></div>`
+    ).join("");
+    return `
+      <p class="hint">${escapeHtml(s.creado_por)} · ${escapeHtml(s.nombre_gerente)}, ${escapeHtml(s.rol_gerente)} · ${escapeHtml(s.organizacion)}</p>
+      <div class="row" style="margin-bottom:12px">
+        <button class="btn small btn-seguir-caso" type="button" data-id="${s.id}">Seguir este caso</button>
+      </div>
+      <h3>Dominio</h3>
+      <p><strong>Contexto.</strong> ${escapeHtml(d.contexto || "sin cargar")}</p>
+      <p><strong>Organización.</strong> ${escapeHtml(d.org || s.organizacion)}</p>
+      <p><strong>Hoy.</strong> ${escapeHtml(d.hoy || "sin cargar")}</p>
+      <p><strong>Objetivo.</strong> ${escapeHtml(d.objetivo || "sin cargar")}</p>
+      <p><strong>Desconocido.</strong> ${escapeHtml(d.desconocido || "sin cargar")}</p>
+      <h3>Requerimientos</h3>
+      <ul>${reqs || "<li>Todavía no escribieron requerimientos.</li>"}</ul>
+      <h3>Chat</h3>
+      ${msgs || "<p class='hint'>No hubo entrevista guardada.</p>"}
+      <h3>Revisión de la IA</h3>
+      ${revs || "<p class='hint'>Todavía no hay corrección.</p>"}
+    `;
+  }
+
+  function renderTrabajos() {
     const filtro = ($("filtro-autor")?.value || "").trim().toLowerCase();
     const box = $("lista-sesiones");
     if (!box) return;
@@ -1383,76 +1447,47 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
       return blob.includes(filtro);
     });
     if (!lista.length) {
-      box.innerHTML = "<p class='hint'>El historial está vacío. Las prácticas aparecen acá después de Corregir.</p>";
+      box.innerHTML = "<p class='hint'>Todavía no hay prácticas. Cuando alguien abre un caso, aparece acá para todo el aula.</p>";
       return;
     }
+    const corregidos = idsEnHistorial();
     box.innerHTML = lista.map((s) => {
-      const nMsg = mensajesDe(s.id).length;
       const nReq = reqsDe(s.id).length;
+      const abierto = state.trabajoAbierto === s.id;
+      const marca = corregidos.has(s.id) ? " · corregido" : "";
       return `
-      <button class="session-btn ${state.sesionActual && state.sesionActual.id === s.id ? "active" : ""}" data-id="${s.id}" type="button">
-        <strong>${escapeHtml(s.titulo)}</strong><br>
-        <small>${escapeHtml(s.creado_por)} · ${nMsg} mensajes · ${nReq} requerimientos</small>
-      </button>`;
+      <article class="trabajo ${abierto ? "abierto" : ""}" data-id="${s.id}">
+        <button class="trabajo-cab" type="button" data-id="${s.id}" aria-expanded="${abierto ? "true" : "false"}">
+          <span>
+            <strong>${escapeHtml(s.titulo)}</strong>
+            <small>${escapeHtml(s.creado_por)} · ${nReq} requerimientos${marca}</small>
+          </span>
+          <span class="trabajo-flecha">${abierto ? "−" : "+"}</span>
+        </button>
+        <div class="trabajo-cuerpo">${abierto ? cuerpoTrabajo(s) : ""}</div>
+      </article>`;
     }).join("");
-    box.querySelectorAll(".session-btn").forEach((btn) => {
+    box.querySelectorAll(".trabajo-cab").forEach((btn) => {
       btn.onclick = () => {
-        state.sesionActual = state.sesiones.find((s) => s.id === btn.dataset.id);
+        state.trabajoAbierto = state.trabajoAbierto === btn.dataset.id ? null : btn.dataset.id;
+        renderTrabajos();
+      };
+    });
+    box.querySelectorAll(".btn-seguir-caso").forEach((btn) => {
+      btn.onclick = () => {
+        state.sesionActual = state.sesiones.find((s) => s.id === btn.dataset.id) || null;
         pintarSesionEnUI();
-        renderHistorial();
-        renderListaSesiones();
+        irTab("practica");
       };
     });
   }
 
+  function renderListaSesiones() {
+    renderTrabajos();
+  }
+
   function renderHistorial() {
-    const visible = sesionesEnHistorial();
-    const s = state.sesionActual && visible.some((x) => x.id === state.sesionActual.id)
-      ? state.sesionActual
-      : null;
-    if (!s) {
-      $("hist-titulo").textContent = "Elegí una práctica";
-      $("hist-meta").textContent = "";
-      $("hist-cuerpo").innerHTML = "<p class='hint'>Acá solo está lo que ya mandaron a Corregir: la especificación y la corrección.</p>";
-      return;
-    }
-    $("hist-kicker").textContent = s.organizacion;
-    $("hist-titulo").textContent = s.titulo;
-    $("hist-meta").textContent = `Abierto por ${s.creado_por} · ${s.nombre_gerente}, ${s.rol_gerente}`;
-    const d = dominioDe(s.id);
-    const msgs = mensajesDe(s.id).map((m) =>
-      `<p><strong>${escapeHtml(m.rol === "gerente" ? s.nombre_gerente : "Analista " + m.autor)}</strong> — ${escapeHtml(m.contenido)}</p>`
-    ).join("");
-    const reqs = reqsDe(s.id).map((r) =>
-      `<li><strong>${escapeHtml(r.codigo)}</strong> (${escapeHtml(etiquetaTipo(r.tipo))}, ${escapeHtml(r.autor)}): ${escapeHtml(r.enunciado)}</li>`
-    ).join("");
-    const revs = state.revisionesReq.filter((r) => r.sesion_id === s.id).map((r) =>
-      `<div class="rev-item"><strong>${escapeHtml(r.autor)}</strong><div class="content">${markdown(r.comentario)}</div></div>`
-    ).join("");
-    $("hist-cuerpo").innerHTML = `
-      <div class="row" style="margin-bottom:12px">
-        <button class="btn" id="btn-seguir-caso" type="button">Seguir entrevistando este caso</button>
-      </div>
-      <h3>Dominio</h3>
-      <p><strong>Contexto.</strong> ${escapeHtml(d.contexto || "sin cargar")}</p>
-      <p><strong>Organización.</strong> ${escapeHtml(d.org || s.organizacion)}</p>
-      <p><strong>Hoy.</strong> ${escapeHtml(d.hoy || "sin cargar")}</p>
-      <p><strong>Objetivo.</strong> ${escapeHtml(d.objetivo || "sin cargar")}</p>
-      <p><strong>Desconocido.</strong> ${escapeHtml(d.desconocido || "sin cargar")}</p>
-      <h3>1. Especificación — dominio</h3>
-      <p class="hint">Lo de arriba es el dominio enviado a Corregir.</p>
-      <h3>2. Especificación — requerimientos</h3>
-      <ul>${reqs || "<li>Todavía no escribieron requerimientos.</li>"}</ul>
-      <h3>3. Debate (si hubo)</h3>
-      ${msgs || "<p class='hint'>No hubo entrevista guardada.</p>"}
-      <h3>4. Corrección</h3>
-      ${revs || "<p class='hint'>Todavía no hay corrección.</p>"}
-    `;
-    const seguir = $("btn-seguir-caso");
-    if (seguir) seguir.onclick = () => {
-      pintarSesionEnUI();
-      irTab("practica");
-    };
+    renderTrabajos();
   }
 
   async function guardarNombre() {
@@ -1488,10 +1523,7 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
     state.tab = tab;
     document.querySelectorAll(".tab").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
     document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + tab));
-    if (tab === "historial") {
-      renderListaSesiones();
-      renderHistorial();
-    }
+    if (tab === "trabajos") renderTrabajos();
   }
 
   function eventos() {
@@ -1559,6 +1591,7 @@ La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar
     await Promise.all([cargarTemas(), cargarRevisiones(), cargarSesiones(), cargarMensajes(), cargarReqs(), cargarRevisionesReq(), cargarDominios()]);
     mostrarTema(state.temas[0]?.slug);
     pintarSesionEnUI();
+    pintarEstadoAula();
     renderListaSesiones();
   }
 

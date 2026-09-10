@@ -41,7 +41,7 @@
     <nav class="tabs" aria-label="Secciones">
       <button class="tab active" data-tab="teoria" type="button">Teoría</button>
       <button class="tab" data-tab="practica" type="button">Práctica</button>
-      <button class="tab" data-tab="historial" type="button">Historial</button>
+      <button class="tab" data-tab="trabajos" type="button">Trabajos</button>
       <button class="tab" data-tab="ajustes" type="button">Ajustes</button>
     </nav>
   </header>
@@ -124,7 +124,7 @@
         <div class="card block">
           <div class="kicker">Especificación</div>
           <h2>Dominio y requerimientos</h2>
-          <p class="hint">El contexto es el chat de la izquierda. De ahí sale el dominio (clase 5) y, para practicar, <strong>dos requerimientos de cada tipo</strong> (clase 4). Nada de esto va al historial hasta <strong>Corregir</strong>.</p>
+          <p class="hint">El contexto es el chat de la izquierda. De ahí sale el dominio (clase 5) y, para practicar, <strong>dos requerimientos de cada tipo</strong> (clase 4).</p>
 
           <div class="field">
             <label for="dom-contexto">Síntesis del contexto (del chat)</label>
@@ -186,26 +186,21 @@
           <div class="row" style="margin-top:8px">
             <button class="btn primary" id="btn-corregir-req" type="button">Corregir</button>
           </div>
-          <p class="hint">Corregir manda la especificación a la IA y, cuando termina, la práctica pasa al historial. No es un error: el historial son solo casos ya corregidos.</p>
+          <p class="hint">La IA mira el formato, la coherencia, la redacción (mayúsculas, puntos, tildes) y te dice qué mejorar.</p>
           <div id="lista-req" class="req-list" style="margin-top:12px"></div>
           <div id="feedback-ia" class="content" style="margin-top:12px"></div>
         </div>
       </div>
     </section>
 
-    <section id="panel-historial" class="panel">
-      <div class="history-grid">
-        <aside class="card block">
-          <h2>Casos</h2>
-          <p class="hint">Solo aparecen las prácticas que ya mandaron a Corregir. Un dominio nuevo no se lista acá. Filtrá por nombre si hace falta.</p>
-          <input id="filtro-autor" placeholder="Filtrar por nombre" />
-          <div id="lista-sesiones" class="session-list"></div>
-        </aside>
+    <section id="panel-trabajos" class="panel">
+      <div class="layout layout-one">
         <article class="card block">
-          <div class="kicker" id="hist-kicker">Detalle</div>
-          <h2 id="hist-titulo">Elegí un caso</h2>
-          <p class="hint" id="hist-meta"></p>
-          <div id="hist-cuerpo" class="content"></div>
+          <h2>Trabajos</h2>
+          <p class="hint">Cada práctica queda cerrada. Abrí solo la que te interesa.</p>
+          <p class="hint" id="aula-estado"></p>
+          <input id="filtro-autor" placeholder="Filtrar por nombre" />
+          <div id="lista-sesiones" class="trabajo-lista"></div>
         </article>
       </div>
     </section>
@@ -227,6 +222,7 @@
             <button class="btn primary" id="btn-guardar-ai" type="button">Guardar modelo</button>
           </div>
           <p class="hint" id="ai-estado"></p>
+          <p class="hint" id="aula-estado-ajustes"></p>
         </article>
       </div>
     </section>
