@@ -310,7 +310,7 @@
     if (!state._pulsoAula) {
       state._pulsoAula = setInterval(() => refrescarAula(), 8000);
     }
-    vaciarHistorialAula().then(() => subirLocalAlAula()).catch(() => {});
+    vaciarHistorialAula().catch(() => {});
     pintarEstadoAula();
     return true;
   }
@@ -697,18 +697,8 @@
         state[collection] = local;
         return;
       }
-      const mezclado = mergePorId(data, local);
-      state[collection] = mezclado;
-      saveJSON(localKey, mezclado);
-      const idsRemotos = new Set((data || []).map((x) => String(x.id)));
-      for (const row of local) {
-        if (!row?.id || idsRemotos.has(String(row.id))) continue;
-        const { error: e2 } = await state.sb.from(tabla).upsert(sanear(tabla, row));
-        if (e2) {
-          state.aulaError = e2.message;
-          pintarEstadoAula();
-        }
-      }
+      state[collection] = data || [];
+      saveJSON(localKey, state[collection]);
       return;
     }
     state[collection] = local;
@@ -742,21 +732,12 @@
         state.dominios = local;
         return;
       }
-      const mezclado = { ...local };
+      const remotos = {};
       (data || []).forEach((d) => {
-        if (d?.sesion_id) mezclado[String(d.sesion_id)] = { ...(mezclado[String(d.sesion_id)] || {}), ...d };
+        if (d?.sesion_id) remotos[String(d.sesion_id)] = d;
       });
-      state.dominios = mezclado;
-      saveJSON(LS.dominios, mezclado);
-      const idsRemotos = new Set((data || []).map((d) => String(d.sesion_id)));
-      for (const d of Object.values(local)) {
-        if (!d?.sesion_id || idsRemotos.has(String(d.sesion_id))) continue;
-        const { error: e2 } = await state.sb.from("dominios").upsert(filaDominio(d));
-        if (e2) {
-          state.aulaError = e2.message;
-          pintarEstadoAula();
-        }
-      }
+      state.dominios = remotos;
+      saveJSON(LS.dominios, remotos);
       return;
     }
     state.dominios = local;
