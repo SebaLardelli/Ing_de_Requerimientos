@@ -31,11 +31,9 @@ html[data-theme="dark"] {
   --card: linear-gradient(165deg, rgba(20, 16, 32, 0.78), rgba(14, 12, 22, 0.62));
   --card-shine: inset 0 1px 0 rgba(245, 243, 255, 0.08);
   --bg-base: #07060d;
-  --bg-mesh: radial-gradient(1100px 720px at 14% 12%, rgba(78, 92, 210, 0.42), transparent 58%),
-             radial-gradient(980px 680px at 92% 38%, rgba(118, 48, 140, 0.34), transparent 54%),
-             radial-gradient(900px 640px at 50% 115%, rgba(36, 24, 80, 0.4), transparent 52%);
-  --bg-grid: linear-gradient(rgba(245, 243, 255, 0.045) 1px, transparent 1px),
-             linear-gradient(90deg, rgba(245, 243, 255, 0.045) 1px, transparent 1px);
+  --bg-mesh: radial-gradient(80% 60% at 12% 8%, rgba(78, 92, 210, 0.38), transparent 62%),
+             radial-gradient(70% 55% at 92% 36%, rgba(118, 48, 140, 0.3), transparent 58%),
+             radial-gradient(75% 50% at 50% 110%, rgba(36, 24, 80, 0.36), transparent 55%);
   --serif: "Source Serif 4", Georgia, serif;
   --sans: "IBM Plex Sans", "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -73,11 +71,9 @@ html[data-theme="light"] {
   --card: linear-gradient(165deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.7));
   --card-shine: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --bg-base: #f4f1fb;
-  --bg-mesh: radial-gradient(1100px 720px at 12% 8%, rgba(176, 168, 255, 0.45), transparent 58%),
-             radial-gradient(980px 680px at 92% 30%, rgba(210, 196, 255, 0.4), transparent 54%),
-             radial-gradient(900px 640px at 50% 120%, rgba(186, 176, 240, 0.28), transparent 52%);
-  --bg-grid: linear-gradient(rgba(51, 34, 74, 0.07) 1px, transparent 1px),
-             linear-gradient(90deg, rgba(51, 34, 74, 0.07) 1px, transparent 1px);
+  --bg-mesh: radial-gradient(80% 60% at 10% 6%, rgba(176, 168, 255, 0.4), transparent 62%),
+             radial-gradient(70% 55% at 94% 28%, rgba(210, 196, 255, 0.36), transparent 58%),
+             radial-gradient(75% 50% at 50% 115%, rgba(186, 176, 240, 0.24), transparent 55%);
 }
 
 * { box-sizing: border-box; }
@@ -88,11 +84,11 @@ body {
   color: var(--ink);
   min-height: 100dvh;
   background-color: var(--bg-base);
-  background-image: var(--bg-mesh), var(--bg-grid);
-  background-size: auto, 48px 48px;
-  background-position: center, 0 0;
-  background-attachment: fixed, fixed;
-  background-repeat: no-repeat, repeat;
+  background-image: var(--bg-mesh);
+  background-size: 100% 100%;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   transition: color 0.2s ease, background-color 0.2s ease;
 }
 .app-header,
@@ -111,11 +107,12 @@ a { color: var(--accent); }
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin: 12px 18px 0;
-  padding: 12px 18px;
+  margin: 0;
+  padding: 14px 22px;
   background: var(--header);
   border: 1px solid var(--line);
-  border-radius: 28px;
+  border-top: 0;
+  border-radius: 0 0 24px 24px;
   backdrop-filter: blur(22px) saturate(1.15);
   box-shadow: var(--shadow), var(--card-shine);
 }
@@ -303,13 +300,24 @@ a { color: var(--accent); }
   border-left-color: var(--accent);
 }
 
-.article { padding: 22px 26px 28px; }
+.article { padding: 26px 28px 32px; }
 .article-head {
-  display: flex; justify-content: space-between; gap: 12px;
-  align-items: flex-start; margin-bottom: 10px;
+  display: flex; justify-content: space-between; gap: 16px;
+  align-items: flex-start; margin-bottom: 16px;
 }
-.kicker { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.95; }
-.lead { color: var(--ink-soft); font-size: 1.05rem; }
+.kicker {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.95;
+  margin: 0 0 12px;
+}
+.article-head h2,
+.block .kicker + h2 { margin-top: 4px; }
+.lead { color: var(--ink-soft); font-size: 1.05rem; margin: 14px 0 12px; }
+.content h2, .content h3 { margin-top: 1.15em; }
 .content p, .content li { line-height: 1.65; }
 .content blockquote {
   margin: 12px 0;
@@ -482,7 +490,7 @@ html[data-theme="dark"] .toast { color: var(--paper); background: var(--ink); }
 @media (max-width: 1100px) {
   .app-header {
     flex-wrap: wrap;
-    border-radius: 22px;
+    border-radius: 0 0 22px 22px;
   }
   .tabs {
     order: 3;
@@ -517,10 +525,10 @@ html[data-theme="dark"] .toast { color: var(--paper); background: var(--ink); }
 
 @media (max-width: 720px) {
   .app-header {
-    margin: 8px 10px 0;
+    margin: 0;
     padding: 10px 12px;
     gap: 10px;
-    border-radius: 20px;
+    border-radius: 0 0 18px 18px;
   }
   .brand p { display: none; }
   .brand h1 { font-size: 1rem; }
@@ -545,7 +553,7 @@ html[data-theme="dark"] .toast { color: var(--paper); background: var(--ink); }
   .bubble { max-width: 100%; }
   .toast { right: 10px; left: 10px; max-width: none; }
   .modal { padding: 16px; }
-  body { background-attachment: scroll, scroll; }
+  body { background-attachment: scroll; }
 }
 
 @media (max-width: 420px) {
