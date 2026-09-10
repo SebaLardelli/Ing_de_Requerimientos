@@ -1121,7 +1121,7 @@
     pintarSesionEnUI();
     if (state.sb && !remoto) await refrescarAula();
     if (remoto) toast("El caso quedó en este navegador, pero no se compartió: " + remoto.message);
-    else toast(state.sb ? "Caso abierto. Ya lo pueden ver tus compañeros en Trabajos." : "Caso abierto solo en este navegador: el aula no está conectada.");
+    else toast(state.sb ? "Caso abierto. Cuando lo corrijan, va a aparecer en Trabajos." : "Caso abierto solo en este navegador: el aula no está conectada.");
   }
 
   function mostrarPensando() {
@@ -1635,7 +1635,8 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
   }
 
   function sesionesEnHistorial() {
-    return (state.sesiones || []).slice();
+    const ids = idsEnHistorial();
+    return (state.sesiones || []).filter((s) => [...ids].some((id) => mismoId(id, s.id)));
   }
 
   function cuerpoTrabajo(s) {
@@ -1681,20 +1682,18 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       return blob.includes(filtro);
     });
     if (!lista.length) {
-      box.innerHTML = "<p class='hint'>Todavía no hay prácticas. Cuando alguien abre un caso, aparece acá para todo el aula.</p>";
+      box.innerHTML = "<p class='hint'>Todavía no hay trabajos. Acá aparece cada práctica después de pulsar Corregir.</p>";
       return;
     }
-    const corregidos = idsEnHistorial();
     box.innerHTML = lista.map((s) => {
       const nReq = reqsDe(s.id).length;
       const abierto = mismoId(state.trabajoAbierto, s.id);
-      const marca = [...corregidos].some((id) => mismoId(id, s.id)) ? " · corregido" : "";
       return `
       <details class="trabajo${abierto ? " abierto" : ""}" data-id="${s.id}" ${abierto ? "open" : ""}>
         <summary class="trabajo-cab">
           <span>
             <strong>${escapeHtml(s.titulo)}</strong>
-            <small>${escapeHtml(s.creado_por || "sin nombre")} · ${nReq} requerimientos${marca}</small>
+            <small>${escapeHtml(s.creado_por || "sin nombre")} · ${nReq} requerimientos · corregido</small>
           </span>
           <span class="trabajo-flecha" aria-hidden="true"></span>
         </summary>

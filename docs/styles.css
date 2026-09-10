@@ -568,13 +568,12 @@ html[data-theme="light"] .modal-back { background: rgba(28, 25, 21, 0.35); }
   .side { position: static; top: auto; }
   .topic-list {
     max-height: none;
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 16px;
-    padding-bottom: 6px;
-    -webkit-overflow-scrolling: touch;
+    flex-direction: column;
+    overflow: visible;
+    gap: 18px;
+    padding-bottom: 0;
   }
-  .clase-grupo { min-width: 200px; flex: 0 0 200px; }
+  .clase-grupo { min-width: 0; flex: none; width: 100%; }
   .chat { height: auto; min-height: 360px; }
   .article-head { flex-direction: column; align-items: stretch; }
   .article-head .row { width: 100%; }
