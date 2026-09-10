@@ -4,8 +4,16 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+function urlProyectoSupabase(valor) {
+  return String(valor || "")
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/rest\/v1$/i, "")
+    .replace(/\/+$/, "");
+}
+
 const config = {
-  supabaseUrl: process.env.SUPABASE_URL || "",
+  supabaseUrl: urlProyectoSupabase(process.env.SUPABASE_URL),
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
   aiProvider: process.env.AI_PROVIDER || "groq",
   aiKey: process.env.AI_KEY || "",

@@ -55,14 +55,23 @@
     sb: null,
     canales: [],
     aiBusy: false,
-    trabajoAbierto: null
+    trabajoAbierto: null,
+    aulaError: ""
   };
 
   const $ = (id) => document.getElementById(id);
-  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+  const uid = () => {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      return (c === "x" ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  };
   const now = () => new Date().toISOString();
   const escapeHtml = (s = "") => String(s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const esUuid = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ""));
+  const mismoId = (a, b) => String(a || "") === String(b || "");
 
   function toast(msg) {
     const el = document.createElement("div");
@@ -129,10 +138,18 @@
     });
   }
 
+  function urlProyectoSupabase(valor) {
+    return String(valor || "")
+      .trim()
+      .replace(/\/+$/, "")
+      .replace(/\/rest\/v1$/i, "")
+      .replace(/\/+$/, "");
+  }
+
   function cfgSupabase() {
     const g = cfgGlobal();
     return {
-      url: (g.supabaseUrl || "").trim(),
+      url: urlProyectoSupabase(g.supabaseUrl),
       key: (g.supabaseAnonKey || "").trim()
     };
   }
@@ -199,6 +216,63 @@
     };
   }
 
+  function mergePorId(remoto, local) {
+    const map = new Map();
+    (local || []).forEach((x) => { if (x?.id) map.set(String(x.id), x); });
+    (remoto || []).forEach((x) => { if (x?.id) map.set(String(x.id), { ...(map.get(String(x.id)) || {}), ...x }); });
+    return [...map.values()].sort((a, b) => String(b.creado_en || "").localeCompare(String(a.creado_en || "")));
+  }
+
+  function uuidONuevo(id, remap) {
+    if (!id) return id;
+    const raw = String(id);
+    if (esUuid(raw)) return raw;
+    if (!remap[raw]) remap[raw] = uid();
+    return remap[raw];
+  }
+
+  function normalizarIdsLocales() {
+    const remap = {};
+    const sesiones = loadJSON(LS.sesiones, state.sesiones || []);
+    const mensajes = loadJSON(LS.mensajes, state.mensajes || []);
+    const reqs = loadJSON(LS.reqs, state.reqs || []);
+    const revs = loadJSON(LS.revisionesReq, state.revisionesReq || []);
+    const dominios = loadJSON(LS.dominios, state.dominios || {});
+    sesiones.forEach((s) => { s.id = uuidONuevo(s.id, remap); });
+    mensajes.forEach((m) => {
+      m.id = uuidONuevo(m.id, remap);
+      m.sesion_id = uuidONuevo(m.sesion_id, remap);
+    });
+    reqs.forEach((r) => {
+      r.id = uuidONuevo(r.id, remap);
+      r.sesion_id = uuidONuevo(r.sesion_id, remap);
+    });
+    revs.forEach((r) => {
+      r.id = uuidONuevo(r.id, remap);
+      r.sesion_id = uuidONuevo(r.sesion_id, remap);
+    });
+    const dominiosNuevos = {};
+    Object.values(dominios).forEach((d) => {
+      if (!d) return;
+      d.sesion_id = uuidONuevo(d.sesion_id, remap);
+      if (d.sesion_id) dominiosNuevos[String(d.sesion_id)] = d;
+    });
+    saveJSON(LS.sesiones, sesiones);
+    saveJSON(LS.mensajes, mensajes);
+    saveJSON(LS.reqs, reqs);
+    saveJSON(LS.revisionesReq, revs);
+    saveJSON(LS.dominios, dominiosNuevos);
+    state.sesiones = sesiones;
+    state.mensajes = mensajes;
+    state.reqs = reqs;
+    state.revisionesReq = revs;
+    state.dominios = dominiosNuevos;
+    if (state.sesionActual?.id) {
+      const nid = uuidONuevo(state.sesionActual.id, remap);
+      state.sesionActual = sesiones.find((s) => mismoId(s.id, nid)) || { ...state.sesionActual, id: nid };
+    }
+  }
+
   async function conectarSupabase() {
     const cfg = cfgSupabase();
     state.canales.forEach((c) => {
@@ -206,22 +280,30 @@
     });
     state.canales = [];
     state.sb = null;
+    state.aulaError = "";
+    normalizarIdsLocales();
 
     if (!cfg.url || !cfg.key || !window.supabase) {
       pintarEstadoAula();
       return false;
     }
     const client = window.supabase.createClient(cfg.url, cfg.key);
-    const { error } = await client.from("temas_teoria").select("id").limit(1);
-    if (error) {
+    const teoria = await client.from("temas_teoria").select("id").limit(1);
+    const practicas = await client.from("sesiones").select("id").limit(1);
+    if (teoria.error && practicas.error) {
+      state.aulaError = practicas.error.message || teoria.error.message;
       pintarEstadoAula();
       return false;
     }
     state.sb = client;
+    state.aulaError = practicas.error
+      ? "La teoría conecta, pero las prácticas no: " + practicas.error.message
+      : "";
     escucharRealtime();
     if (!state._pulsoAula) {
       state._pulsoAula = setInterval(() => refrescarAula(), 12000);
     }
+    await subirLocalAlAula();
     pintarEstadoAula();
     return true;
   }
@@ -233,13 +315,119 @@
   }
 
   function pintarEstadoAula() {
-    const txt = state.sb
-      ? "Aula conectada: los trabajos se ven entre todos."
-      : "Aula desconectada: lo que hagas queda solo en este navegador.";
+    const txt = state.aulaError
+      ? "Aula a medias: " + state.aulaError
+      : state.sb
+        ? "Aula conectada: los trabajos se ven entre todos."
+        : "Aula desconectada: lo que hagas queda solo en este navegador.";
     ["aula-estado", "aula-estado-ajustes"].forEach((id) => {
       const el = $(id);
       if (el) el.textContent = txt;
     });
+  }
+
+  function filaSesion(s) {
+    return {
+      id: s.id,
+      titulo: s.titulo || "",
+      organizacion: s.organizacion || "",
+      rol_gerente: s.rol_gerente || "",
+      nombre_gerente: s.nombre_gerente || "",
+      escenario: s.escenario || "",
+      creado_por: s.creado_por || "",
+      creado_en: s.creado_en || now()
+    };
+  }
+
+  function filaMensaje(m) {
+    return {
+      id: m.id,
+      sesion_id: m.sesion_id,
+      autor: m.autor || "",
+      rol: m.rol || "analista",
+      contenido: m.contenido || "",
+      creado_en: m.creado_en || now()
+    };
+  }
+
+  function filaReq(r) {
+    return {
+      id: r.id,
+      sesion_id: r.sesion_id,
+      codigo: r.codigo || "",
+      tipo: r.tipo || "",
+      enunciado: r.enunciado || "",
+      autor: r.autor || "",
+      creado_en: r.creado_en || now()
+    };
+  }
+
+  function filaRev(r) {
+    return {
+      id: r.id,
+      sesion_id: r.sesion_id,
+      autor: r.autor || "",
+      comentario: r.comentario || "",
+      creado_en: r.creado_en || now()
+    };
+  }
+
+  function filaDominio(d) {
+    return {
+      sesion_id: d.sesion_id,
+      contexto: d.contexto || "",
+      organizacion: d.organizacion || d.org || "",
+      hoy: d.hoy || "",
+      objetivo: d.objetivo || "",
+      desconocido: d.desconocido || "",
+      autor: d.autor || "",
+      actualizado_en: d.actualizado_en || now()
+    };
+  }
+
+  function sanear(tabla, row) {
+    if (tabla === "sesiones") return filaSesion(row);
+    if (tabla === "mensajes") return filaMensaje(row);
+    if (tabla === "requerimientos") return filaReq(row);
+    if (tabla === "revisiones_req") return filaRev(row);
+    if (tabla === "dominios") return filaDominio(row);
+    return row;
+  }
+
+  async function subirLocalAlAula() {
+    if (!state.sb) return;
+    let primerError = "";
+    const marcar = (error) => {
+      if (error && !primerError) primerError = error.message;
+    };
+    const sesiones = loadJSON(LS.sesiones, state.sesiones || []);
+    for (const s of sesiones) {
+      const { error } = await state.sb.from("sesiones").upsert(filaSesion(s));
+      marcar(error);
+    }
+    for (const m of loadJSON(LS.mensajes, state.mensajes || [])) {
+      const { error } = await state.sb.from("mensajes").upsert(filaMensaje(m));
+      marcar(error);
+    }
+    for (const r of loadJSON(LS.reqs, state.reqs || [])) {
+      const { error } = await state.sb.from("requerimientos").upsert(filaReq(r));
+      marcar(error);
+    }
+    for (const r of loadJSON(LS.revisionesReq, state.revisionesReq || [])) {
+      const { error } = await state.sb.from("revisiones_req").upsert(filaRev(r));
+      marcar(error);
+    }
+    const dominios = Object.values(loadJSON(LS.dominios, state.dominios || {}));
+    for (const d of dominios) {
+      if (!d.sesion_id) continue;
+      const { error } = await state.sb.from("dominios").upsert(filaDominio(d));
+      marcar(error);
+    }
+    if (primerError) {
+      state.aulaError = primerError;
+      toast("No se pudieron compartir las prácticas: " + primerError);
+    }
+    pintarEstadoAula();
   }
 
   function escucharRealtime() {
@@ -384,91 +572,100 @@
     state.revisiones = loadJSON(LS.revisiones, []);
   }
 
-  async function cargarSesiones() {
+  async function hidratarLista(tabla, collection, localKey, { order, asc = true } = {}) {
+    const local = loadJSON(localKey, state[collection] || []);
     if (state.sb) {
-      const { data, error } = await state.sb
-        .from("sesiones")
-        .select("*")
-        .order("creado_en", { ascending: false });
-      if (!error && data) {
-        state.sesiones = data;
-        saveJSON(LS.sesiones, data);
-        renderListaSesiones();
+      let q = state.sb.from(tabla).select("*");
+      if (order) q = q.order(order, { ascending: asc });
+      const { data, error } = await q;
+      if (error) {
+        state.aulaError = error.message;
+        pintarEstadoAula();
+        state[collection] = local;
         return;
       }
+      const mezclado = mergePorId(data, local);
+      state[collection] = mezclado;
+      saveJSON(localKey, mezclado);
+      const idsRemotos = new Set((data || []).map((x) => String(x.id)));
+      for (const row of local) {
+        if (!row?.id || idsRemotos.has(String(row.id))) continue;
+        const { error: e2 } = await state.sb.from(tabla).upsert(sanear(tabla, row));
+        if (e2) {
+          state.aulaError = e2.message;
+          pintarEstadoAula();
+        }
+      }
+      return;
     }
-    state.sesiones = loadJSON(LS.sesiones, []);
+    state[collection] = local;
+  }
+
+  async function cargarSesiones() {
+    await hidratarLista("sesiones", "sesiones", LS.sesiones, { order: "creado_en", asc: false });
     renderListaSesiones();
   }
 
   async function cargarMensajes() {
-    if (state.sb) {
-      const { data, error } = await state.sb
-        .from("mensajes")
-        .select("*")
-        .order("creado_en", { ascending: true });
-      if (!error && data) {
-        state.mensajes = data;
-        saveJSON(LS.mensajes, data);
-        return;
-      }
-    }
-    state.mensajes = loadJSON(LS.mensajes, []);
+    await hidratarLista("mensajes", "mensajes", LS.mensajes, { order: "creado_en", asc: true });
   }
 
   async function cargarReqs() {
-    if (state.sb) {
-      const { data, error } = await state.sb
-        .from("requerimientos")
-        .select("*")
-        .order("creado_en", { ascending: true });
-      if (!error && data) {
-        state.reqs = data;
-        saveJSON(LS.reqs, data);
-        return;
-      }
-    }
-    state.reqs = loadJSON(LS.reqs, []);
+    await hidratarLista("requerimientos", "reqs", LS.reqs, { order: "creado_en", asc: true });
   }
 
   async function cargarRevisionesReq() {
-    if (state.sb) {
-      const { data, error } = await state.sb
-        .from("revisiones_req")
-        .select("*")
-        .order("creado_en", { ascending: true });
-      if (!error && data) {
-        state.revisionesReq = data;
-        saveJSON(LS.revisionesReq, data);
-        if (state.tab === "trabajos") renderTrabajos();
-        return;
-      }
-    }
-    state.revisionesReq = loadJSON(LS.revisionesReq, []);
+    await hidratarLista("revisiones_req", "revisionesReq", LS.revisionesReq, { order: "creado_en", asc: true });
+    if (state.tab === "trabajos") renderTrabajos();
   }
 
   async function cargarDominios() {
+    const local = loadJSON(LS.dominios, state.dominios || {});
     if (state.sb) {
       const { data, error } = await state.sb.from("dominios").select("*");
-      if (!error && data) {
-        state.dominios = Object.fromEntries(data.map((d) => [d.sesion_id, d]));
-        saveJSON(LS.dominios, state.dominios);
+      if (error) {
+        state.aulaError = error.message;
+        pintarEstadoAula();
+        state.dominios = local;
         return;
       }
+      const mezclado = { ...local };
+      (data || []).forEach((d) => {
+        if (d?.sesion_id) mezclado[String(d.sesion_id)] = { ...(mezclado[String(d.sesion_id)] || {}), ...d };
+      });
+      state.dominios = mezclado;
+      saveJSON(LS.dominios, mezclado);
+      const idsRemotos = new Set((data || []).map((d) => String(d.sesion_id)));
+      for (const d of Object.values(local)) {
+        if (!d?.sesion_id || idsRemotos.has(String(d.sesion_id))) continue;
+        const { error: e2 } = await state.sb.from("dominios").upsert(filaDominio(d));
+        if (e2) {
+          state.aulaError = e2.message;
+          pintarEstadoAula();
+        }
+      }
+      return;
     }
-    state.dominios = loadJSON(LS.dominios, {});
+    state.dominios = local;
   }
 
   async function upsert(tabla, row, localKey, collection) {
-    if (state.sb) {
-      const { error } = await state.sb.from(tabla).upsert(row);
-      if (error) throw error;
-    }
+    const limpio = sanear(tabla, row);
     const list = state[collection];
-    const i = list.findIndex((x) => x.id === row.id);
-    if (i >= 0) list[i] = { ...list[i], ...row };
-    else list.push(row);
-    saveJSON(localKey, list);
+    if (Array.isArray(list)) {
+      const i = list.findIndex((x) => mismoId(x.id, limpio.id || row.id));
+      if (i >= 0) list[i] = { ...list[i], ...limpio };
+      else list.push(limpio);
+      saveJSON(localKey, list);
+    }
+    if (state.sb) {
+      const { error } = await state.sb.from(tabla).upsert(limpio);
+      if (error) {
+        state.aulaError = error.message;
+        pintarEstadoAula();
+        throw error;
+      }
+    }
   }
 
   function slugify(texto) {
@@ -699,15 +896,16 @@
   }
 
   function mensajesDe(sesionId) {
-    return state.mensajes.filter((m) => m.sesion_id === sesionId);
+    return state.mensajes.filter((m) => mismoId(m.sesion_id, sesionId));
   }
 
   function reqsDe(sesionId) {
-    return state.reqs.filter((r) => r.sesion_id === sesionId);
+    return state.reqs.filter((r) => mismoId(r.sesion_id, sesionId));
   }
 
   function dominioDe(sesionId) {
-    const d = state.dominios[sesionId] || loadJSON(LS.dominio, {})[sesionId] || {};
+    const sid = String(sesionId || "");
+    const d = state.dominios[sid] || state.dominios[sesionId] || loadJSON(LS.dominio, {})[sid] || {};
     return {
       contexto: d.contexto || "",
       org: d.org || d.organizacion || "",
@@ -877,17 +1075,23 @@
       contenido: `Hola, soy ${caso.nombre}, ${caso.rol}. Necesitamos una aplicación, pero no sé por dónde empezar a explicarlo. Pregúntenme de a una cosa. ¿Qué quieren saber primero?`,
       creado_en: now()
     };
+    let remoto = null;
     try {
       await upsert("sesiones", sesion, LS.sesiones, "sesiones");
-      await upsert("mensajes", saludo, LS.mensajes, "mensajes");
-      state.sesionActual = sesion;
-      state.sesiones = [sesion, ...state.sesiones.filter((x) => x.id !== sesion.id)];
-      pintarSesionEnUI();
-      await refrescarAula();
-      toast(state.sb ? "Caso abierto. Ya lo pueden ver tus compañeros en Trabajos." : "Caso abierto solo en este navegador: el aula no está conectada.");
     } catch (err) {
-      toast("No se pudo crear el caso: " + err.message);
+      remoto = err;
     }
+    try {
+      await upsert("mensajes", saludo, LS.mensajes, "mensajes");
+    } catch (err) {
+      remoto = remoto || err;
+    }
+    state.sesionActual = sesion;
+    state.sesiones = [sesion, ...state.sesiones.filter((x) => !mismoId(x.id, sesion.id))];
+    pintarSesionEnUI();
+    if (state.sb && !remoto) await refrescarAula();
+    if (remoto) toast("El caso quedó en este navegador, pero no se compartió: " + remoto.message);
+    else toast(state.sb ? "Caso abierto. Ya lo pueden ver tus compañeros en Trabajos." : "Caso abierto solo en este navegador: el aula no está conectada.");
   }
 
   function mostrarPensando() {
@@ -1201,7 +1405,7 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
     saveJSON(LS.dominio, all);
     try {
       if (state.sb) {
-        const { error } = await state.sb.from("dominios").upsert(row);
+        const { error } = await state.sb.from("dominios").upsert(filaDominio(row));
         if (error) throw error;
       }
       if (!silent) toast(state.sb ? "Dominio guardado para todo el aula." : "Dominio guardado en este navegador.");
@@ -1453,29 +1657,32 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     const corregidos = idsEnHistorial();
     box.innerHTML = lista.map((s) => {
       const nReq = reqsDe(s.id).length;
-      const abierto = state.trabajoAbierto === s.id;
-      const marca = corregidos.has(s.id) ? " · corregido" : "";
+      const abierto = mismoId(state.trabajoAbierto, s.id);
+      const marca = [...corregidos].some((id) => mismoId(id, s.id)) ? " · corregido" : "";
       return `
-      <article class="trabajo ${abierto ? "abierto" : ""}" data-id="${s.id}">
-        <button class="trabajo-cab" type="button" data-id="${s.id}" aria-expanded="${abierto ? "true" : "false"}">
+      <details class="trabajo${abierto ? " abierto" : ""}" data-id="${s.id}" ${abierto ? "open" : ""}>
+        <summary class="trabajo-cab">
           <span>
             <strong>${escapeHtml(s.titulo)}</strong>
-            <small>${escapeHtml(s.creado_por)} · ${nReq} requerimientos${marca}</small>
+            <small>${escapeHtml(s.creado_por || "sin nombre")} · ${nReq} requerimientos${marca}</small>
           </span>
-          <span class="trabajo-flecha">${abierto ? "−" : "+"}</span>
-        </button>
-        <div class="trabajo-cuerpo">${abierto ? cuerpoTrabajo(s) : ""}</div>
-      </article>`;
+          <span class="trabajo-flecha" aria-hidden="true"></span>
+        </summary>
+        <div class="trabajo-cuerpo">${cuerpoTrabajo(s)}</div>
+      </details>`;
     }).join("");
-    box.querySelectorAll(".trabajo-cab").forEach((btn) => {
-      btn.onclick = () => {
-        state.trabajoAbierto = state.trabajoAbierto === btn.dataset.id ? null : btn.dataset.id;
-        renderTrabajos();
-      };
+    box.querySelectorAll("details.trabajo").forEach((el) => {
+      el.addEventListener("toggle", () => {
+        if (el.open) state.trabajoAbierto = el.dataset.id;
+        else if (mismoId(state.trabajoAbierto, el.dataset.id)) state.trabajoAbierto = null;
+        el.classList.toggle("abierto", el.open);
+      });
     });
     box.querySelectorAll(".btn-seguir-caso").forEach((btn) => {
-      btn.onclick = () => {
-        state.sesionActual = state.sesiones.find((s) => s.id === btn.dataset.id) || null;
+      btn.onclick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        state.sesionActual = state.sesiones.find((s) => mismoId(s.id, btn.dataset.id)) || null;
         pintarSesionEnUI();
         irTab("practica");
       };
