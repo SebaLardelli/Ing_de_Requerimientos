@@ -560,6 +560,26 @@
     `).join("");
   }
 
+  function insertarBloqueTeoria(tipo) {
+    const ta = $("teoria-md");
+    if (!ta) return;
+    const start = ta.selectionStart ?? ta.value.length;
+    const end = ta.selectionEnd ?? start;
+    const sel = ta.value.slice(start, end).trim();
+    const antes = ta.value.slice(0, start);
+    const salto = !start ? "" : /\n\n$/.test(antes) ? "" : /\n$/.test(antes) ? "\n" : "\n\n";
+    let cuerpo = "";
+    if (tipo === "titulo") cuerpo = "## " + sel;
+    else if (tipo === "lista") cuerpo = "- " + sel;
+    else cuerpo = sel;
+    const cola = sel && tipo !== "lista" ? "\n\n" : sel ? "\n" : "";
+    const insercion = salto + cuerpo + cola;
+    ta.value = ta.value.slice(0, start) + insercion + ta.value.slice(end);
+    const cursor = start + insercion.length;
+    ta.focus();
+    ta.setSelectionRange(cursor, cursor);
+  }
+
   async function guardarTeoria() {
     if (!exigeNombre() || !state.temaActual) return;
     const nuevo = $("teoria-md").value.trim();
@@ -1393,6 +1413,9 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
       $("tema-contenido").classList.add("hidden");
       $("editor-teoria").classList.remove("hidden");
     };
+    $("btn-md-titulo").onclick = () => insertarBloqueTeoria("titulo");
+    $("btn-md-texto").onclick = () => insertarBloqueTeoria("texto");
+    $("btn-md-lista").onclick = () => insertarBloqueTeoria("lista");
     $("btn-cancelar-teoria").onclick = () => mostrarTema(state.temaActual.slug);
     $("btn-guardar-teoria").onclick = guardarTeoria;
     $("btn-nueva-clase").onclick = () => abrirModalApartado("", { nuevaClase: true });

@@ -79,7 +79,12 @@
               <label for="teoria-resumen">Resumen</label>
               <input id="teoria-resumen" />
             </div>
-            <label class="hint" for="teoria-md">Editá en texto (podés usar títulos con ## y listas con -).</label>
+            <div class="editor-bar">
+              <button class="btn small" id="btn-md-titulo" type="button">Título</button>
+              <button class="btn small" id="btn-md-texto" type="button">Texto</button>
+              <button class="btn small" id="btn-md-lista" type="button">Lista</button>
+            </div>
+            <p class="hint">Título pone un encabezado con recuadro. Texto sigue en párrafo normal. Si marcás palabras y tocás Título, esas palabras quedan como encabezado.</p>
             <textarea id="teoria-md" class="editor"></textarea>
             <div class="row" style="margin-top:10px">
               <button class="btn primary" id="btn-guardar-teoria" type="button">Guardar para el aula</button>
