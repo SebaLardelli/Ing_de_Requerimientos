@@ -140,11 +140,48 @@
     return valor === "gemini" ? "gemini" : "groq";
   }
 
+  function pareceClaveGroq(clave) {
+    return /^gsk_/i.test(clave || "");
+  }
+
   function claveDelModelo(proveedor) {
     const g = cfgGlobal();
-    if (proveedor === "groq") return (g.aiKeyGroq || g.aiKey || "").trim();
-    if (proveedor === "gemini") return (g.aiKeyGemini || g.aiKey || "").trim();
+    if (proveedor === "groq") {
+      const propia = (g.aiKeyGroq || "").trim();
+      if (propia) return propia;
+      const comun = (g.aiKey || "").trim();
+      return pareceClaveGroq(comun) || !comun ? comun : "";
+    }
+    if (proveedor === "gemini") {
+      const propia = (g.aiKeyGemini || "").trim();
+      if (propia) return propia;
+      const comun = (g.aiKey || "").trim();
+      return comun && !pareceClaveGroq(comun) ? comun : "";
+    }
     return "";
+  }
+
+  function contenidosGemini(messages) {
+    const system = messages.find((m) => m.role === "system")?.content || "";
+    const turns = [];
+    messages.forEach((m) => {
+      if (m.role === "system") return;
+      const role = m.role === "assistant" ? "model" : "user";
+      const text = String(m.content || "").trim();
+      if (!text) return;
+      const last = turns[turns.length - 1];
+      if (last && last.role === role) last.parts[0].text += "\n\n" + text;
+      else turns.push({ role, parts: [{ text }] });
+    });
+    if (!turns.length) {
+      turns.push({ role: "user", parts: [{ text: system || "Respondé en español." }] });
+    } else if (turns[0].role === "model") {
+      turns.unshift({
+        role: "user",
+        parts: [{ text: "Hola, soy el analista. Contame de tu situación para arrancar la entrevista." }]
+      });
+    }
+    return { system, contents: turns };
   }
 
   function proveedorElegido() {
@@ -824,6 +861,22 @@
     }
   }
 
+  function mostrarPensando() {
+    const log = $("chat-log");
+    if (!log || $("bubble-pensando") || !state.sesionActual) return;
+    const d = document.createElement("div");
+    d.id = "bubble-pensando";
+    d.className = "bubble gerente pensando";
+    d.innerHTML = `<b>${escapeHtml(state.sesionActual.nombre_gerente + " · " + state.sesionActual.rol_gerente)}</b><span class="bubble-text">Escribiendo…</span>`;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function quitarPensando() {
+    const el = $("bubble-pensando");
+    if (el) el.remove();
+  }
+
   async function chatAI(messages, { json = false } = {}) {
     const cfg = cfgAI();
     const proveedor = cfg.proveedor;
@@ -831,9 +884,12 @@
 
     if (proveedor === "groq") {
       if (!clave) throw new Error("Groq no está configurado en el repositorio.");
-      const modelos = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"];
+      const intentos = [
+        { model: "qwen/qwen3.6-27b", reasoning_effort: "none" },
+        { model: "openai/gpt-oss-20b", reasoning_effort: "low", include_reasoning: false }
+      ];
       let ultimoError = "Groq rechazó el pedido.";
-      for (const model of modelos) {
+      for (const intento of intentos) {
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -841,9 +897,12 @@
             Authorization: "Bearer " + clave
           },
           body: JSON.stringify({
-            model,
+            model: intento.model,
             temperature: 0.7,
+            max_tokens: json ? 900 : 280,
             messages,
+            reasoning_effort: intento.reasoning_effort,
+            include_reasoning: false,
             ...(json ? { response_format: { type: "json_object" } } : {})
           })
         });
@@ -853,7 +912,7 @@
           continue;
         }
         const msg = data.choices?.[0]?.message || {};
-        const texto = String(msg.content || "").trim() || String(msg.reasoning || "").trim();
+        const texto = String(msg.content || "").trim();
         if (texto) return texto;
         ultimoError = "Groq devolvió una respuesta vacía.";
       }
@@ -861,31 +920,43 @@
     }
 
     if (proveedor === "gemini") {
-      if (!clave) throw new Error("Gemini no está configurado en el repositorio.");
-      const contents = messages
-        .filter((m) => m.role !== "system")
-        .map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
-      const system = messages.find((m) => m.role === "system")?.content || "";
-      const modelos = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest"];
+      if (!clave) throw new Error("Falta la clave de Gemini en el repo (secreto AI_KEY_GEMINI). La de Groq no sirve para Gemini.");
+      const { system, contents } = contenidosGemini(messages);
+      const modelos = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
       let ultimoError = "Gemini rechazó el pedido.";
       for (const model of modelos) {
+        const cuerpo = {
+          systemInstruction: { parts: [{ text: system }] },
+          contents,
+          generationConfig: {
+            maxOutputTokens: json ? 900 : 400,
+            temperature: 0.7,
+            ...(json ? { responseMimeType: "application/json" } : {})
+          }
+        };
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(clave)}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: system }] },
-            contents,
-            generationConfig: json ? { responseMimeType: "application/json" } : {}
-          })
+          body: JSON.stringify(cuerpo)
         });
         const data = await res.json();
         if (!res.ok) {
-          ultimoError = data.error?.message || ultimoError;
+          const msg = data.error?.message || ultimoError;
+          if (/API_KEY_HTTP_REFERRER_BLOCKED|referer|referrer/i.test(msg)) {
+            throw new Error("La clave de Gemini bloquea este sitio. En Google AI Studio, dejá la clave sin restricción de referrer o sumá el dominio de Pages.");
+          }
+          if (/API key not valid|invalid|PERMISSION/i.test(msg)) {
+            throw new Error("La clave de Gemini no es válida. Cargá AI_KEY_GEMINI en los secretos del repo.");
+          }
+          ultimoError = msg;
           continue;
         }
-        const texto = data.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
+        const cand = data.candidates?.[0];
+        const texto = cand?.content?.parts?.map((p) => p.text).filter(Boolean).join("") || "";
         if (texto.trim()) return texto;
-        ultimoError = "Gemini devolvió una respuesta vacía.";
+        ultimoError = cand?.finishReason === "SAFETY"
+          ? "Gemini bloqueó la respuesta por seguridad. Probá reformular la pregunta."
+          : "Gemini devolvió una respuesta vacía.";
       }
       throw new Error(ultimoError);
     }
@@ -910,7 +981,7 @@ Reglas estrictas:
 - Si usan una palabra del dominio, usala como la usa la organización, aunque sea ambigua.
 - Si no les preguntaron algo importante, no lo ofrezcas entero: insinuá que "eso lo ve otro sector" o "eso lo pensamos después".
 - Nunca diseñes el sistema ni listes requerimientos numerados.
-- Mensajes de 80 a 160 palabras, salvo que pidan un recuento puntual.`;
+- Mensajes cortos: 40 a 80 palabras. Una idea por mensaje.`;
   }
 
   async function preguntarGerente() {
@@ -934,6 +1005,7 @@ Reglas estrictas:
       renderChat();
       state.aiBusy = true;
       $("btn-preguntar").disabled = true;
+      mostrarPensando();
 
       const historial = mensajesDe(state.sesionActual.id).map((m) => ({
         role: m.rol === "gerente" ? "assistant" : "user",
@@ -956,8 +1028,10 @@ Reglas estrictas:
       await upsert("mensajes", msgAI, LS.mensajes, "mensajes");
       renderChat();
     } catch (err) {
+      quitarPensando();
       toast("La IA no pudo responder: " + err.message);
     } finally {
+      quitarPensando();
       state.aiBusy = false;
       $("btn-preguntar").disabled = false;
     }
@@ -1372,7 +1446,7 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
   }
 
   function etiquetaModelo(proveedor) {
-    return proveedor === "gemini" ? "Modelo activo: Gemini." : "Modelo activo: Groq (GPT-OSS).";
+    return proveedor === "gemini" ? "Modelo activo: Gemini." : "Modelo activo: Groq (rápido).";
   }
 
   function pintarAjustesAI() {
