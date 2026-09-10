@@ -459,30 +459,57 @@
     state.canales.push(ch);
   }
 
-  async function cargarTemas() {
-    if (state.sb) {
-      const { data, error } = await state.sb.from("temas_teoria").select("*").order("orden");
-      if (!error && data) {
-        if (data.length === 0) {
-          await sembrarTeoria();
-          const second = await state.sb.from("temas_teoria").select("*").order("orden");
-          state.temas = second.data || [];
-        } else {
-          state.temas = data;
-        }
-        saveJSON(LS.temas, state.temas);
-        await alinearTeoriaBase();
-        renderListaTemas();
-        return;
-      }
-    }
-    const local = loadJSON(LS.temas, []);
-    state.temas = local.length ? local : TEORIA_INICIAL.map((t) => ({
+  function temasDesdeMaterial() {
+    return TEORIA_INICIAL.map((t) => ({
       id: uid(),
       ...t,
       actualizado_por: "material de clase",
       actualizado_en: now()
     }));
+  }
+
+  function normalizarTema(t) {
+    return {
+      ...t,
+      id: t.id || uid(),
+      slug: t.slug || slugify(t.titulo || t.title || "tema"),
+      clase: t.clase || t.class || "Clase 1",
+      titulo: t.titulo || t.title || "Sin título",
+      resumen: t.resumen || t.summary || "",
+      contenido: t.contenido || t.content || t.body || "",
+      orden: t.orden ?? t.order ?? 0,
+      actualizado_por: t.actualizado_por || ""
+    };
+  }
+
+  function temasUsables(lista) {
+    return (lista || []).map(normalizarTema).filter((t) => t.slug && (t.titulo || t.contenido));
+  }
+
+  async function cargarTemas() {
+    const local = temasUsables(loadJSON(LS.temas, []));
+    const fallback = local.length ? local : temasDesdeMaterial();
+    if (state.sb) {
+      const { data, error } = await state.sb.from("temas_teoria").select("*").order("orden");
+      if (error) {
+        state.temas = fallback;
+      } else if (temasUsables(data).length) {
+        state.temas = temasUsables(data);
+      } else {
+        const sembrado = await sembrarTeoria();
+        const second = await state.sb.from("temas_teoria").select("*").order("orden");
+        const remotos = temasUsables(second.data);
+        state.temas = remotos.length ? remotos : fallback;
+        if (!remotos.length && (sembrado?.error || second.error)) {
+          toast("La teoría se muestra del material de clase. El aula no la pudo guardar.");
+        }
+      }
+      saveJSON(LS.temas, state.temas);
+      await alinearTeoriaBase();
+      renderListaTemas();
+      return;
+    }
+    state.temas = fallback;
     saveJSON(LS.temas, state.temas);
     await alinearTeoriaBase();
     renderListaTemas();
@@ -534,7 +561,10 @@
       };
       if (state.sb) {
         const { error } = await state.sb.from("temas_teoria").insert(row);
-        if (error) continue;
+        if (error) {
+          state.temas.push(row);
+          continue;
+        }
       }
       state.temas.push(row);
     }
@@ -543,7 +573,7 @@
   }
 
   async function sembrarTeoria() {
-    if (!state.sb) return;
+    if (!state.sb) return { error: null };
     const rows = TEORIA_INICIAL.map((t, i) => ({
       slug: t.slug,
       clase: t.clase,
@@ -553,7 +583,7 @@
       orden: t.orden || i + 1,
       actualizado_por: "material de clase"
     }));
-    await state.sb.from("temas_teoria").upsert(rows, { onConflict: "slug" });
+    return state.sb.from("temas_teoria").upsert(rows, { onConflict: "slug" });
   }
 
   async function cargarRevisiones() {
