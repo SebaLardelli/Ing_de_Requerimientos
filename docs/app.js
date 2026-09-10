@@ -143,15 +143,18 @@
   function claveDelModelo(proveedor) {
     const g = cfgGlobal();
     if (proveedor === "groq") return (g.aiKeyGroq || g.aiKey || "").trim();
-    if (proveedor === "gemini") return (g.aiKeyGemini || "").trim();
+    if (proveedor === "gemini") return (g.aiKeyGemini || g.aiKey || "").trim();
     return "";
   }
 
-  function cfgAI() {
+  function proveedorElegido() {
     const saved = loadJSON(LS.ai, { proveedor: "" });
     const g = cfgGlobal();
-    const select = $("ai-proveedor");
-    const proveedor = normalizarProveedor((select && select.value) || saved.proveedor || g.aiProvider);
+    return normalizarProveedor(saved.proveedor || g.aiProvider);
+  }
+
+  function cfgAI() {
+    const proveedor = proveedorElegido();
     return {
       proveedor,
       clave: claveDelModelo(proveedor)
@@ -636,12 +639,12 @@
       return;
     }
     const msgs = mensajesDe(state.sesionActual.id);
-    log.innerHTML = msgs.map((m) => `
-      <div class="bubble ${m.rol}">
-        <b>${escapeHtml(m.rol === "gerente" ? (state.sesionActual.nombre_gerente + " · " + state.sesionActual.rol_gerente) : m.autor)}</b>
-        ${escapeHtml(m.contenido)}
-      </div>
-    `).join("");
+    log.innerHTML = msgs.map((m) => {
+      const quien = m.rol === "gerente"
+        ? (state.sesionActual.nombre_gerente + " · " + state.sesionActual.rol_gerente)
+        : m.autor;
+      return `<div class="bubble ${escapeHtml(m.rol)}"><b>${escapeHtml(quien)}</b><span class="bubble-text">${escapeHtml(m.contenido)}</span></div>`;
+    }).join("");
     log.scrollTop = log.scrollHeight;
   }
 
@@ -803,27 +806,38 @@
 
   async function chatAI(messages, { json = false } = {}) {
     const cfg = cfgAI();
-    const proveedor = normalizarProveedor($("ai-proveedor").value || cfg.proveedor);
+    const proveedor = cfg.proveedor;
     const clave = (cfg.clave || "").trim();
 
     if (proveedor === "groq") {
       if (!clave) throw new Error("Groq no está configurado en el repositorio.");
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + clave
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          temperature: 0.7,
-          messages,
-          ...(json ? { response_format: { type: "json_object" } } : {})
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || "Groq rechazó el pedido.");
-      return data.choices[0].message.content;
+      const modelos = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"];
+      let ultimoError = "Groq rechazó el pedido.";
+      for (const model of modelos) {
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + clave
+          },
+          body: JSON.stringify({
+            model,
+            temperature: 0.7,
+            messages,
+            ...(json ? { response_format: { type: "json_object" } } : {})
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          ultimoError = data.error?.message || ultimoError;
+          continue;
+        }
+        const msg = data.choices?.[0]?.message || {};
+        const texto = String(msg.content || "").trim() || String(msg.reasoning || "").trim();
+        if (texto) return texto;
+        ultimoError = "Groq devolvió una respuesta vacía.";
+      }
+      throw new Error(ultimoError);
     }
 
     if (proveedor === "gemini") {
@@ -832,18 +846,28 @@
         .filter((m) => m.role !== "system")
         .map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
       const system = messages.find((m) => m.role === "system")?.content || "";
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(clave)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: system }] },
-          contents,
-          generationConfig: json ? { responseMimeType: "application/json" } : {}
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || "Gemini rechazó el pedido.");
-      return data.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
+      const modelos = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest"];
+      let ultimoError = "Gemini rechazó el pedido.";
+      for (const model of modelos) {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(clave)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: system }] },
+            contents,
+            generationConfig: json ? { responseMimeType: "application/json" } : {}
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          ultimoError = data.error?.message || ultimoError;
+          continue;
+        }
+        const texto = data.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
+        if (texto.trim()) return texto;
+        ultimoError = "Gemini devolvió una respuesta vacía.";
+      }
+      throw new Error(ultimoError);
     }
 
     throw new Error("Elegí Groq o Gemini en Ajustes.");
@@ -1327,18 +1351,21 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
     }
   }
 
+  function etiquetaModelo(proveedor) {
+    return proveedor === "gemini" ? "Modelo activo: Gemini." : "Modelo activo: Groq (GPT-OSS).";
+  }
+
   function pintarAjustesAI() {
-    const saved = loadJSON(LS.ai, { proveedor: "" });
-    const g = cfgGlobal();
-    const proveedor = normalizarProveedor(saved.proveedor || g.aiProvider);
+    const proveedor = proveedorElegido();
     $("ai-proveedor").value = proveedor;
-    $("ai-estado").textContent = proveedor === "gemini" ? "Modelo activo: Gemini." : "Modelo activo: Groq.";
+    $("ai-estado").textContent = etiquetaModelo(proveedor);
   }
 
   function guardarAI() {
-    saveJSON(LS.ai, { proveedor: $("ai-proveedor").value });
-    pintarAjustesAI();
-    toast("Modelo guardado en este navegador.");
+    const proveedor = normalizarProveedor($("ai-proveedor").value);
+    saveJSON(LS.ai, { proveedor });
+    $("ai-estado").textContent = etiquetaModelo(proveedor);
+    toast(proveedor === "gemini" ? "Ahora las respuestas van por Gemini." : "Ahora las respuestas van por Groq.");
   }
 
   function irTab(tab) {
@@ -1396,7 +1423,7 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
     $("btn-corregir-req").onclick = corregirReqs;
     $("filtro-autor").addEventListener("input", renderListaSesiones);
     $("btn-guardar-ai").onclick = guardarAI;
-    $("ai-proveedor").addEventListener("change", pintarAjustesAI);
+    $("ai-proveedor").addEventListener("change", guardarAI);
     $("btn-tema-oscuro").onclick = () => aplicarTema("dark");
     $("btn-tema-claro").onclick = () => aplicarTema("light");
   }
