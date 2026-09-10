@@ -692,7 +692,7 @@
   function renderChat() {
     const log = $("chat-log");
     if (!state.sesionActual) {
-      log.innerHTML = "<div class='bubble sistema'><b>Práctica</b>Abrí un caso. El chat es el contexto: preguntá a la persona que quiere la aplicación. No asumas información.</div>";
+      log.innerHTML = "<div class='bubble sistema'><b>Práctica</b>Abrí un caso. Preguntá de a una cosa: no te va a contar todo el problema y te va a repreguntar. No asumas información.</div>";
       return;
     }
     const msgs = mensajesDe(state.sesionActual.id);
@@ -846,7 +846,7 @@
       sesion_id: sesion.id,
       autor: caso.nombre,
       rol: "gerente",
-      contenido: `Hola, soy ${caso.nombre}, ${caso.rol}. Quiero que me desarrollen una aplicación para esto que les voy a contar. No soy de sistemas: les hablo de cómo trabajamos y de lo que me gustaría resolver. Pregúntenme, que no se me ocurre todo de una. ¿Por dónde quieren empezar?`,
+      contenido: `Hola, soy ${caso.nombre}, ${caso.rol}. Necesitamos una aplicación, pero no sé por dónde empezar a explicarlo. Pregúntenme de a una cosa. ¿Qué quieren saber primero?`,
       creado_en: now()
     };
     try {
@@ -922,24 +922,38 @@
     if (proveedor === "gemini") {
       if (!clave) throw new Error("Falta la clave de Gemini en el repo (secreto AI_KEY_GEMINI). La de Groq no sirve para Gemini.");
       const { system, contents } = contenidosGemini(messages);
-      const modelos = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+      const modelos = ["gemini-2.0-flash-lite", "gemini-2.0-flash"];
       let ultimoError = "Gemini rechazó el pedido.";
       for (const model of modelos) {
-        const cuerpo = {
-          systemInstruction: { parts: [{ text: system }] },
-          contents,
-          generationConfig: {
-            maxOutputTokens: json ? 900 : 400,
-            temperature: 0.7,
-            ...(json ? { responseMimeType: "application/json" } : {})
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 12000);
+        let res;
+        let data = {};
+        try {
+          res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(clave)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            signal: ctrl.signal,
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: system }] },
+              contents,
+              generationConfig: {
+                maxOutputTokens: json ? 700 : 220,
+                temperature: 0.7,
+                ...(json ? { responseMimeType: "application/json" } : {})
+              }
+            })
+          });
+          data = await res.json();
+        } catch (err) {
+          clearTimeout(timer);
+          if (err.name === "AbortError") {
+            ultimoError = "Gemini tardó demasiado.";
+            continue;
           }
-        };
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(clave)}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(cuerpo)
-        });
-        const data = await res.json();
+          throw err;
+        }
+        clearTimeout(timer);
         if (!res.ok) {
           const msg = data.error?.message || ultimoError;
           if (/API_KEY_HTTP_REFERRER_BLOCKED|referer|referrer/i.test(msg)) {
@@ -965,23 +979,27 @@
   }
 
   function promptGerente(sesion) {
+    const nPreguntas = mensajesDe(sesion.id).filter((m) => m.rol === "analista").length;
     return `Sos ${sesion.nombre_gerente}, ${sesion.rol_gerente} de ${sesion.organizacion}.
-Querés que te desarrollen una aplicación. Te están entrevistando analistas de requerimientos de una materia universitaria.
+Querés que te desarrollen una aplicación. Te están entrevistando analistas de una materia. NO sos programador.
 
-Contexto interno (NO lo vuelques de una vez):
+Memoria privada (NUNCA la cuentes de corrido; soltá UN dato si te lo preguntan):
 ${sesion.escenario}
 
-Reglas estrictas:
-- Respondé SIEMPRE en español, en primera persona, como la persona que pide la aplicación.
-- Contá el problema de tu organización y lo que te imaginás resolver. NO seas el programador.
-- NO hables de bases de datos, APIs, pantallas ni arquitectura.
-- NO entregues toda la información en un solo mensaje. Si preguntan una necesidad, contá primero la situación o el problema.
-- Inventá detalles coherentes (nombres de sectores, horarios, excepciones, quejas, política interna).
-- Dejá entrever conflictos entre áreas sin etiquetarlos como "conflicto".
-- Si usan una palabra del dominio, usala como la usa la organización, aunque sea ambigua.
-- Si no les preguntaron algo importante, no lo ofrezcas entero: insinuá que "eso lo ve otro sector" o "eso lo pensamos después".
-- Nunca diseñes el sistema ni listes requerimientos numerados.
-- Mensajes cortos: 40 a 80 palabras. Una idea por mensaje.`;
+Turno: van ${nPreguntas} pregunta(s) del analista.
+
+Cómo hablar:
+- Español, primera persona, tono de alguien ocupado que no tiene todo pensado.
+- Respondé SOLO lo que te preguntaron, y a medias: un hecho, una anécdota o un dolor. Nada más.
+- CADA mensaje termina con UNA repregunta concreta al analista (para que tengan que seguir indagando).
+- Si piden "contame todo", "qué problema tienen" o "qué necesitás", contá UNA situación chica y preguntá por dónde seguir.
+- Hasta la 4ª pregunta: no listes stakeholders, excepciones, ni el proceso entero de hoy.
+- No cierres vos la entrevista: no digas "entonces el sistema debería…" ni armes la conclusión. Eso lo hacen ellos.
+- Si ya preguntaron bien, confirmá o corregí ese punto y repregunta algo que todavía no salió.
+- Inventá detalles coherentes solo cuando pregunten (nombres, horarios, quejas).
+- Palabras del dominio: usalas como las usa tu organización, aunque sean ambiguas.
+- Nunca hables de bases, APIs, pantallas, arquitectura ni requerimientos numerados.
+- 30 a 55 palabras. Sin listas. Una idea por mensaje.`;
   }
 
   async function preguntarGerente() {
@@ -1446,7 +1464,7 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
   }
 
   function etiquetaModelo(proveedor) {
-    return proveedor === "gemini" ? "Modelo activo: Gemini." : "Modelo activo: Groq (rápido).";
+    return proveedor === "gemini" ? "Modelo activo: Gemini Flash Lite." : "Modelo activo: Groq (rápido).";
   }
 
   function pintarAjustesAI() {
