@@ -1001,5 +1001,186 @@ Débil: “Las transferencias deben ser rápidas y seguras.”
 Mejor, dos enunciados:
 - El sistema debe completar una transferencia entre cuentas propias en menos de 10 segundos en horario hábil.
 - El sistema debe pedir un segundo factor antes de transferir a un destinatario nuevo.`
+  },
+  {
+    slug: "practica-como-se-trabaja",
+    clase: "Práctica",
+    titulo: "Cómo se trabaja la práctica",
+    orden: 40,
+    resumen: "El chat es el contexto. De ahí sale el dominio y, después, dos requerimientos de cada tipo. Corregir manda la especificación al historial.",
+    contenido: `## Qué se practica acá
+
+En la pestaña **Práctica** no se diseña ni se programa. Se hace el trabajo del analista: preguntar, interpretar y escribir.
+
+1. Se abre un caso (Hospital, Biblioteca o uno nuevo).
+2. Se entrevista a la IA. Habla como la persona que **quiere desarrollar una aplicación**.
+3. Ese chat **es el contexto**. No se inventa el dominio en el escritorio.
+4. Se completa el dominio (organización, cómo se hace hoy, objetivo, lo que falta saber).
+5. Se escriben **dos requerimientos de cada tipo**: necesidad, deseo, expectativa, usuario y sistema.
+6. **Corregir** envía toda la especificación. Recién ahí entra al historial.
+
+## Relación con las clases
+
+- **Clase 2:** stakeholders, conflictos, gap semántico. Salen de la entrevista.
+- **Clase 3:** el método no reemplaza escribir bien lo pedido.
+- **Clase 4:** necesidades, deseos, expectativas, usuario vs sistema.
+- **Clase 5:** primero el dominio; después los requerimientos.
+
+## Idea para llevarse
+
+Si no está en el chat o no lo preguntaste, no lo des por sabido. Una buena pregunta genera otra pregunta.`
+  },
+  {
+    slug: "practica-entrevista-dominio",
+    clase: "Práctica",
+    titulo: "Entrevistar el dominio (clase 2)",
+    orden: 41,
+    resumen: "Antes de listar requerimientos hay que entender quién interviene, qué necesita y dónde se rompe el lenguaje.",
+    contenido: `## La consigna de la práctica
+
+Actuás como analista. El interlocutor (acá, la IA) cuenta situaciones, no te entrega un listado técnico. No asumas que toda la información está desde el principio.
+
+Durante la conversación tenés que poder:
+
+- identificar **stakeholders** potenciales;
+- comprender el **interés o necesidad** de cada uno;
+- detectar al menos un **conflicto** entre ellos;
+- detectar un **gap semántico**: la misma palabra, dos significados.
+
+## Síntesis que se espera
+
+Al cerrar la entrevista, dejá por escrito:
+
+1. Cinco stakeholders y el interés principal de cada uno.
+2. Un conflicto posible.
+3. Un ejemplo de gap semántico.
+
+Eso se puede anotar en “lo que todavía no sabemos” o en la síntesis del contexto. El objetivo no es diseñar el sistema.
+
+## Cómo preguntar
+
+Si preguntás por una necesidad, la persona suele contar primero la situación. Hay que interpretar y volver a preguntar.
+
+Preguntas que sirven:
+
+- ¿Quién pierde si esto sale mal?
+- ¿Qué hacen hoy cuando no hay sistema, o cuando el actual falla?
+- ¿Qué significa para ustedes “urgente”, “alumno regular”, “stock”?
+- Si dos sectores pidieran lo contrario, ¿quién decide?
+
+## Ejemplo sencillo
+
+En turnos de un hospital, “urgente” para administración puede ser “llegó sin turno”. Para el médico, “no puede esperar”. Si no se pregunta, el sistema implementa una sola de las dos.`
+  },
+  {
+    slug: "practica-congreso-metodos",
+    clase: "Práctica",
+    titulo: "Congreso de metodologías (clase 3)",
+    orden: 42,
+    resumen: "Cada método se explica en tres minutos: qué es, cómo funciona y qué lugar ocupan los requerimientos.",
+    contenido: `## La consigna
+
+Imaginen que son especialistas invitados al Congreso de Ingeniería de Requerimientos. Tienen tres minutos. Hay que convencer al resto de que entiendan el tema.
+
+Para SCRUM, modelo en V, RUP, plano arquitectónico, SCRUM vs RUP o equipos distribuidos, responder:
+
+1. ¿Qué es?
+2. ¿Cómo funciona?
+3. ¿Qué lugar ocupan los requerimientos?
+4. ¿Qué ventaja presenta?
+5. ¿Qué dificultad presenta?
+6. ¿Por qué debería importarle a un analista?
+7. Un ejemplo sencillo.
+
+## Teoría que hay que usar
+
+Los requerimientos descubren qué se desea y atraviesan el ciclo de vida. Un método ágil no los elimina. Un método formal no reemplaza entender el dominio.
+
+La teoría de la **clase 3** (ciclo de vida, Standish, costo de corregir tarde) es la base. Acá se practica *explicarla* con un ejemplo, no copiar definiciones.
+
+## Ejemplo sencillo
+
+“Como bibliotecario quiero registrar una devolución para liberar el ejemplar el mismo día.” Eso es un requerimiento en forma de historia. El criterio de aceptación es lo que lo vuelve verificable.`
+  },
+  {
+    slug: "practica-escribir-reqs",
+    clase: "Práctica",
+    titulo: "Escribir dos de cada tipo (clase 4)",
+    orden: 43,
+    resumen: "La práctica pide dos necesidades, dos deseos, dos expectativas, dos de usuario y dos de sistema, sacados del chat.",
+    contenido: `## Qué hay que entregar
+
+En este laboratorio se piden **dos de cada uno**, no tres como en algunas evaluaciones. Salen del chat, no se inventan.
+
+### Necesidades (RF)
+
+Sin esto el sistema no cumple su razón de ser.
+
+Ejemplo (biblioteca): *El sistema debe permitir registrar el préstamo y la devolución de material bibliográfico.*
+
+### Deseos (RF)
+
+Mejoras. El sistema podría arrancar sin ellas.
+
+Ejemplo: *El sistema debe permitir reservar un libro en línea antes de ir a la biblioteca.*
+
+### Expectativas (RFN)
+
+Calidad que a veces nadie nombra: tiempo, disponibilidad, usabilidad. Tienen que ser medibles.
+
+Ejemplo: *El sistema debe responder una consulta de disponibilidad en menos de 3 segundos.*
+
+### Requerimientos de usuario
+
+Alto nivel, lenguaje de negocio: *El usuario quiere…*
+
+Ejemplo: *El usuario quiere consultar si un libro está disponible antes de acercarse.*
+
+### Requerimientos de sistema
+
+Precisos, verificables: *El sistema debe…* con dato, estado o condición observable.
+
+Ejemplo: *El sistema debe actualizar el estado del ejemplar a disponible o prestado al registrar la operación.*
+
+## Cómo se escribe
+
+> El sistema debe + verbo + objeto + condición observable.
+
+Un casillero, una idea. Si hay un “y”, casi siempre hay dos requerimientos.
+
+Usuario y sistema pueden hablar de lo mismo en distinto nivel. Eso no es repetir: es traducir.`
+  },
+  {
+    slug: "practica-enunciado-dominio",
+    clase: "Práctica",
+    titulo: "El enunciado del dominio (clase 5)",
+    orden: 44,
+    resumen: "La entrega 1 pide comprender el problema. Todavía no se pide la lista completa de requerimientos.",
+    contenido: `## Qué tiene que permitir comprender
+
+El enunciado del dominio (etapa 1 del trabajo práctico) tiene que dejar en claro:
+
+1. El **contexto**. Acá el contexto es el **chat** con quien quiere la aplicación.
+2. La **organización**, institución o ámbito.
+3. La **situación o necesidad** que da origen al proyecto.
+4. **Cómo se hacen hoy** las actividades.
+5. El **objetivo general** del sistema.
+6. Lo que **todavía no se sabe** y habría que obtener.
+
+En esta etapa el objetivo es comprender. **No** se espera definir todos los requerimientos.
+
+## Cómo se obtiene en el laboratorio
+
+Se entrevista. La IA no suelta todo de una vez. Se pregunta, se interpreta, se vuelve a preguntar. Después se completa el formulario de dominio y recién ahí se escriben los dos de cada tipo.
+
+## De la frase al requerimiento (después)
+
+Stakeholder: “Queremos transferencias rápidas y seguras.”
+
+Eso todavía no es un requerimiento. Hay que preguntar qué es rápido, qué es seguro, quién lo define y qué pasa si falla. Recién después se escribe el enunciado.
+
+## Idea para llevarse
+
+Si el dominio está flojo, los diez casilleros de requerimientos van a estar flojos. Primero el mundo del problema; después la especificación.`
   }
 ];
