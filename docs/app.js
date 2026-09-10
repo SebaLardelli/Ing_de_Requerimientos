@@ -15,7 +15,7 @@
     wipeTrabajos: "ir.wipeTrabajos"
   };
 
-  const WIPE_TRABAJOS = "20260910";
+  const WIPE_TRABAJOS = "20260910c";
 
   const TIPOS_PRACTICA = [
     { tipo: "necesidad", titulo: "Necesidad" },
@@ -1678,6 +1678,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       <p class="hint">${escapeHtml(s.creado_por)} · ${escapeHtml(s.nombre_gerente)}, ${escapeHtml(s.rol_gerente)} · ${escapeHtml(s.organizacion)}</p>
       <div class="row" style="margin-bottom:12px">
         <button class="btn small btn-seguir-caso" type="button" data-id="${s.id}">Seguir este caso</button>
+        <button class="btn small btn-borrar-trabajo" type="button" data-id="${s.id}">Borrar del aula</button>
       </div>
       <h3>Dominio</h3>
       <p><strong>Contexto.</strong> ${escapeHtml(d.contexto || "sin cargar")}</p>
@@ -1740,6 +1741,50 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
         irTab("practica");
       };
     });
+    box.querySelectorAll(".btn-borrar-trabajo").forEach((btn) => {
+      btn.onclick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        borrarTrabajo(btn.dataset.id);
+      };
+    });
+  }
+
+  async function borrarTrabajo(id) {
+    if (!id) return;
+    if (!confirm("¿Borrar este trabajo del aula para todos?")) return;
+    try {
+      if (state.sb) {
+        await state.sb.from("revisiones_req").delete().eq("sesion_id", id);
+        await state.sb.from("requerimientos").delete().eq("sesion_id", id);
+        await state.sb.from("mensajes").delete().eq("sesion_id", id);
+        await state.sb.from("dominios").delete().eq("sesion_id", id);
+        const { error } = await state.sb.from("sesiones").delete().eq("id", id);
+        if (error) throw error;
+      }
+      state.sesiones = (state.sesiones || []).filter((s) => !mismoId(s.id, id));
+      state.mensajes = (state.mensajes || []).filter((m) => !mismoId(m.sesion_id, id));
+      state.reqs = (state.reqs || []).filter((r) => !mismoId(r.sesion_id, id));
+      state.revisionesReq = (state.revisionesReq || []).filter((r) => !mismoId(r.sesion_id, id));
+      const dominios = { ...(state.dominios || {}) };
+      delete dominios[id];
+      delete dominios[String(id)];
+      state.dominios = dominios;
+      saveJSON(LS.sesiones, state.sesiones);
+      saveJSON(LS.mensajes, state.mensajes);
+      saveJSON(LS.reqs, state.reqs);
+      saveJSON(LS.revisionesReq, state.revisionesReq);
+      saveJSON(LS.dominios, state.dominios);
+      if (mismoId(state.sesionActual?.id, id)) {
+        state.sesionActual = null;
+        pintarSesionEnUI();
+      }
+      if (mismoId(state.trabajoAbierto, id)) state.trabajoAbierto = null;
+      renderTrabajos();
+      toast("Trabajo borrado del aula.");
+    } catch (err) {
+      toast("No se pudo borrar: " + err.message);
+    }
   }
 
   function renderListaSesiones() {
