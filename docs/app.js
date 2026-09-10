@@ -165,19 +165,12 @@
     });
     state.canales = [];
     state.sb = null;
-    $("sb-dot").classList.remove("on");
-    $("sb-texto").textContent = "Todavía no hay aula remota. El trabajo queda en este navegador.";
 
     if (!cfg.url || !cfg.key || !window.supabase) return false;
     const client = window.supabase.createClient(cfg.url, cfg.key);
     const { error } = await client.from("temas_teoria").select("id").limit(1);
-    if (error) {
-      $("sb-texto").textContent = "El aula remota no respondió. Revisá los secretos del repositorio y el SQL.";
-      return false;
-    }
+    if (error) return false;
     state.sb = client;
-    $("sb-dot").classList.add("on");
-    $("sb-texto").textContent = "Aula sincronizada. Los cambios se ven en todos.";
     escucharRealtime();
     return true;
   }
@@ -245,11 +238,29 @@
     for (const tema of state.temas) {
       const base = mapa[tema.slug];
       if (!base) continue;
-      if (tema.clase === base.clase && Number(tema.orden) === Number(base.orden)) continue;
+      const oficial = !tema.actualizado_por || tema.actualizado_por === "material de clase";
+      const igual =
+        tema.clase === base.clase &&
+        Number(tema.orden) === Number(base.orden) &&
+        (!oficial || (tema.titulo === base.titulo && tema.resumen === base.resumen && tema.contenido === base.contenido));
+      if (igual) continue;
       tema.clase = base.clase;
       tema.orden = base.orden;
+      const patch = { clase: base.clase, orden: base.orden };
+      if (oficial) {
+        tema.titulo = base.titulo;
+        tema.resumen = base.resumen;
+        tema.contenido = base.contenido;
+        tema.actualizado_por = "material de clase";
+        Object.assign(patch, {
+          titulo: base.titulo,
+          resumen: base.resumen,
+          contenido: base.contenido,
+          actualizado_por: "material de clase"
+        });
+      }
       if (state.sb) {
-        await state.sb.from("temas_teoria").update({ clase: base.clase, orden: base.orden }).eq("id", tema.id);
+        await state.sb.from("temas_teoria").update(patch).eq("id", tema.id);
       }
     }
     const existentes = new Set(state.temas.map((t) => t.slug));
@@ -1319,33 +1330,15 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
   function pintarAjustesAI() {
     const saved = loadJSON(LS.ai, { proveedor: "" });
     const g = cfgGlobal();
-    $("ai-proveedor").value = normalizarProveedor(saved.proveedor || g.aiProvider);
-    const cfg = cfgAI();
-    if (cfg.clave) {
-      $("ai-estado").textContent = "Modelo activo: " + cfg.proveedor + ".";
-    } else if (cfg.proveedor === "groq") {
-      $("ai-estado").textContent = "Falta el secreto AI_KEY_GROQ (o el AI_KEY viejo de Groq).";
-    } else {
-      $("ai-estado").textContent = "Falta el secreto AI_KEY_GEMINI.";
-    }
+    const proveedor = normalizarProveedor(saved.proveedor || g.aiProvider);
+    $("ai-proveedor").value = proveedor;
+    $("ai-estado").textContent = proveedor === "gemini" ? "Modelo activo: Gemini." : "Modelo activo: Groq.";
   }
 
   function guardarAI() {
     saveJSON(LS.ai, { proveedor: $("ai-proveedor").value });
     pintarAjustesAI();
     toast("Modelo guardado en este navegador.");
-  }
-
-  async function probarAI() {
-    try {
-      const t = await chatAI([
-        { role: "system", content: "Respondé en una frase, en español." },
-        { role: "user", content: "Confirmá que estás listo para simular un gerente en una práctica de requerimientos." }
-      ]);
-      $("ai-estado").innerHTML = "<span class='ok'>Respuesta: " + escapeHtml(t) + "</span>";
-    } catch (err) {
-      $("ai-estado").innerHTML = "<span class='warn-text'>" + escapeHtml(err.message) + "</span>";
-    }
   }
 
   function irTab(tab) {
@@ -1404,7 +1397,6 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
     $("filtro-autor").addEventListener("input", renderListaSesiones);
     $("btn-guardar-ai").onclick = guardarAI;
     $("ai-proveedor").addEventListener("change", pintarAjustesAI);
-    $("btn-probar-ai").onclick = probarAI;
     $("btn-tema-oscuro").onclick = () => aplicarTema("dark");
     $("btn-tema-claro").onclick = () => aplicarTema("light");
   }

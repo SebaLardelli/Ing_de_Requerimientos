@@ -50,7 +50,7 @@
       <div class="layout">
         <aside class="card side">
           <h2>Temas</h2>
-          <p class="hint">Se pueden agregar clases nuevas y, dentro de cada una, apartados. Cualquier compañero puede editarlos.</p>
+          <p class="hint">Hay un resumen y apartados por clase, armados con el material de la cátedra. Se pueden agregar clases nuevas y más apartados.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn small" id="btn-nueva-clase" type="button">+ Clase</button>
           </div>
@@ -206,19 +206,9 @@
     <section id="panel-ajustes" class="panel">
       <div class="layout">
         <article class="card article">
-          <div class="kicker">Aula compartida</div>
-          <h2>Conexión del laboratorio</h2>
-          <p class="hint">La URL y las claves de Supabase no se muestran ni se guardan en el repositorio. El docente las carga como secretos de GitHub; al publicar, el sitio las usa sin exponerlas en el código.</p>
-          <p class="hint">En el repositorio: <strong>Settings → Secrets and variables → Actions</strong>. Secretos: <code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code>, <code>AI_KEY_GROQ</code>, <code>AI_KEY_GEMINI</code>. Variable opcional: <code>AI_PROVIDER</code> (groq o gemini).</p>
-          <p class="hint">Después: <strong>Settings → Pages → Source → GitHub Actions</strong>. Cada push vuelve a publicar el laboratorio.</p>
-          <div class="row" style="margin-top:12px">
-            <span id="sb-estado" class="hint"><span class="status-dot" id="sb-dot"></span> <span id="sb-texto">Todavía no hay aula remota. El trabajo queda en este navegador.</span></span>
-          </div>
-        </article>
-        <article class="card article">
-          <div class="kicker">Modelo de IA</div>
-          <h2>Debate sobre el dominio, sin pagar</h2>
-          <p class="hint">Elegí Groq o Gemini. Cada uno usa su secreto del repositorio.</p>
+          <div class="kicker">Ajustes</div>
+          <h2>Modelo</h2>
+          <p class="hint">Elegí con qué modelo querés trabajar.</p>
           <div class="field">
             <label for="ai-proveedor">Modelo</label>
             <select id="ai-proveedor">
@@ -228,7 +218,6 @@
           </div>
           <div class="row">
             <button class="btn primary" id="btn-guardar-ai" type="button">Guardar modelo</button>
-            <button class="btn" id="btn-probar-ai" type="button">Probar IA</button>
           </div>
           <p class="hint" id="ai-estado"></p>
         </article>

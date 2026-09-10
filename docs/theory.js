@@ -1,5 +1,29 @@
 const TEORIA_INICIAL = [
   {
+    slug: "resumen-clase-1",
+    clase: "Clase 1",
+    titulo: "Resumen de la clase 1",
+    orden: 0,
+    resumen: "Software como producto y proceso: no son solo programas. Evolución, características, cualidades, deseconomía de escala y la idea de proceso.",
+    contenido: `## De qué trata esta clase
+
+**Software como producto y proceso.** Se mira el software desde la ingeniería de requerimientos: qué es, cómo evolucionó la idea, por qué es único, qué cualidades se le pueden exigir y qué es un proceso.
+
+Puntos que recorre el material:
+
+- Turing (1935) y Tukey (1958): es mejor resolver de forma aproximada el problema correcto que resolver de forma exacta el equivocado.
+- El software es información: programas, diseños, requerimientos, documentación. Si solo miramos el ejecutable, el conocimiento se pierde.
+- Es producto y conocimiento empaquetado.
+- Es intangible, intelectual, maleable y se desarrolla por proyectos.
+- Cualidades (corrección, confiabilidad, usabilidad, mantenibilidad, etc.) y quién las mira (usuario, desarrollador, jefe de proyecto).
+- Deseconomía de escala: más gente, más vías de comunicación.
+- Proceso (IEEE / Pfleeger): pasos con propósito, recursos, restricciones y productos.
+
+## Idea para llevarse
+
+Reducir el software a “lo que corre” es útil para la máquina y peligroso para quien lo construye. Los requerimientos son parte del software, no un trámite previo.`
+  },
+  {
     slug: "que-es-el-software",
     clase: "Clase 1",
     titulo: "Qué es el software",
@@ -176,10 +200,34 @@ La ingeniería de requerimientos se piensa igual: actividades (elicitar, analiza
 Antes de testear un programa se exige que cumpla los casos de prueba y el diseño (criterio de entrada). Antes de dar por cerrado un requerimiento se exige que sea claro, verificable y acordado con el stakeholder. Sin criterio de salida, el trabajo nunca termina o se da por terminado demasiado pronto.`
   },
   {
+    slug: "resumen-clase-2",
+    clase: "Clase 2",
+    titulo: "Resumen de la clase 2",
+    orden: 8,
+    resumen: "Dificultades esenciales, modelos y stakeholders: complejidad, conformidad, modificabilidad, invisibilidad, gap semántico y contrato social.",
+    contenido: `## De qué trata esta clase
+
+**Dificultades esenciales, modelos y stakeholders.** Objetivos de la clase:
+
+- Reconocer las dificultades esenciales del software (complejidad, conformidad, modificabilidad, invisibilidad).
+- Diferenciar modelos, representaciones y realidad.
+- Analizar por qué es tan difícil obtener requerimientos.
+- Identificar stakeholders y problemas de comunicación.
+- Comprender el gap semántico y el contrato social.
+
+Esas dificultades impactan en cómo entendemos lo que nos piden, en la volatilidad de lo pedido y en que el producto no se puede “ver”.
+
+La actividad típica: sistema de turnos en un hospital, cinco stakeholders, conflictos y un gap semántico.
+
+## Idea para llevarse
+
+El usuario habla negocio; el analista tiende a hablar tecnología. El trabajo no es traducir palabras: es construir un acuerdo de significados.`
+  },
+  {
     slug: "dificultades-esenciales",
     clase: "Clase 2",
     titulo: "Dificultades esenciales del software",
-    orden: 8,
+    orden: 9,
     resumen: "Complejidad, conformidad, modificabilidad e invisibilidad no se “arreglan” con una herramienta nueva.",
     contenido: `## Esenciales versus accidentales
 
@@ -207,7 +255,7 @@ Un sistema de becas debe *conformar* al reglamento de la facultad (conformidad),
     slug: "modelos-y-abstraccion",
     clase: "Clase 2",
     titulo: "Modelos, representación y abstracción",
-    orden: 9,
+    orden: 10,
     resumen: "Un modelo no es la realidad. Se construye para entender lo que existe y para imaginar lo que queremos construir.",
     contenido: `## Qué es un modelo (y qué no)
 
@@ -234,7 +282,7 @@ El mismo gato lo ve distinto el veterinario, el dueño y el diseñador de una ap
     slug: "dificultad-requerimientos",
     clase: "Clase 2",
     titulo: "Por qué es tan difícil obtener requerimientos",
-    orden: 10,
+    orden: 11,
     resumen: "Decidir qué construir es la parte más difícil del trabajo conceptual. El error se paga caro y cuesta rectificarlo.",
     contenido: `## La advertencia de Brooks
 
@@ -263,7 +311,7 @@ La jefa de administración dice “necesitamos ordenar los turnos”. El desarro
     slug: "stakeholders",
     clase: "Clase 2",
     titulo: "Stakeholders",
-    orden: 11,
+    orden: 12,
     resumen: "Stakeholder es quien influye en los requerimientos o es impactado por el sistema, aunque no lo haya pedido.",
     contenido: `## Definición de trabajo
 
@@ -288,7 +336,7 @@ En turnos de un hospital: pacientes, médicos, administrativos, jefatura, sistem
     slug: "comunicacion-y-gap",
     clase: "Clase 2",
     titulo: "Comunicación y gap semántico",
-    orden: 12,
+    orden: 13,
     resumen: "Usuarios y analistas no hablan el mismo idioma. El gap semántico es esa distancia de significados.",
     contenido: `## El mensaje nunca es solo palabras
 
@@ -308,55 +356,65 @@ En la biblioteca, “reserva” para el alumno significa “el libro me espera m
     slug: "contrato-social",
     clase: "Clase 2",
     titulo: "Contrato social de los requerimientos",
-    orden: 13,
+    orden: 14,
     resumen: "Usuarios y analistas tienen derechos y deberes. Sin ese acuerdo, la entrevista se vuelve un monólogo.",
-    contenido: `## Derechos del usuario (selección)
+    contenido: `## Derechos del usuario
 
-Esperar que el analista hable su lenguaje y aprenda el negocio. Recibir una especificación y que se la expliquen. Ser tratado con respeto. Conocer alternativas. Pedir un producto simple de usar. Recibir estimaciones honestas de cambios. Obtener un sistema que cubra funciones y calidad.
+1. Esperar que el analista hable su lenguaje.
+2. Que el analista aprenda el negocio y sus objetivos.
+3. Que escriba una especificación de requerimientos de software.
+4. Recibir explicaciones de los productos del proceso de requerimientos.
+5. Un trato respetuoso de parte de desarrolladores.
+6. Ideas y alternativas para los requerimientos y su implementación.
+7. Describir características que hagan el producto simple y agradable de usar.
+8. Poder ajustar requerimientos para reutilizar componentes ya existentes.
+9. Recibir estimaciones de buena fe del costo de los cambios.
+10. Recibir un sistema que cubra necesidades funcionales y de calidad.
 
-## Deberes del usuario (selección)
+## Deberes del usuario
 
-Educar al analista en el negocio. Dedicar tiempo. Ser específico. Decidir a tiempo. Priorizar. Respetar costos y factibilidad. Revisar documentos y prototipos. Comunicar cambios por el proceso acordado. Respetar el proceso de ingeniería de requerimientos.
+1. Educar a analistas y desarrolladores en el negocio.
+2. Destinar tiempo a proveer y clarificar.
+3. Ser específico y preciso.
+4. Tomar decisiones a tiempo.
+5. Respetar evaluaciones de costo y factibilidad.
+6. Establecer prioridades.
+7. Revisar documentos y evaluar prototipos.
+8. Comunicar los cambios.
+9. Seguir el proceso de cambios acordado.
+10. Respetar el proceso de ingeniería de requerimientos que usa el analista.
 
-## Para el analista, en la práctica
+## Para el analista
 
-No es “el cliente siempre tiene razón” ni “el técnico manda”. Es una relación con reglas. Si el gerente no prioriza, el analista debe pedirlo. Si el analista habla solo en jerga, está incumpliendo su parte.
+No es “el cliente siempre tiene razón” ni “el técnico manda”. Es una relación con reglas. Si nadie prioriza, hay que pedirlo. Si el analista habla solo en jerga, está incumpliendo su parte.
 
 ## Ejemplo sencillo
 
-El gerente dice “quiero algo moderno”. El analista tiene derecho a traducir eso a alternativas concretas (y costos). El gerente tiene el deber de elegir. Si nadie elige, no hay requerimiento: hay una frase decorativa.`
+El gerente dice “quiero algo moderno”. El analista traduce eso a alternativas concretas (y costos). El gerente tiene el deber de elegir. Si nadie elige, no hay requerimiento: hay una frase decorativa.`
   },
   {
     slug: "resumen-clase-3",
     clase: "Clase 3",
     titulo: "Resumen de la clase 3",
-    orden: 14,
-    resumen: "Las metodologías no reemplazan los requerimientos: cambian cuándo se escriben, con qué formalidad y cómo se validan.",
+    orden: 15,
+    resumen: "Requerimientos y ciclo de vida: los requerimientos descubren qué se desea, sostienen el plan y, si salen mal, explican gran parte de los fracasos.",
     contenido: `## De qué trata esta clase
 
-En clase se miran **SCRUM**, el **modelo en V**, **RUP**, el **plano arquitectónico del software**, la comparación **SCRUM vs RUP** y el trabajo en **equipos distribuidos**.
+**Requerimientos y ciclo de vida.** Los requerimientos son la parte del desarrollo en la que se intenta descubrir qué se desea. Sirven de base para estimaciones y planificación e impactan en todas las fases posteriores.
 
-La práctica es poder explicar cada tema como si hablaran tres minutos en un congreso:
+Se miran modelos de ciclo de vida (cascada, ágil/SCRUM, modelo en V, RUP), el giro de “alcance fijo” a “alcance estimado”, calidad, el informe Standish y el costo de detectar un error tarde.
 
-1. ¿Qué es?
-2. ¿Cómo funciona?
-3. ¿Qué lugar ocupan los requerimientos?
-4. ¿Qué ventaja presenta?
-5. ¿Qué dificultad presenta?
-6. ¿Por qué debería importarle a un analista de requerimientos?
-7. Un ejemplo sencillo.
+La actividad del congreso pide explicar cada método en tres minutos: qué es, cómo funciona, qué lugar ocupan los requerimientos, ventaja, dificultad, por qué le importa al analista y un ejemplo.
 
 ## Idea para llevarse
 
-Un método ágil no significa “no hay requerimientos”. Una historia mal escrita es un requerimiento mal escrito. Un método formal no significa que el documento reemplace entender el dominio.
-
-El analista elige el *nivel de formalidad* según el riesgo del problema, no según la moda.`
+Un método ágil no significa “no hay requerimientos”. Un método formal no significa que el documento reemplace entender el dominio. Lo que no se acuerda al principio se paga después, y sale mucho más caro.`
   },
   {
     slug: "necesidades-deseos-expectativas",
     clase: "Clase 4",
     titulo: "Necesidades, deseos y expectativas",
-    orden: 17,
+    orden: 26,
     resumen: "No todo lo que se pide pesa igual. Distinguir estos tres evita tratar un lujo como si fuera el corazón del sistema.",
     contenido: `## Las tres capas
 
@@ -389,31 +447,28 @@ Al entrevistar a un gerente, preguntá: *si esto no existiera el primer día, ¿
     slug: "resumen-clase-4",
     clase: "Clase 4",
     titulo: "Resumen de la clase 4",
-    orden: 16,
-    resumen: "Se practica escribir necesidades, deseos, expectativas, y distinguir requerimientos de usuario y de sistema.",
+    orden: 21,
+    resumen: "Perspectiva organizacional y análisis: qué es elicitación, cómo se define un requerimiento y para qué sirve una SRS.",
     contenido: `## De qué trata esta clase
 
-A partir de un caso (en la materia, la biblioteca de la facultad) se pide enunciar ejemplos de:
+**Perspectiva organizacional y análisis.** Se trabaja:
 
-- **Necesidades** (RF): sin esto el sistema no cumple su razón de ser.
-- **Deseos** (RF): mejoras; el sistema podría arrancar sin ellas.
-- **Expectativas** (RFN): calidad que a veces nadie nombra (tiempo, disponibilidad, usabilidad).
-- **Requerimientos de usuario**: *El usuario quiere…*, en lenguaje de negocio.
-- **Requerimientos de sistema**: *El sistema debe…*, precisos y verificables.
+- Qué es **elicitación**: obtener, no inventar. Es un proceso social (comunicación, acuerdos, negociación).
+- La definición de **requerimiento** (IEEE): lo que necesita el usuario, lo que debe satisfacer el sistema, y su representación documentada.
+- El **rol** de los requerimientos: acuerdo, contrato, base de diseño, menos defectos, verificación y evolución.
+- La mirada **organizacional**: alinear el sistema con el negocio, no solo “automatizar”.
+- La **SRS**: modeliza lo que se necesita, comunica y sirve para testear.
+- **Funcionales vs no funcionales**, y en la práctica: necesidades, deseos, expectativas, usuario y sistema.
 
-En este laboratorio se piden **dos de cada tipo**. No se inventan: salen del chat con la persona que quiere desarrollar la aplicación.
+## Idea para llevarse
 
-## Cómo se escribe
-
-> El sistema debe + verbo + objeto + condición observable.
-
-Un enunciado, una idea. Si hay un “y”, casi siempre hay dos requerimientos.`
+Elicitar no es pedirle a alguien “pasame los requerimientos”. Es trasladar ideas del usuario a enunciados que se puedan acordar, diseñar y probar.`
   },
   {
     slug: "usuario-vs-sistema",
     clase: "Clase 4",
     titulo: "Requerimientos de usuario y de sistema",
-    orden: 18,
+    orden: 27,
     resumen: "El de usuario dice qué necesita una persona, en su lenguaje. El de sistema dice con precisión cómo debe comportarse el software.",
     contenido: `## La diferencia
 
@@ -441,7 +496,7 @@ El primero se entiende en una reunión. El segundo ya se puede diseñar y probar
     slug: "funcionales-y-no-funcionales",
     clase: "Clase 4",
     titulo: "Requerimientos funcionales y no funcionales",
-    orden: 19,
+    orden: 28,
     resumen: "Los funcionales dicen qué hace el sistema. Los no funcionales dicen qué tan bien, bajo qué condiciones de calidad.",
     contenido: `## Cómo se escriben en este curso
 
@@ -468,30 +523,25 @@ La segunda versión se puede discutir, priorizar y testear.`
     slug: "resumen-clase-5",
     clase: "Clase 5",
     titulo: "Resumen de la clase 5",
-    orden: 20,
-    resumen: "Antes de listar requerimientos hay que entender el dominio: organización, cómo se trabaja hoy y qué se quiere lograr.",
+    orden: 29,
+    resumen: "Procesos de RE y elicitación: comprender, preguntar, escuchar, interpretar, especificar y validar. Las palabras del stakeholder no son automáticamente un requerimiento.",
     contenido: `## De qué trata esta clase
 
-La primera entrega pide el enunciado del **dominio del problema**. Tiene que permitir comprender:
+**Procesos de RE y elicitación.** El analista no empieza escribiendo. Primero: comprender → preguntar → escuchar → interpretar → analizar → especificar → validar. Y, muchas veces, volver a preguntar.
 
-1. El **contexto**. En este laboratorio el contexto es el **chat** con quien quiere la aplicación.
-2. La **organización**, institución o ámbito.
-3. La **situación o necesidad** que da origen al proyecto.
-4. **Cómo se hacen hoy** las actividades.
-5. El **objetivo general** del sistema.
-6. Lo que **todavía no se sabe** y habría que preguntar.
+Los procesos centrales (Loucopoulos) son **elicitación**, **especificación**, **validación** y **gestión**. Un requerimiento bueno es claro, preciso, consistente, verificable y factible. Los requerimientos cambian: hay que rastrearlos.
 
-En esta etapa el objetivo es comprender el problema. **No** se espera definir todavía todos los requerimientos.
+En la práctica se entrevista (acá, a la IA) para conocer necesidades, expectativas, problemas y reglas del negocio. Una buena pregunta genera otra pregunta.
 
-## Cómo se trabaja acá
+## Idea para llevarse
 
-Se entrevista a la IA. Habla como la persona que quiere desarrollar una aplicación: cuenta situaciones, no entrega un listado técnico. Preguntando se arma el dominio; de esa misma conversación salen después los requerimientos de la clase 4.`
+“Queremos transferencias rápidas y seguras” no es un requerimiento. ¿Qué es rápido? ¿Qué es seguro? ¿Quién lo define? ¿Qué pasa si falla? Recién después se escribe el enunciado.`
   },
   {
     slug: "dominio-del-problema",
     clase: "Clase 5",
     titulo: "Dominio del problema",
-    orden: 21,
+    orden: 35,
     resumen: "Antes de listar requerimientos hay que entender el mundo en el que vive el problema. Esa es la etapa 1 del trabajo práctico.",
     contenido: `## Qué tiene que permitir comprender el enunciado
 
@@ -526,7 +576,7 @@ Al cerrar una exploración conviene sintetizar:
     slug: "metodologias",
     clase: "Clase 3",
     titulo: "Metodologías y el lugar de los requerimientos",
-    orden: 15,
+    orden: 20,
     resumen: "SCRUM, RUP y el modelo en V no eliminan los requerimientos: cambian cuándo, cómo y con qué formalidad aparecen.",
     contenido: `## Preguntas que un analista le hace a cualquier método
 
@@ -585,5 +635,371 @@ SCRUM optimiza el aprendizaje corto y la conversación continua. RUP optimiza la
 ## Equipos distribuidos
 
 Más distancia = más gap semántico y más vías de comunicación (deseconomía de escala). Los requerimientos escritos, el glosario y las decisiones registradas dejan de ser “papeles” y pasan a ser el único suelo común.`
+  },
+  {
+    slug: "reqs-en-ciclo-vida",
+    clase: "Clase 3",
+    titulo: "Requerimientos en el ciclo de vida",
+    orden: 16,
+    resumen: "Son la parte del desarrollo en la que se intenta descubrir qué se desea. Sostienen el plan y atraviesan todas las fases.",
+    contenido: `## Qué lugar ocupan
+
+Gause y Weinberg lo dicen así: los requerimientos son la parte del desarrollo en la que **la gente intenta descubrir qué se desea**.
+
+En el ciclo de vida no son un capítulo suelto al inicio. Son:
+
+- la base para **estimar** esfuerzo y plazos;
+- el criterio para **aceptar** el sistema;
+- el hilo que recorre diseño, construcción, prueba y mantenimiento.
+
+Si el requerimiento está mal, el diseño “correcto” resuelve el problema equivocado. El error viaja en cascada.
+
+## Predictivo y adaptativo
+
+En un ciclo **predictivo** (cascada) se fijan los requerimientos y después se formula el plan (costo y tiempo). En un ciclo **adaptativo** (ágil) se fijan recursos y tiempo, y el alcance se estima y se va ajustando.
+
+Ninguno elimina los requerimientos. Cambian *cuándo* se cierran y *con qué formalidad* se escriben.
+
+## Ejemplo sencillo
+
+Si en un hospital no está escrito qué es un “turno urgente”, el plan de tres meses no sirve: cada área imagina otro sistema. El ciclo de vida arranca desfasado aunque el Gantt se vea prolijo.`
+  },
+  {
+    slug: "modelos-ciclo-vida",
+    clase: "Clase 3",
+    titulo: "Modelos de ciclo de vida",
+    orden: 17,
+    resumen: "Cascada, ágil, modelo en V y RUP organizan el mismo problema: cuándo se acuerda qué construir y cuándo se comprueba.",
+    contenido: `## Cascada (waterfall)
+
+Secuencial y predictivo: requerimientos → diseño → construcción → prueba → entrega. Encaja cuando el problema es estable y se puede especificar pronto. Se rompe cuando el dominio todavía se está descubriendo.
+
+## Ágil (SCRUM)
+
+Iterativo y adaptativo. El alcance se va aprendiendo. Los requerimientos viven como ítems de backlog, no como un único acto de “firmar el documento y no tocarlo”. El giro: dados el tiempo y las personas, se elige qué entra en el incremento.
+
+## Modelo en V
+
+Baja por especificación y diseño, y sube por verificación. Cada nivel de requerimiento tiene su nivel de prueba. Si un RF no se puede trazar a una prueba, está mal escrito.
+
+## RUP
+
+Iterativo e incremental, con fases (concepción, elaboración, construcción, transición) y una disciplina formal de requerimientos (visión, casos de uso, especificaciones suplementarias).
+
+## Equipos distribuidos
+
+Más distancia cultural y geográfica: más gap semántico. El ciclo de vida necesita más explicitación (glosario, decisiones, trazas), no menos.
+
+## Ejemplo sencillo
+
+Un club de barrio que todavía no sabe si la app es para socios, para la tesorería o para ambos no debería “cerrar” una cascada de seis meses. Un backlog corto, con criterios de aceptación, permite aprender el dominio sin fingir que ya está cerrado.`
+  },
+  {
+    slug: "calidad-y-standish",
+    clase: "Clase 3",
+    titulo: "Calidad y por qué fallan los proyectos",
+    orden: 18,
+    resumen: "La calidad no es solo “sin bugs”. Standish y Dorfman muestran que los requerimientos claros y el usuario adentro predicen el éxito.",
+    contenido: `## Qué se entiende por calidad
+
+Juran la mira de dos lados: lo que satisface al usuario y la ausencia de deficiencias (menos retrabajo y reclamos). Deming insiste en que lo difícil es traducir necesidades futuras a características medibles. Esas necesidades cambian.
+
+IEEE: calidad es el grado en que un sistema satisface **los requerimientos especificados** y también las **necesidades y expectativas** del usuario. Si la especificación está mal, “cumplirla” no alcanza.
+
+## Standish: factores de éxito
+
+En proyectos que salen bien suelen aparecer:
+
+- involucramiento de los usuarios;
+- apoyo de la dirección;
+- enunciado claro de requerimientos;
+- planificación adecuada;
+- expectativas realistas.
+
+En los que se traban o fallan: falta de input del usuario, requerimientos incompletos, cambios constantes, expectativas irreales, falta de apoyo.
+
+## Beneficios de buenos requerimientos (Dorfman)
+
+1. Acuerdo entre stakeholders sobre la tarea y el criterio de aceptación.
+2. Base para estimar recursos y tiempos.
+3. Mejor usabilidad y mantenibilidad.
+4. Menos retrabajo y menos omisiones.
+
+Esas ventajas crecen con el tamaño y la complejidad.
+
+## Ejemplo sencillo
+
+Un municipio pide “modernizar turnos”. Sin usuarios en la mesa y sin enunciados claros, el equipo entrega una app linda que nadie usa: las expectativas no eran realistas y el requerimiento nunca se acordó.`
+  },
+  {
+    slug: "costo-de-errores",
+    clase: "Clase 3",
+    titulo: "El costo de detectar un error tarde",
+    orden: 19,
+    resumen: "La mayoría de los defectos se insertan en requerimientos. Corregirlos en producción puede costar 100 o 200 veces más.",
+    contenido: `## La evidencia que usa la materia
+
+Estudios de IBM y Bell Labs: cerca del **80% de los defectos se insertan en la fase de requerimientos**. En proyectos de la USAF, una parte grande de los defectos venía de **traducir mal** lo pedido. En las naves Voyager y Galileo, casi todos los defectos serios de integración no eran de programación: eran de requerimientos.
+
+Cuanto más tarde se detecta un error, más cuesta. Repararlo en un producto ya liberado puede costar **entre 100 y 200 veces** más que hacerlo en la fase de requerimientos.
+
+## Qué tipo de error es
+
+Los errores de requerimientos suelen ser: hechos incorrectos, omisiones, inconsistencias y ambigüedades. Se pueden detectar: las inspecciones y las revisiones sirven.
+
+El problema real no aparece recién en el código. Si la especificación está mal, el diseño “correcto” y el programa “correcto” siguen resolviendo el problema equivocado.
+
+## Ejemplo sencillo
+
+Si “reserva” en la biblioteca no se definió, el equipo programa 48 horas de bloqueo. Recién en producción el alumno dice que “reserva” era “me lo guardan hasta la tarde”. El arreglo toca datos, mails, reglamento y capacitación. Eso es el costo de llegar tarde.`
+  },
+  {
+    slug: "que-es-elicitacion",
+    clase: "Clase 4",
+    titulo: "Qué es la elicitación",
+    orden: 22,
+    resumen: "Elicit viene de obtener. No es que el usuario “entregue” requerimientos: hay que sacarlos con un proceso social.",
+    contenido: `## La palabra
+
+Del inglés *elicit*: obtener, hacer salir. La elicitación **traslada ideas del usuario a requerimientos de software**. No es un formulario. Es un proceso social: comunicación, acuerdos, negociación.
+
+## Técnicas habituales
+
+Entrevistas, encuestas, observación, prototipos, análisis de documentación, brainstorming. No hay una técnica “correcta”: se elige según el acceso a la gente, el tipo de conocimiento (explícito o tácito) y el riesgo.
+
+La observación sirve cuando el usuario no puede explicar lo que hace. El prototipo sirve cuando hay que concrear una idea vaga. La entrevista sirve para profundizar y repreguntar.
+
+## Qué no es
+
+No es pedirle “pasame los requerimientos”. Las palabras del stakeholder no son automáticamente un requerimiento. “Que sea fácil” es una pista, no un enunciado.
+
+## Ejemplo sencillo
+
+La jefa de administración dice “necesitamos ordenar los turnos”. Eso no se elicitó todavía. Hay que preguntar: ¿ordenar para quién? ¿Hoy se pierde gente, se duplican turnos o se satura el mostrador? Recién después hay algo que se puede escribir.`
+  },
+  {
+    slug: "definicion-ieee",
+    clase: "Clase 4",
+    titulo: "Qué es un requerimiento (IEEE)",
+    orden: 23,
+    resumen: "Tres lecturas a la vez: lo que necesita el usuario, lo que debe cumplir el sistema, y el texto que lo documenta.",
+    contenido: `## Definición de trabajo (IEEE 610)
+
+Un requerimiento es:
+
+1. Una **condición o capacidad que necesita el usuario** para resolver un problema o alcanzar un objetivo.
+2. Una **condición o capacidad que debe satisfacer un sistema** para cumplir un contrato, estándar o especificación.
+3. Una **representación documentada** de esas condiciones o capacidades.
+
+Las tres importan. Si solo queda en la cabeza del usuario, no hay acuerdo. Si solo queda en un contrato sin usuario, se construye lo firmado y no lo necesario. Si no se documenta, no se puede verificar ni cambiar con control.
+
+## Rol de los requerimientos
+
+- Acuerdo entre desarrolladores, clientes y usuarios.
+- Aspecto contractual.
+- Base para el diseño.
+- Menos defectos (si están bien).
+- Soporte para verificación y validación.
+- Soporte para la evolución del sistema.
+
+## Ingeniería de requerimientos
+
+Es el proceso sistemático de desarrollar requerimientos: analizar el problema, documentar lo observado en distintos formatos y chequear que la comprensión sea precisa. Es cooperativo e iterativo. No es solo un documento.
+
+## Ejemplo sencillo
+
+“El alumno quiere saber si el libro está” es la necesidad del usuario. “El sistema debe mostrar el estado del ejemplar (disponible / prestado / reservado) al consultar el código” es lo que el sistema debe satisfacer. El renglón escrito en la SRS es la representación. Las tres son el mismo requerimiento en distintos estados.`
+  },
+  {
+    slug: "perspectiva-organizacional",
+    clase: "Clase 4",
+    titulo: "Perspectiva organizacional",
+    orden: 24,
+    resumen: "El sistema no se pide “porque sí”: debería bajar costos de proceso, alinear al negocio y servir a los stakeholders.",
+    contenido: `## Para qué se pide un sistema
+
+Desde la organización, los requerimientos no son una lista de pantallas. Apuntan a:
+
+- automatizar para **reducir costos** de un proceso que ya existe;
+- **alinear** el sistema con la estrategia del negocio;
+- **satisfacer** necesidades de distintos stakeholders;
+- transformar la información en una **herramienta** (no en un archivo más).
+
+Si el analista solo pregunta “qué botones quieren”, pierde esta capa. Un RF puede ser correcto y, aun así, no servirle a la organización.
+
+## El analista en esa mesa
+
+Hay que preguntar quién gana, quién pierde, qué proceso se quiere achicar y qué no se puede tocar (reglamento, sindicato, horario de guardia). Eso no reemplaza los RF: les da sentido.
+
+## Ejemplo sencillo
+
+Un comercio quiere “una app de pedidos”. Organizacionalmente el objetivo puede ser dejar de anotar en WhatsApp y no perder encargos. Si la app no baja ese costo ni le sirve al mostrador, el requerimiento “registrar pedido” está bien escrito y mal apuntado.`
+  },
+  {
+    slug: "srs",
+    clase: "Clase 4",
+    titulo: "La especificación (SRS)",
+    orden: 25,
+    resumen: "La SRS modeliza lo que se necesita, comunica y sirve de contrato. También es la base para testear el producto.",
+    contenido: `## Para qué existe
+
+La Especificación de Requerimientos de Software (SRS):
+
+- **modeliza** lo que se necesita y formula el problema;
+- es medio de **comunicación** y, a menudo, **contrato**;
+- es base para **evaluar y testear** el producto final.
+
+Puede escribirse en lenguaje natural, modelos o estándares. Tradicionalmente se la pensó solo como especificación funcional (entrada, proceso, salida). Eso deja afuera objetivos, restricciones y requerimientos no funcionales. El propósito del sistema **excede** la lista de funciones.
+
+## Relación con la arquitectura
+
+Hay un límite entre el *qué* y el *cómo*. La SRS no debería diseñar la solución, pero los RFN (rendimiento, seguridad, disponibilidad) empujan la forma del sistema. Si se ignoran, el “qué” queda incompleto.
+
+## Ejemplo sencillo
+
+Una SRS de biblioteca que solo dice “registrar préstamo” y no dice disponibilidad en horario de atención, ni quién puede reservar, permite construir tres sistemas distintos. Todos “cumplen” el renglón funcional. Ninguno se puede testear igual.`
+  },
+  {
+    slug: "procesos-re",
+    clase: "Clase 5",
+    titulo: "Procesos de la ingeniería de requerimientos",
+    orden: 30,
+    resumen: "Si no podés describir lo que hacés como un proceso, no sabés lo que estás haciendo. Elicitar, especificar, validar y gestionar.",
+    contenido: `## La frase de Deming
+
+“Si no podés describir lo que estás haciendo como un proceso, no sabés lo que estás haciendo.” En RE eso se toma en serio: no es “anotar lo que dijo el cliente”.
+
+## Tres aspectos
+
+Hay que **comprender** el problema, **describirlo** y **acordar** su naturaleza. De ahí tres procesos que se entrelazan:
+
+1. **Elicitación**: ganar conocimiento del dominio y de las necesidades.
+2. **Especificación**: organizar ese conocimiento en un modelo acordado.
+3. **Validación**: chequear que el modelo represente lo que se quería.
+
+Loucopoulos suma la **gestión**: planear, controlar cambios, organizar. Los productos de un proceso alimentan al otro. Si la validación falla, se vuelve a elicitar.
+
+## El analista no empieza escribiendo
+
+Comprender → preguntar → escuchar → interpretar → analizar → especificar → validar. Y muchas veces, volver a preguntar.
+
+## Ejemplo sencillo
+
+Antes de listar RF de una billetera virtual hay que saber qué sabe la empresa y qué no: ¿quién es el cliente? ¿Hay límites del Banco Central? ¿Qué hacen hoy por ventanilla? Eso es proceso, no inspiración.`
+  },
+  {
+    slug: "elicitacion-proceso",
+    clase: "Clase 5",
+    titulo: "El proceso de elicitación",
+    orden: 31,
+    resumen: "El propósito es volverse, al final, un experto del dominio. El producto no es un documento formal: son modelos cada vez más precisos.",
+    contenido: `## Propósito
+
+Ganar conocimiento relevante del problema para poder especificar el software que lo resuelve. Al cerrar la RE, el analista debería poder hablar el idioma del dominio.
+
+## De dónde sale el conocimiento
+
+Expertos, literatura del rubro, software que ya usan, sistemas parecidos, normas, otros stakeholders. Hay que identificar fuentes, decidir qué es relevante y entender el impacto.
+
+## Técnicas
+
+Entrevistas, observación, prototipos, reutilización de conocimiento, cuestionarios, análisis de documentación, brainstorming. Para una billetera virtual, por ejemplo: entrevistar a tesorería y a un cliente, observar cómo pagan hoy, mirar la app de un banco, preguntar por reglas que no están escritas.
+
+## Productos
+
+La elicitación crea modelos, no un contrato. Empieza con modelos mentales del dominio y se va acercando al software, **sin** volverse todavía una especificación formal. Corre en paralelo con especificar y validar: si falta saber, se vuelve a elicitar.
+
+## Ejemplo sencillo
+
+“Queremos que las transferencias sean rápidas y seguras.” Eso no cierra. ¿Qué es rápida? ¿Qué es segura? ¿Quién lo define? ¿Qué ocurre si falla? Cada respuesta abre otra pregunta. Una buena pregunta genera otra pregunta.`
+  },
+  {
+    slug: "especificacion-y-validacion",
+    clase: "Clase 5",
+    titulo: "Especificación y validación",
+    orden: 32,
+    resumen: "Especificar es acordar el problema (no el diseño). Validar es certificar que se ataca el problema correcto.",
+    contenido: `## Especificación
+
+Se la puede ver como un **contrato** entre usuarios y desarrolladores: define el comportamiento deseado y otras propiedades (performance, confiabilidad) **sin** decir cómo se va a implementar.
+
+El input lo da la elicitación. El analista analiza, organiza y produce modelos: unos orientados al usuario, otros al desarrollador. Si falta información, se pide más elicitación. Cada parte de la especificación dispara validación.
+
+## Validación
+
+Certifica que se ataca el **problema correcto**. No es lo mismo que verificar que el código cumple la spec. Se valida el modelo contra las intenciones de clientes y usuarios.
+
+Técnicas: revisiones, prototipos, casos de uso, validación con usuarios. El producto no es “el modelo perfecto”: es un compromiso entre lo deseado y lo factible.
+
+## Ejemplo sencillo
+
+Se especifica: “El sistema debe transferir en menos de 10 segundos en horario hábil.” Se valida con tesorería: ¿10 segundos es lo que necesitaban o era “que no se caiga a la noche”? Si no se valida, se construye un número que nadie pidió de verdad.`
+  },
+  {
+    slug: "gestion-y-trazabilidad",
+    clase: "Clase 5",
+    titulo: "Gestión, cambios y trazabilidad",
+    orden: 33,
+    resumen: "Los requerimientos cambian. Sin rastreo no se puede saber qué se rompe si se toca uno.",
+    contenido: `## Por qué hay que gestionarlos
+
+Cambian desde el primer día y después de la puesta en marcha. Razones: errores e inconsistencias, el usuario entiende mejor su problema, límites técnicos o de calendario, prioridades nuevas, cambios del entorno o de la organización.
+
+Hay requerimientos más **estables** (la esencia del sistema) y más **volátiles** (la instanciación en un ambiente concreto).
+
+## Qué se gestiona
+
+Cambios acordados, relaciones entre requerimientos, dependencias de la SRS con el resto de los documentos. Un pedido de cambio se identifica, se analiza (impacto y costo) y recién después se implementa.
+
+## Trazabilidad (rastreo)
+
+Un requerimiento es rastreable si se sabe:
+
+- quién lo sugirió;
+- por qué existe;
+- con qué otros se relaciona;
+- cómo se relaciona con diseño, pruebas y operación.
+
+Hacia atrás: de la SRS a la fuente. Hacia adelante: de la SRS al diseño y a las pruebas. Sin eso, “agregar pago online de turnos” es un salto a ciegas.
+
+## Ejemplo sencillo
+
+Si se agrega el pago online de un turno, hay que ver qué RF de agenda, cancelación y obra social se tocan. Eso es gestión, no “un botón más”.`
+  },
+  {
+    slug: "buen-requerimiento",
+    clase: "Clase 5",
+    titulo: "Qué hace bueno a un requerimiento",
+    orden: 34,
+    resumen: "Claro, preciso, consistente, verificable y factible. Si admite dos lecturas, todavía no está listo.",
+    contenido: `## Criterios
+
+Un buen requerimiento es:
+
+- **claro**: se entiende sin adivinar;
+- **preciso**: no sobra ni falta lo importante;
+- **consistente**: no choca con otro;
+- **verificable**: se puede imaginar una prueba;
+- **factible**: se puede construir con lo que hay.
+
+Un enunciado ambiguo genera interpretaciones distintas. “Rápido”, “seguro”, “fácil”, “etc.” son banderas rojas.
+
+## De la frase al enunciado
+
+Stakeholder: “Necesitamos que los clientes puedan pagar fácilmente.”
+
+El analista pregunta qué es “fácilmente”. Obtienen: no quieren volver a cargar la tarjeta.
+
+Requerimiento: *El sistema debe permitir al cliente pagar usando medios de pago ya registrados.*
+
+Eso ya se puede discutir, priorizar y probar.
+
+## Ejemplo sencillo
+
+Débil: “Las transferencias deben ser rápidas y seguras.”
+
+Mejor, dos enunciados:
+- El sistema debe completar una transferencia entre cuentas propias en menos de 10 segundos en horario hábil.
+- El sistema debe pedir un segundo factor antes de transferir a un destinatario nuevo.`
   }
 ];
