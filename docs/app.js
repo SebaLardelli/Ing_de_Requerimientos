@@ -884,29 +884,46 @@
 
     if (proveedor === "groq") {
       if (!clave) throw new Error("Groq no está configurado en el repositorio.");
-      const intentos = [
-        { model: "qwen/qwen3.6-27b", reasoning_effort: "none" },
-        { model: "openai/gpt-oss-20b", reasoning_effort: "low", include_reasoning: false }
-      ];
+      const intentos = json
+        ? [{ model: "qwen/qwen3.6-27b", reasoning_effort: "none" }]
+        : [
+            { model: "qwen/qwen3.6-27b", reasoning_effort: "none" },
+            { model: "openai/gpt-oss-20b", reasoning_effort: "low", include_reasoning: false }
+          ];
       let ultimoError = "Groq rechazó el pedido.";
       for (const intento of intentos) {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + clave
-          },
-          body: JSON.stringify({
-            model: intento.model,
-            temperature: 0.7,
-            max_tokens: json ? 900 : 280,
-            messages,
-            reasoning_effort: intento.reasoning_effort,
-            include_reasoning: false,
-            ...(json ? { response_format: { type: "json_object" } } : {})
-          })
-        });
-        const data = await res.json();
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), json ? 18000 : 12000);
+        let res;
+        let data = {};
+        try {
+          res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + clave
+            },
+            signal: ctrl.signal,
+            body: JSON.stringify({
+              model: intento.model,
+              temperature: json ? 0.3 : 0.7,
+              max_tokens: json ? 700 : 280,
+              messages,
+              reasoning_effort: intento.reasoning_effort,
+              include_reasoning: false,
+              ...(json ? { response_format: { type: "json_object" } } : {})
+            })
+          });
+          data = await res.json();
+        } catch (err) {
+          clearTimeout(timer);
+          if (err.name === "AbortError") {
+            ultimoError = "La corrección tardó demasiado.";
+            continue;
+          }
+          throw err;
+        }
+        clearTimeout(timer);
         if (!res.ok) {
           ultimoError = data.error?.message || ultimoError;
           continue;
@@ -1089,8 +1106,10 @@ Evitá hospital y biblioteca. Elegí un dominio cotidiano argentino (club, munic
     }
   }
 
-  function transcripcion(sesion) {
-    return mensajesDe(sesion.id).map((m) => {
+  function transcripcion(sesion, tope = 0) {
+    const msgs = mensajesDe(sesion.id);
+    const lista = tope > 0 ? msgs.slice(-tope) : msgs;
+    return lista.map((m) => {
       const quien = m.rol === "gerente" ? `${sesion.nombre_gerente} (${sesion.rol_gerente})` : `Analista ${m.autor}`;
       return `${quien}: ${m.contenido}`;
     }).join("\n\n");
@@ -1182,37 +1201,18 @@ Reglas de un buen enunciado:
 - El dominio (contexto, organización, cómo se hace hoy, objetivo, desconocido) debe ser concreto y coherente. Señalá huecos.
 - No inventes hechos que no estén en la especificación ni en el debate. Si falta, decilo.
 
-Devolvé SOLO un JSON válido con:
+Devolvé SOLO un JSON válido y CORTO con:
 {
-  "comparacion": "texto markdown: revisión de toda la especificación (dominio y requerimientos); coherencia; qué falta o sobra",
-  "dominio": {
-    "contexto": "versión revisada o la misma si está bien",
-    "organizacion": "versión revisada",
-    "hoy": "versión revisada",
-    "objetivo": "versión revisada",
-    "desconocido": "versión revisada"
-  },
+  "comparacion": "6 a 10 líneas: coherencia, forma y huecos",
+  "dominio": { "contexto": "", "organizacion": "", "hoy": "", "objetivo": "", "desconocido": "" },
   "correcciones": [
-    {
-      "id": "id del requerimiento original",
-      "codigo": "RF1",
-      "tipo": "necesidad|deseo|expectativa|usuario|sistema|funcional|no_funcional",
-      "enunciado_original": "...",
-      "enunciado_corregido": "...",
-      "motivo": "por qué se corrige"
-    }
+    { "id": "id original", "codigo": "RF1", "tipo": "necesidad", "enunciado_original": "...", "enunciado_corregido": "...", "motivo": "por qué" }
   ],
   "faltantes": [
-    {
-      "tipo": "sistema",
-      "enunciado": "El sistema debe...",
-      "fundamento": "En la especificación o el debate se dijo que..."
-    }
+    { "tipo": "sistema", "enunciado": "El sistema debe...", "fundamento": "En el chat se dijo que..." }
   ]
 }
-La práctica pide DOS requerimientos de cada tipo: necesidad, deseo, expectativa, usuario y sistema. Revisá que estén completos, atómicos y sacados del chat.
-Incluí todos los requerimientos en correcciones, aunque estén bien (enunciado_corregido igual al original y motivo "sin cambios").
-faltantes: solo lo que la especificación o el chat sostienen y nadie escribió. Máximo 5.`;
+La práctica pide DOS de cada tipo. En correcciones SOLO los que hay que cambiar. En faltantes, máximo 3 y solo si el chat lo sostiene.`;
   }
 
   function textoEspecificacion(sesion) {
@@ -1233,8 +1233,8 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
       "ESPECIFICACIÓN — REQUERIMIENTOS",
       reqs || "(ninguno escrito)",
       "",
-      "CONTEXTO (chat con quien quiere la aplicación)",
-      transcripcion(sesion) || "(sin chat)"
+      "CONTEXTO (últimos mensajes del chat)",
+      transcripcion(sesion, 10) || "(sin chat)"
     ].join("\n");
   }
 
@@ -1300,6 +1300,8 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
     const lista = reqsDe(state.sesionActual.id);
     state.aiBusy = true;
     $("btn-corregir-req").disabled = true;
+    $("btn-corregir-req").textContent = "Corrigiendo…";
+    toast("Corrigiendo. Cuando termine, esta práctica va al historial.");
     try {
       const raw = await chatAI([
         { role: "system", content: promptCorreccionReq() },
@@ -1355,6 +1357,7 @@ faltantes: solo lo que la especificación o el chat sostienen y nadie escribió.
     } finally {
       state.aiBusy = false;
       $("btn-corregir-req").disabled = false;
+      $("btn-corregir-req").textContent = "Corregir";
     }
   }
 
