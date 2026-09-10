@@ -505,7 +505,7 @@ Formato recomendado:
 > **RFx / RFNx:** El sistema debe + acción + objeto + condiciones observables.
 
 - **RF (funcional):** una función o servicio. Se puede señalar un flujo: registrar, consultar, cancelar, notificar.
-- **RFN (no funcional):** una cualidad. Rendimiento, disponibilidad, usabilidad, seguridad, precisión. Debe ser lo más medible posible.
+- **RFN (no funcional):** una cualidad. Rendimiento, disponibilidad, usabilidad, seguridad, precisión. Debe ser lo más medible posible. El apartado siguiente lista cómo medir cada una.
 
 Un buen requerimiento es **atómico** (una idea), **claro** (sin “rápido”, “amigable”, “etc.” sueltos), **verificable** (se puede imaginar una prueba) y **acordado** con quien corresponde.
 
@@ -518,6 +518,75 @@ Mejor:
 - RFN4: El sistema debe mostrar el resultado de una búsqueda de turnos libres en menos de 3 segundos en condiciones normales de uso.
 
 La segunda versión se puede discutir, priorizar y testear.`
+  },
+  {
+    slug: "rfn-cualidades-medibles",
+    clase: "Clase 4",
+    titulo: "Cualidades medibles de los no funcionales",
+    orden: 28.5,
+    resumen: "Una expectativa (RFN) no es “rápido” ni “amigable”. Es una cualidad con número, horario o prueba. Así se escribe en la práctica.",
+    contenido: `## Qué es un RFN en este curso
+
+Los **requerimientos no funcionales** (expectativas, código RFN) no dicen *qué hace* el sistema. Dicen **qué tan bien** tiene que hacerlo: tiempo, disponibilidad, claridad, seguridad, precisión.
+
+En la práctica se piden **dos expectativas**. Si queda “el sistema debe ser rápido y fácil”, no se puede corregir ni probar. Hay que elegir **una cualidad** y hacerla **medible**.
+
+Formato:
+
+> El sistema debe + cualidad + objeto + condición observable (número, horario, rol o prueba).
+
+## Cualidades que se usan en la práctica
+
+| Cualidad | Pregunta al stakeholder | Cómo se vuelve medible | Palabras que no cierran |
+|---|---|---|---|
+| **Rendimiento** | ¿En cuánto tiempo lo necesitás? | Segundos (o minutos) para una operación concreta | rápido, instantáneo, al toque |
+| **Disponibilidad** | ¿En qué horario no puede fallar? | Horario de atención, días, porcentaje de tiempo en pie | siempre, 24/7 (si no es cierto), sin caídas |
+| **Usabilidad** | ¿Quién tiene que usarlo sin curso? | Sin capacitación previa, o “completa X en N minutos” | amigable, intuitivo, simple |
+| **Seguridad** | ¿Quién ve qué? | Identificación de usuario, roles, dato que no se muestra | seguro, protegido |
+| **Precisión** | ¿Qué tan exacto tiene que ser? | Decimales, coincidencia con el stock real, sin duplicados | preciso, exacto |
+| **Confiabilidad** | ¿Cada cuánto se puede equivocar? | Operaciones que no se pierden, reintento, registro de error | confiable, estable |
+| **Capacidad** | ¿Cuántos a la vez? | Cantidad de usuarios o turnos concurrentes | mucha gente, todos juntos |
+| **Mantenibilidad** | ¿Se puede cambiar sin romper? | Tiempo o pasos para un cambio acordado (si el dominio lo pide) | fácil de mantener |
+
+No hace falta usar las ocho. En la entrevista aparecen dos o tres. Se escriben esas, no un catálogo copiado.
+
+## Cómo pasar de vago a medible
+
+| Débil (no se prueba) | Medible (sí se prueba) |
+|---|---|
+| El sistema debe ser rápido. | El sistema debe mostrar el resultado de una consulta de disponibilidad en **menos de 3 segundos** en horario de atención. |
+| El sistema debe estar siempre disponible. | El sistema debe estar disponible **durante el horario de atención** de la biblioteca (o del hospital), de lunes a viernes. |
+| La interfaz debe ser intuitiva. | El sistema debe permitir al personal registrar un préstamo **sin capacitación previa** (un bibliotecario nuevo completa la operación guiado por la pantalla). |
+| El sistema debe ser seguro. | El sistema debe identificar a cada usuario (alumno, docente, no docente) **antes** de asociarlo a un préstamo. |
+| El stock debe ser preciso. | El sistema debe dejar el ejemplar en estado **disponible o prestado** al instante de registrar la operación, sin duplicar el mismo ejemplar. |
+
+## Biblioteca (como en la práctica de clase 4)
+
+Las expectativas del ejercicio eran rendimiento, disponibilidad y usabilidad. Así se vuelven RFN verificables:
+
+- **RFN1 (rendimiento).** El sistema debe responder una consulta de disponibilidad de un libro en menos de 3 segundos.
+- **RFN2 (disponibilidad).** El sistema debe estar disponible durante todo el horario de atención de la biblioteca.
+- **RFN3 (usabilidad).** El sistema debe permitir al personal registrar un préstamo sin capacitación previa.
+
+“Prácticamente instantáneo” y “sin caídas frecuentes” todavía son blandos. El número o el horario es lo que el corrector puede mirar.
+
+## Hospital (caso de la pestaña Práctica)
+
+- **Rendimiento.** El sistema debe listar los turnos libres de un profesional en menos de 3 segundos.
+- **Disponibilidad.** El sistema debe estar disponible en el horario de ventanilla (por ejemplo 7 a 20, días hábiles).
+- **Usabilidad.** El sistema debe permitir a un administrativo dar un turno con los datos del paciente, sin un instructivo aparte.
+- **Seguridad.** El sistema debe mostrar la agenda de un profesional solo al personal autorizado de ese consultorio.
+
+## Cómo preguntarlo en el chat
+
+No preguntes “¿qué RFN quieren?”. Preguntá la cualidad en idioma de dominio:
+
+- ¿Cuánto pueden esperar frente a la pantalla cuando buscan si hay turno o libro?
+- Si el sistema se cae a las 10 de la mañana, ¿qué pasa en la ventanilla?
+- ¿Alguien nuevo del sector podría usarlo el primer día, o hace falta un curso?
+- ¿Hay datos que no puede ver todo el mundo?
+
+La respuesta se traduce a **una** cualidad + **una** medida. Eso es la expectativa.`
   },
   {
     slug: "resumen-clase-5",
@@ -1126,9 +1195,17 @@ Ejemplo: *El sistema debe permitir reservar un libro en línea antes de ir a la 
 
 ### Expectativas (RFN)
 
-Calidad que a veces nadie nombra: tiempo, disponibilidad, usabilidad. Tienen que ser medibles.
+Calidad que a veces nadie nombra: tiempo, disponibilidad, usabilidad, seguridad, precisión. **Una cualidad por casillero, con número, horario o prueba.**
 
-Ejemplo: *El sistema debe responder una consulta de disponibilidad en menos de 3 segundos.*
+No sirven: rápido, amigable, intuitivo, siempre, seguro, etc.
+
+Sí sirven:
+
+- Rendimiento: *El sistema debe responder una consulta de disponibilidad en menos de 3 segundos.*
+- Disponibilidad: *El sistema debe estar disponible durante el horario de atención.*
+- Usabilidad: *El sistema debe permitir registrar un préstamo sin capacitación previa.*
+
+La teoría de clase 4 (“Cualidades medibles de los no funcionales”) tiene la tabla completa.
 
 ### Requerimientos de usuario
 
