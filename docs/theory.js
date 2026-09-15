@@ -1259,5 +1259,230 @@ Eso todavía no es un requerimiento. Hay que preguntar qué es rápido, qué es 
 ## Idea para llevarse
 
 Si el dominio está flojo, los diez casilleros de requerimientos van a estar flojos. Primero el mundo del problema; después la especificación.`
+  },
+  {
+    slug: "resumen-clase-6",
+    clase: "Clase 6",
+    titulo: "Resumen de la clase 6",
+    orden: 36,
+    resumen: "Obtención de requerimientos (parte 1). Elicitar es sonsacar el conocimiento del dominio para poder modelar el problema. Sin eso no hay especificación consistente ni completa.",
+    contenido: `## De qué trata esta clase
+
+**Obtención de requerimientos (parte 1).** Loucopoulos define la elicitación como el proceso de adquirir o sonsacar (*eliciting*) **todo el conocimiento relevante** para producir un modelo de los requerimientos del **dominio de un problema**.
+
+El objetivo de la ingeniería de requerimientos, en esta mirada, es **entender el dominio**. El producto no es “la lista de botones”: es **conocimiento del dominio**.
+
+Sin conocer el problema:
+
+- no se entiende la terminología de quienes trabajan ahí;
+- no se puede testear si una especificación es **consistente** ni **completa**.
+
+El mismo autor propone un ciclo entre **elicitación**, **especificación** y **validación**, con el **usuario** y el **dominio del problema**. Ese gráfico se explica, flecha por flecha, en el apartado siguiente.
+
+También se ven **problemas** típicos (conocimiento disperso, efecto Hawthorne, sesgos, política) y técnicas, centradas en **partir del usuario**: entrevistas, cuestionarios, surveys, brainstorming.
+
+## Idea para llevarse
+
+Si tuvieras 60 minutos para un problema del que depende tu vida: 40 para estudiarlo, 15 para revisarlo, 5 para resolverlo. Primero el dominio; después la solución.`
+  },
+  {
+    slug: "clase6-proceso-loucopoulos",
+    clase: "Clase 6",
+    titulo: "El proceso: elicitación, especificación y validación",
+    orden: 37,
+    resumen: "Gráfico de Loucopoulos. Cada caja y cada flecha: usuario, dominio, elicitación, especificación y validación se alimentan entre sí. No es una línea recta.",
+    contenido: `## El gráfico de la clase
+
+Este es el proceso que Loucopoulos propone para obtener requerimientos. **No es un pipeline de una sola pasada.** Las flechas van y vuelven: si falta conocimiento, se elicita de nuevo; si la validación falla, se corrige la especificación.
+
+![Proceso de elicitación, especificación y validación (Loucopoulos)](./teoria/clase6-proceso.png)
+
+Hay **cinco cajas**. Tres círculos de proceso (elicitación, especificación, validación) y dos rectángulos de “quién / de dónde sale el conocimiento” (usuario y dominio del problema).
+
+## Qué es cada caja
+
+1. **Dominio del problema.** El mundo real: hospital, biblioteca, taller. Ahí están las reglas, el lenguaje y cómo se trabaja hoy. Sin esto no hay elicitación ni validación serias.
+2. **Usuario.** Quien vive ese dominio (administrativo, bibliotecario, dueño del taller). Trae necesidades, da feedback y valida modelos. No es el analista.
+3. **Elicitación.** Sonsacar conocimiento: preguntar, observar, leer. Produce conocimiento y “requerimientos del usuario” todavía crudos.
+4. **Especificación.** Pasar ese conocimiento a **modelos de requerimientos** (enunciados RF/RFN, dominio escrito). Si no alcanza, pide más elicitación.
+5. **Validación.** Chequear con el usuario (y con el dominio) si esos modelos son fieles. Devuelve resultados: se acepta, se corrige o hay que elicitar otra vez.
+
+## Cada relación, punto por punto
+
+Mirá de nuevo el gráfico mientras leés cada flecha.
+
+![El mismo proceso, para seguir cada flecha](./teoria/clase6-proceso.png)
+
+### 1. Dominio del problema → Elicitación  
+**Etiqueta: conocimiento del dominio.**
+
+El analista no inventa el problema. El dominio alimenta la elicitación: cómo se piden turnos hoy, quién atiende el mostrador, qué planilla se usa. Si no entra este conocimiento, la entrevista habla en vacío.
+
+*Ejemplo.* En el hospital, “turno” y “demanda espontánea” salen del dominio, no del analista.
+
+### 2. Dominio del problema → Validación  
+**Etiqueta: conocimiento del dominio.**
+
+Validar no es solo “¿le gusta al usuario?”. También: ¿esto es coherente con el mundo del problema? Un modelo puede gustar y ser falso respecto de cómo trabaja el sector.
+
+*Ejemplo.* Un RF que ignora el horario de guardia no valida contra el dominio, aunque administración lo haya pedido “rápido”.
+
+### 3. Usuario ↔ Elicitación  
+**Etiqueta: requerimientos del usuario.**
+
+Flecha de ida y vuelta. El usuario cuenta (necesidades, dolores, reglas). El analista elicita y vuelve a preguntar. Lo que sale todavía no es la especificación formal: son requerimientos *del usuario*, en su lenguaje.
+
+*Ejemplo.* “Necesitamos ordenar los turnos” entra por acá. Todavía no es un RF.
+
+### 4. Elicitación → Especificación  
+**Etiqueta: conocimiento.**
+
+Lo elicitedo se transforma en modelos: contexto, organización, RF, RFN. Es el paso de “me contaron” a “queda escrito de forma verificable”.
+
+*Ejemplo.* Del chat se escribe: *El sistema debe registrar préstamo y devolución.*
+
+### 5. Especificación → Elicitación  
+**Etiqueta: necesidad de más conocimiento.**
+
+Al especificar aparecen huecos: no se sabe quién autoriza una cancelación, qué es “urgente”, qué pasa si no hay stock. Eso **obliga a volver a elicitar**. Por eso la flecha es doble.
+
+*Ejemplo.* Querés escribir un RFN de tiempo y en el chat nadie dijo cuántos segundos. Volvés a preguntar.
+
+### 6. Especificación → Usuario  
+**Etiqueta: especificación de requerimientos.**
+
+La especificación se le **muestra** al usuario (no se esconde en un documento técnico). El usuario tiene que poder reconocer su problema en esos enunciados.
+
+*Ejemplo.* Leés con Laura Gómez los dos de cada tipo y ella dice “eso no es lo que hacemos con la demanda espontánea”.
+
+### 7. Especificación → Validación  
+**Etiqueta: modelos de requerimientos.**
+
+Los modelos (dominio + requerimientos) entran a validación. No se valida “la idea en la cabeza del analista”: se validan **artefactos**.
+
+### 8. Validación → Especificación  
+**Etiqueta: resultados de la validación.**
+
+Si el usuario o el dominio no cierran, el resultado vuelve a la especificación: se corrige, se parte un requerimiento, se tira uno inventado. No se sigue diseñando como si nada.
+
+### 9. Especificación / Validación → Usuario: modelos a validar  
+**Etiqueta: modelos a validar por el usuario.**
+
+Se le llevan modelos concretos (lista de RF, un escenario, un resumen de dominio) para que los mire. Validar sin mostrar nada es teatro.
+
+### 10. Usuario → Validación  
+**Etiqueta: feedback del usuario.**
+
+El usuario responde: esto sí, esto no, esto no se entendió, esto falta. Ese feedback es insumo de la validación, no un comentario al margen.
+
+*Ejemplo.* “Instantáneo no: con que tarde menos de un minuto en mostrador nos alcanza.” Eso cambia el RFN.
+
+## Cómo se lee junto
+
+El **dominio** alimenta elicitación y validación. El **usuario** alimenta elicitación y validación, y recibe especificación y modelos. **Elicitación y especificación** se prestan conocimiento (y piden más). **Especificación y validación** se prestan modelos y resultados.
+
+Si cortás una flecha, el proceso se vuelve “anotar lo que dijo uno y darlo por cerrado”. En la pestaña Práctica del laboratorio eso se ve claro: el chat es elicitación; el dominio y los diez casilleros son especificación; **Corregir** y el ojo del compañero en Trabajos se parecen a validar — y casi siempre aparece necesidad de más conocimiento.`
+  },
+  {
+    slug: "clase6-problemas-elicitacion",
+    clase: "Clase 6",
+    titulo: "Problemas de la elicitación",
+    orden: 38,
+    resumen: "El conocimiento está disperso y a menudo en conflicto. Transmitirlo es difícil: Hawthorne, sesgos del usuario y del analista, política y un negocio que cambia.",
+    contenido: `## El conocimiento no está en un solo cajón
+
+Loucopoulos marca problemas en **dónde** está el conocimiento y **cómo** se elicita.
+
+- Está **distribuido** en distintas fuentes (personas, planillas, reglamentos, el sistema viejo).
+- Esa diversidad a menudo es **conflictiva**: administración y profesionales no cuentan el mismo “turno”.
+- Una parte importante reside en **expertos humanos**, que no siempre pueden o quieren explicarlo.
+
+## Problemas al transmitirlo
+
+- No está en una forma **utilizable** para el analista (anécdotas, gestos, “siempre se hizo así”).
+- Elicitar a un experto humano es difícil: da por obvio lo que el analista no ve.
+- **Efecto Hawthorne:** la presencia del observador **deforma** lo que se observa. Si mirás la ventanilla, ese día atienden “como corresponde”.
+- Los usuarios pueden estar **sesgados por el sistema actual** (“la nueva app tiene que tener las mismas pantallas”).
+- El **ingeniero también sesga**: pregunta lo que ya espera oír, o traduce demasiado pronto a diseño.
+
+## Dificultades con los stakeholders
+
+- A menudo **no saben** qué desean obtener; saben qué les duele.
+- Se expresan con **sus términos** y con conocimiento **implícito**.
+- Distintos stakeholders tienen **distintos** requerimientos y los dicen de distinta forma.
+- Hay **factores políticos** (quién gana, quién pierde poder con el sistema).
+- El ambiente de negocios **cambia** durante el desarrollo: lo elicitado ayer puede no valer igual mañana.
+
+## Ejemplo sencillo
+
+En el taller, el dueño dice “turnos”. El mecánico dice “cuando llega el auto lo vemos”. El administrativo dice “la agenda de papel”. Tres fuentes, un conflicto, y si el analista se sienta al lado del mostrador esa mañana, todos “ordenan” la cola. Eso es Hawthorne más gap semántico.`
+  },
+  {
+    slug: "clase6-tecnicas-loucopoulos",
+    clase: "Clase 6",
+    titulo: "Técnicas para elicitar (Loucopoulos)",
+    orden: 39,
+    resumen: "No hay una técnica universal. Loucopoulos lista partir del usuario, objetivos, escenarios, formularios, lenguaje natural, reuso y análisis de tareas. Esta clase se centra en partir del usuario.",
+    contenido: `## No está estandarizado
+
+Elicitar no tiene un método único aceptado por todos. Hay propuestas de varios autores; en el curso se sigue **Loucopoulos**, y las demás suelen alinearse con esa mirada.
+
+Técnicas que propone:
+
+1. **Partiendo del usuario** — entrevistas, cuestionarios, surveys, brainstorming. Es el enfoque más directo. Esta clase lo desarrolla.
+2. **Análisis de objetivo y meta** — qué quiere lograr la organización, no solo qué pantalla pide.
+3. **Escenarios** — recorrer un día, un turno, un préstamo, de punta a punta.
+4. **Análisis de formularios** — lo que ya se anota en papel o Excel es conocimiento del dominio.
+5. **Lenguaje natural** — transcripciones, mails, reglamentos; hay que interpretarlos, no copiarlos como RF.
+6. **Reuso de requerimientos** — no inventar desde cero si el dominio ya tuvo sistemas parecidos.
+7. **Análisis de tareas** — qué pasos hace hoy la persona, en qué orden, con qué excepciones.
+
+En el laboratorio, el chat con la IA es **partir del usuario**. El formulario de dominio y los diez casilleros empiezan a parecer especificación. Si falta un dato, la flecha “necesidad de más conocimiento” te manda otra vez al chat.`
+  },
+  {
+    slug: "clase6-partiendo-del-usuario",
+    clase: "Clase 6",
+    titulo: "Partiendo del usuario: entrevistas",
+    orden: 40,
+    resumen: "Es lo más intuitivo y lo más resbaladizo: el usuario no siempre puede transmitir, puede no querer el sistema y tiene poco tiempo. La entrevista se planea, se conduce, se consolida y se valida.",
+    contenido: `## Por qué no es “solo hablar”
+
+Partir del usuario es el medio **más directo**. También el que más habilidades pide. Dificultades típicas:
+
+- el usuario **no ve claro** lo que necesita y le cuesta transmitir su conocimiento;
+- hay **diferencias** inevitables con el analista (lenguaje, intereses);
+- el usuario **puede no querer** el sistema;
+- su **tiempo es limitado**.
+
+Técnicas de este enfoque:
+
+- entrevista de comienzo y final **abierto**;
+- entrevistas **estructuradas**;
+- **cuestionarios**;
+- **surveys**;
+- **brainstorming**.
+
+## Cómo llevar una entrevista (proceso de la clase)
+
+1. **Planeamiento y preparación**
+   - Establecer los objetivos (qué querés saber hoy: no “todo el sistema”).
+   - Preparar las preguntas.
+   - Adquirir conocimiento sobre el tema *antes* de sentarte.
+   - Organizar el ambiente para que la entrevista sea efectiva.
+2. **Conducción**
+   - Conversar en modo profesional, con técnicas de pregunta (una cosa por vez, como en la Práctica).
+   - Tomar notas **sin imponer** ideas subjetivas ni prejuicios.
+3. **Consolidar y representar**
+   - Elaborar minutas.
+   - Unir notas de distintos entrevistados (si se contradicen, eso también es dato).
+4. **Validación de lo obtenido**
+   - Entrevistas de seguimiento para confirmar supuestos.
+   - Dar **feedback** a los entrevistados: “esto entendí; ¿es así?”.
+
+Ese último paso es la flecha **feedback del usuario** y **modelos a validar** del gráfico: no se elicitó en serio si nunca se les devolvió lo escrito.
+
+## Actividad de los 60 minutos
+
+Si el problema te jugara la vida y tuvieras una hora: **40** para estudiarlo, **15** para revisarlo, **5** para resolverlo. La elicitación y el dominio se llevan la mayor parte del tiempo. La “solución” al final es corta si el problema se entendió.`
   }
 ];

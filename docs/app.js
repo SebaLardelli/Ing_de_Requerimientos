@@ -708,7 +708,7 @@
   }
 
   function clasesDeTemas() {
-    const orden = ["Clase 1", "Clase 2", "Clase 3", "Clase 4", "Clase 5", "Práctica"];
+    const orden = ["Clase 1", "Clase 2", "Clase 3", "Clase 4", "Clase 5", "Clase 6", "Práctica"];
     state.temas.forEach((t) => {
       if (t.clase && !orden.includes(t.clase)) orden.push(t.clase);
     });
