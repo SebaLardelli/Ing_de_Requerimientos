@@ -614,10 +614,12 @@
       if (!error && data) {
         state.revisiones = data;
         saveJSON(LS.revisiones, data);
+        if (state.tab === "teoria") renderRevisionesTema();
         return;
       }
     }
     state.revisiones = loadJSON(LS.revisiones, []);
+    if (state.tab === "teoria") renderRevisionesTema();
   }
 
   async function hidratarLista(tabla, collection, localKey, { order, asc = true } = {}) {
@@ -842,9 +844,75 @@
     if (ir) requestAnimationFrame(llevarAlTema);
   }
 
+  function esRevDelTema(r, tema) {
+    if (!r || !tema) return false;
+    if (mismoId(r.tema_id, tema.id)) return true;
+    return (state.temas || []).some((t) => t.slug === tema.slug && mismoId(t.id, r.tema_id));
+  }
+
+  function partesDiff(antes, despues) {
+    const la = String(antes || "").split("\n");
+    const lb = String(despues || "").split("\n");
+    const n = Math.max(la.length, lb.length);
+    const partes = [];
+    for (let i = 0; i < n; i++) {
+      const x = la[i];
+      const y = lb[i];
+      if (x === y) continue;
+      if (x != null && y != null) partes.push({ linea: i + 1, tipo: "mod", antes: x, despues: y });
+      else if (y == null) partes.push({ linea: i + 1, tipo: "del", antes: x });
+      else partes.push({ linea: i + 1, tipo: "add", despues: y });
+    }
+    if (!partes.length && String(antes || "") !== String(despues || "")) {
+      partes.push({ linea: 1, tipo: "mod", antes, despues });
+    }
+    return partes;
+  }
+
+  function htmlPalabras(antes, despues) {
+    const aw = String(antes || "").split(/(\s+)/);
+    const bw = String(despues || "").split(/(\s+)/);
+    if (aw.length === bw.length) {
+      let ha = "";
+      let hb = "";
+      for (let i = 0; i < aw.length; i++) {
+        if (aw[i] === bw[i]) {
+          ha += escapeHtml(aw[i]);
+          hb += escapeHtml(bw[i]);
+        } else {
+          ha += `<del>${escapeHtml(aw[i])}</del>`;
+          hb += `<ins>${escapeHtml(bw[i])}</ins>`;
+        }
+      }
+      return { ha, hb };
+    }
+    return {
+      ha: `<del>${escapeHtml(antes)}</del>`,
+      hb: `<ins>${escapeHtml(despues)}</ins>`
+    };
+  }
+
+  function htmlDiffRevision(r) {
+    const partes = partesDiff(r.contenido_anterior, r.contenido_nuevo);
+    if (!partes.length) {
+      return `<p class="hint">Cambió el título o el resumen: <strong>${escapeHtml(r.titulo || "")}</strong></p>`;
+    }
+    return partes.map((p) => {
+      if (p.tipo === "mod") {
+        const { ha, hb } = htmlPalabras(p.antes, p.despues);
+        return `<div class="diff-cambio"><small>Línea ${p.linea}</small><p class="diff-menos">${ha}</p><p class="diff-mas">${hb}</p></div>`;
+      }
+      if (p.tipo === "del") {
+        return `<div class="diff-cambio"><small>Línea ${p.linea} · se sacó</small><p class="diff-menos"><del>${escapeHtml(p.antes)}</del></p></div>`;
+      }
+      return `<div class="diff-cambio"><small>Línea ${p.linea} · se agregó</small><p class="diff-mas"><ins>${escapeHtml(p.despues)}</ins></p></div>`;
+    }).join("");
+  }
+
   function renderRevisionesTema() {
     const box = $("lista-revisiones");
-    const revs = state.revisiones.filter((r) => r.tema_id === state.temaActual?.id);
+    if (!box) return;
+    const revs = state.revisiones.filter((r) => esRevDelTema(r, state.temaActual));
     if (!revs.length) {
       box.innerHTML = "<p class='hint'>Todavía no hay ediciones de compañeros sobre este tema.</p>";
       return;
@@ -853,10 +921,8 @@
       <div class="rev-item">
         <strong>${escapeHtml(r.autor)}</strong>
         <span class="hint"> · ${new Date(r.creado_en).toLocaleString("es-AR")}</span>
-        <div class="diff">
-          <div><small>Antes</small><pre>${escapeHtml(r.contenido_anterior)}</pre></div>
-          <div><small>Después</small><pre>${escapeHtml(r.contenido_nuevo)}</pre></div>
-        </div>
+        <p class="hint">Solo lo que cambió</p>
+        <div class="diff diff-solo">${htmlDiffRevision(r)}</div>
       </div>
     `).join("");
   }
@@ -893,16 +959,6 @@
       return toast("No hay cambios.");
     }
 
-    const rev = {
-      id: uid(),
-      tema_id: state.temaActual.id,
-      titulo,
-      contenido_anterior: anterior,
-      contenido_nuevo: nuevo,
-      autor: state.nombre,
-      creado_en: now()
-    };
-
     state.temaActual.titulo = titulo;
     state.temaActual.resumen = resumen;
     state.temaActual.contenido = nuevo;
@@ -910,6 +966,7 @@
     state.temaActual.actualizado_en = now();
 
     try {
+      let temaId = state.temaActual.id;
       if (state.sb) {
         const patch = {
           titulo,
@@ -922,27 +979,54 @@
         if (porId.error || !(porId.data && porId.data.length)) {
           const porSlug = await state.sb.from("temas_teoria").update(patch).eq("slug", state.temaActual.slug).select("id");
           if (porSlug.error) throw porSlug.error;
-          if (porSlug.data?.[0]?.id) state.temaActual.id = porSlug.data[0].id;
+          if (porSlug.data?.[0]?.id) temaId = porSlug.data[0].id;
           if (!(porSlug.data && porSlug.data.length)) {
-            const { error: ins } = await state.sb.from("temas_teoria").insert({
+            const { data: creado, error: ins } = await state.sb.from("temas_teoria").insert({
               id: state.temaActual.id,
               slug: state.temaActual.slug,
               clase: state.temaActual.clase,
               orden: state.temaActual.orden,
               ...patch
-            });
+            }).select("id");
             if (ins) throw ins;
+            if (creado?.[0]?.id) temaId = creado[0].id;
           }
+        } else if (porId.data?.[0]?.id) {
+          temaId = porId.data[0].id;
         }
-        const { error: e2 } = await state.sb.from("revisiones_teoria").insert(rev);
+        const buscado = await state.sb.from("temas_teoria").select("id").eq("slug", state.temaActual.slug).maybeSingle();
+        if (buscado.data?.id) temaId = buscado.data.id;
+        state.temaActual.id = temaId;
+        const fila = {
+          id: uid(),
+          tema_id: temaId,
+          titulo,
+          contenido_anterior: anterior,
+          contenido_nuevo: nuevo,
+          autor: state.nombre,
+          creado_en: now()
+        };
+        const { error: e2 } = await state.sb.from("revisiones_teoria").insert(fila);
         if (e2) throw e2;
+        state.revisiones.unshift(fila);
+      } else {
+        state.revisiones.unshift({
+          id: uid(),
+          tema_id: temaId,
+          titulo,
+          contenido_anterior: anterior,
+          contenido_nuevo: nuevo,
+          autor: state.nombre,
+          creado_en: now()
+        });
       }
       const i = state.temas.findIndex((t) => mismoId(t.id, state.temaActual.id) || t.slug === state.temaActual.slug);
       if (i >= 0) state.temas[i] = state.temaActual;
       saveJSON(LS.temas, state.temas);
-      state.revisiones.unshift(rev);
       saveJSON(LS.revisiones, state.revisiones);
       mostrarTema(state.temaActual.slug);
+      $("revisiones-teoria").classList.remove("hidden");
+      renderRevisionesTema();
       toast("Tema actualizado para el aula.");
     } catch (err) {
       toast("No se pudo guardar: " + err.message);

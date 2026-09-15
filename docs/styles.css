@@ -352,6 +352,23 @@ a { color: var(--accent); }
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
   font-size: 0.85rem;
 }
+.diff-solo {
+  display: block;
+  grid-template-columns: none;
+}
+.diff-cambio { margin: 8px 0 12px; }
+.diff-cambio small { color: var(--muted); display: block; margin-bottom: 4px; }
+.diff-menos, .diff-mas {
+  margin: 4px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.diff-menos { background: rgba(180, 60, 60, 0.16); }
+.diff-mas { background: rgba(60, 140, 80, 0.16); }
+.diff del { text-decoration: line-through; opacity: 0.9; }
+.diff ins { text-decoration: none; font-weight: 700; }
 .diff pre {
   white-space: pre-wrap;
   background: var(--paper-3);
