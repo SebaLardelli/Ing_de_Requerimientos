@@ -1027,6 +1027,9 @@
       mostrarTema(state.temaActual.slug);
       $("revisiones-teoria").classList.remove("hidden");
       renderRevisionesTema();
+      requestAnimationFrame(() => {
+        $("revisiones-teoria").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
       toast("Tema actualizado para el aula.");
     } catch (err) {
       toast("No se pudo guardar: " + err.message);
@@ -1942,8 +1945,14 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       if (e.key === "Enter") crearApartado();
     });
     $("btn-ver-cambios").onclick = () => {
-      $("revisiones-teoria").classList.toggle("hidden");
+      const box = $("revisiones-teoria");
+      box.classList.toggle("hidden");
       renderRevisionesTema();
+      if (!box.classList.contains("hidden")) {
+        requestAnimationFrame(() => {
+          box.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
     };
     $("btn-caso-hospital").onclick = () => crearSesion(CASOS.hospital);
     $("btn-caso-biblioteca").onclick = () => crearSesion(CASOS.biblioteca);

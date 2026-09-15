@@ -346,7 +346,7 @@ a { color: var(--accent); }
   border-radius: 12px; border: 1px solid var(--line);
   background: var(--paper); resize: vertical;
 }
-.rev { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 18px; }
+.rev { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 18px; scroll-margin-top: 16px; }
 .rev-item { padding: 10px 0; border-bottom: 1px dashed var(--line); }
 .diff {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
