@@ -542,7 +542,10 @@
     const remotos = temasUsables(data);
     if (remotos.length) {
       if (firmaTemas(remotos) === firmaTemas(state.temas)) {
-        if (sembrar) completarTemasFaltantes();
+        if (sembrar) {
+          completarTemasFaltantes();
+          parchearTemasTeoria();
+        }
         return;
       }
       const slugAbierto = state.temaActual?.slug;
@@ -550,7 +553,10 @@
       saveJSON(LS.temas, state.temas);
       if (!editandoTeoria()) mostrarTema(slugAbierto || state.temas[0]?.slug);
       else renderListaTemas();
-      if (sembrar) completarTemasFaltantes();
+      if (sembrar) {
+        completarTemasFaltantes();
+        parchearTemasTeoria();
+      }
       return;
     }
     if (!state.temas.length) pintarTeoriaInicial();
@@ -588,6 +594,43 @@
     state.temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
     saveJSON(LS.temas, state.temas);
     renderListaTemas();
+  }
+
+  const TEORIA_PARCHE_SLUGS = ["practica-escribir-reqs", "rfn-cualidades-medibles"];
+
+  async function parchearTemasTeoria() {
+    if (!state.sb || state._parcheTeoria) return;
+    state._parcheTeoria = true;
+    let toco = false;
+    for (const slug of TEORIA_PARCHE_SLUGS) {
+      const fuente = TEORIA_INICIAL.find((t) => t.slug === slug);
+      if (!fuente) continue;
+      const remoto = state.temas.find((t) => t.slug === slug);
+      const ya = String(remoto?.contenido || "");
+      if (slug === "practica-escribir-reqs" && ya.includes("Aplicado a una billetera virtual")) continue;
+      if (slug === "rfn-cualidades-medibles" && ya.includes("se cuentan en prosa del dominio")) continue;
+      const row = {
+        slug,
+        clase: fuente.clase,
+        titulo: fuente.titulo,
+        resumen: fuente.resumen,
+        contenido: fuente.contenido,
+        orden: fuente.orden,
+        actualizado_por: "material de clase",
+        actualizado_en: now()
+      };
+      if (remoto?.id) row.id = remoto.id;
+      const { error } = await state.sb.from("temas_teoria").upsert(row, { onConflict: "slug" });
+      if (error) continue;
+      toco = true;
+      const i = state.temas.findIndex((t) => t.slug === slug);
+      if (i >= 0) state.temas[i] = { ...state.temas[i], ...row };
+      else state.temas.push({ id: remoto?.id || uid(), ...row });
+    }
+    if (!toco) return;
+    saveJSON(LS.temas, state.temas);
+    if (!editandoTeoria() && TEORIA_PARCHE_SLUGS.includes(state.temaActual?.slug)) mostrarTema(state.temaActual.slug);
+    else renderListaTemas();
   }
 
   async function sembrarTeoria() {
@@ -1564,10 +1607,17 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
   }
 
   function promptCorreccionReq() {
-    return `Sos docente de ingeniería de requerimientos. Revisá TODO el trabajo: dominio, los 10 requerimientos y el chat.
+    return `Sos docente de ingeniería de requerimientos. Revisá TODO el trabajo: dominio, los 10 casilleros (necesidad, deseo, expectativa, usuario, sistema) y el chat.
 
 Mirás cuatro cosas:
-1) FORMATO. Necesidad, deseo y sistema: "El sistema debe" + verbo + objeto + condición observable. Expectativa: cualidad MEDIBLE. Usuario: "El usuario quiere…" sin diseño técnico. Atómico (una idea), verificable, sin "rápido/amigable/etc.".
+1) FORMATO.
+- Necesidad, deseo y expectativa: prosa del dominio (como el caso de la billetera virtual). NO uses "El sistema debe". Contá el problema o la expectativa en lenguaje de negocio, sacado del chat.
+  Necesidad: el problema de fondo que motiva el proyecto (de qué dependen hoy).
+  Expectativa: qué esperan (experiencia, costo, seguridad, no quedar atrás).
+  Deseo: extras que fomentan adopción; atractivos pero no indispensables.
+- Usuario: "El usuario quiere…" sin diseño técnico.
+- Sistema: "El sistema debe" + verbo + objeto + condición observable.
+Atómico (una idea por casillero). Si una necesidad/deseo/expectativa está escrita como RF, marcá el formato.
 2) COHERENCIA. Lo escrito tiene que salir del chat. Si un req no se sostiene, o el dominio se contradice, marcalo.
 3) REDACCIÓN. Mayúscula al empezar, punto al final, tildes, ortografía, concordancia y frases claras. Si falta un punto o arranca en minúscula, corregilo.
 4) CONSEJO. Decí qué mejorar: qué preguntar, qué reescribir, qué falta.
@@ -1585,7 +1635,7 @@ Devolvé SOLO un JSON válido:
     { "id": "id", "codigo": "RF1", "tipo": "necesidad", "enunciado_original": "...", "enunciado_corregido": "...", "motivo": "formato, coherencia o redacción" }
   ],
   "faltantes": [
-    { "tipo": "sistema", "enunciado": "El sistema debe...", "fundamento": "En el chat se dijo que..." }
+    { "tipo": "necesidad", "enunciado": "Hoy dependen de… Ese es el problema de fondo.", "fundamento": "En el chat se dijo que..." }
   ]
 }
 correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltantes: máximo 3 y solo si el chat lo sostiene. consejos: 3 a 5, accionables.`;

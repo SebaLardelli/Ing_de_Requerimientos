@@ -473,7 +473,10 @@ a { color: var(--accent); }
   border-radius: 10px;
   padding: 8px 10px;
   background: var(--paper);
+  resize: vertical;
+  min-height: 44px;
 }
+textarea.req-slot { min-height: 72px; line-height: 1.45; }
 .req-form select, .req-form input, .field input, .field textarea, .field select {
   width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px;
   background: var(--paper);

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=20260915a" />
   <script>
     (function () {
       var t = localStorage.getItem("ir.tema") || "dark";
@@ -155,26 +155,24 @@
             <button class="btn ghost" id="btn-sintesis-ia" type="button">Pedir síntesis a la IA</button>
           </div>
 
-          <h3 style="margin-top:18px">Requerimientos — 2 de cada tipo</h3>
-          <p class="hint">Salen del chat. Uno por casillero, atómico.<br>
-          Necesidad, deseo y sistema: <code>El sistema debe + verbo + objeto + condición observable.</code><br>
-          Expectativa (RFN): una cualidad medible.<br>
-          Usuario: <code>El usuario quiere…</code>, sin detalle técnico.</p>
+          <h3 style="margin-top:18px">Del dominio: 2 de cada tipo</h3>
+          <p class="hint">Salen del chat. Necesidad, expectativa y deseo se <strong>cuentan</strong> como el problema, no se escriben como “el sistema debe”.<br>
+          Usuario: <code>El usuario quiere…</code>. Sistema: <code>El sistema debe…</code> (eso sí es requerimiento).</p>
 
           <div class="req-grupo">
-            <h4>Necesidades (RF)</h4>
-            <input id="req-necesidad-0" class="req-slot" placeholder="1. El sistema debe…" />
-            <input id="req-necesidad-1" class="req-slot" placeholder="2. El sistema debe…" />
+            <h4>Necesidades</h4>
+            <textarea id="req-necesidad-0" class="req-slot" rows="3" placeholder="El problema de fondo: de qué dependen hoy y por qué eso motiva el proyecto."></textarea>
+            <textarea id="req-necesidad-1" class="req-slot" rows="3" placeholder="Otra necesidad del dominio, en prosa, sacada del chat."></textarea>
           </div>
           <div class="req-grupo">
-            <h4>Deseos (RF)</h4>
-            <input id="req-deseo-0" class="req-slot" placeholder="1. El sistema debe…" />
-            <input id="req-deseo-1" class="req-slot" placeholder="2. El sistema debe…" />
+            <h4>Deseos</h4>
+            <textarea id="req-deseo-0" class="req-slot" rows="3" placeholder="Un extra atractivo que suma, pero el proyecto podría arrancar sin él."></textarea>
+            <textarea id="req-deseo-1" class="req-slot" rows="3" placeholder="Otro deseo del dominio. No es indispensable."></textarea>
           </div>
           <div class="req-grupo">
-            <h4>Expectativas (RFN)</h4>
-            <input id="req-expectativa-0" class="req-slot" placeholder="1. El sistema debe… (tiempo, disponibilidad, usabilidad)" />
-            <input id="req-expectativa-1" class="req-slot" placeholder="2. El sistema debe… (medible)" />
+            <h4>Expectativas</h4>
+            <textarea id="req-expectativa-0" class="req-slot" rows="3" placeholder="Qué esperan: experiencia, costo, seguridad, no quedar atrás. No es un RF."></textarea>
+            <textarea id="req-expectativa-1" class="req-slot" rows="3" placeholder="Otra expectativa de calidad o de negocio, en prosa."></textarea>
           </div>
           <div class="req-grupo">
             <h4>Requerimientos de usuario</h4>
@@ -272,7 +270,7 @@
   <script src="./config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="./theory.js"></script>
-  <script src="./app.js"></script>
+  <script src="./theory.js?v=20260915a"></script>
+  <script src="./app.js?v=20260915a"></script>
 </body>
 </html>

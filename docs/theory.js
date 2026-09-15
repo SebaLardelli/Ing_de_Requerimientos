@@ -524,12 +524,12 @@ La segunda versión se puede discutir, priorizar y testear.`
     clase: "Clase 4",
     titulo: "Cualidades medibles de los no funcionales",
     orden: 28.5,
-    resumen: "Una expectativa (RFN) no es “rápido” ni “amigable”. Es una cualidad con número, horario o prueba. Así se escribe en la práctica.",
+    resumen: "Un RFN no es “rápido” ni “amigable”: es una cualidad con número, horario o prueba. En la práctica, la expectativa se cuenta primero como dominio.",
     contenido: `## Qué es un RFN en este curso
 
-Los **requerimientos no funcionales** (expectativas, código RFN) no dicen *qué hace* el sistema. Dicen **qué tan bien** tiene que hacerlo: tiempo, disponibilidad, claridad, seguridad, precisión.
+Los **requerimientos no funcionales** no dicen *qué hace* el sistema. Dicen **qué tan bien** tiene que hacerlo: tiempo, disponibilidad, claridad, seguridad, precisión.
 
-En la práctica se piden **dos expectativas**. Si queda “el sistema debe ser rápido y fácil”, no se puede corregir ni probar. Hay que elegir **una cualidad** y hacerla **medible**.
+En la práctica, las **expectativas se cuentan en prosa del dominio** (experiencia, costo, seguridad, no quedar atrás), no con “el sistema debe”. Cuando más adelante se especifica un RFN, ahí sí: **una cualidad medible**. Si queda “el sistema debe ser rápido y fácil”, no se puede corregir ni probar.
 
 Formato:
 
@@ -1176,56 +1176,52 @@ La teoría de la **clase 3** (ciclo de vida, Standish, costo de corregir tarde) 
     clase: "Práctica",
     titulo: "Escribir dos de cada tipo (clase 4)",
     orden: 43,
-    resumen: "La práctica pide dos necesidades, dos deseos, dos expectativas, dos de usuario y dos de sistema, sacados del chat.",
+    resumen: "La práctica pide dos de cada tipo, sacados del chat. Necesidad, deseo y expectativa se cuentan como el dominio, no como un RF.",
     contenido: `## Qué hay que entregar
 
-En este laboratorio se piden **dos de cada uno**, no tres como en algunas evaluaciones. Salen del chat, no se inventan.
+En este laboratorio se piden **dos de cada uno**. Salen del chat, no se inventan.
 
-### Necesidades (RF)
+**Necesidad, expectativa y deseo no se escriben como requerimiento** (“el sistema debe…”). Se cuentan como en el dominio del problema.
 
-Sin esto el sistema no cumple su razón de ser.
+### Necesidad
 
-Ejemplo (biblioteca): *El sistema debe permitir registrar el préstamo y la devolución de material bibliográfico.*
+El problema de fondo que motiva el proyecto: de qué dependen hoy.
 
-### Deseos (RF)
+Aplicado a una billetera virtual:
 
-Mejoras. El sistema podría arrancar sin ellas.
+*Los clientes dependen de la sucursal o de transferencias tradicionales lentas y complicadas para manejar sus pagos. Ese es el problema de fondo que motiva todo el proyecto.*
 
-Ejemplo: *El sistema debe permitir reservar un libro en línea antes de ir a la biblioteca.*
+### Expectativa
 
-### Expectativas (RFN)
+Qué esperan de la solución: experiencia, costo, seguridad, no quedar atrás. No es un RFN con “el sistema debe”.
 
-Calidad que a veces nadie nombra: tiempo, disponibilidad, usabilidad, seguridad, precisión. **Una cualidad por casillero, con número, horario o prueba.**
+*Que la billetera mejore la experiencia del cliente, que no genere un costo extra (o que el beneficio lo justifique), que sea segura tanto en transacciones como en datos, y que ayude a la empresa a no quedar atrás frente a competidores como Mercado Pago o Modo.*
 
-No sirven: rápido, amigable, intuitivo, siempre, seguro, etc.
+### Deseo
 
-Sí sirven:
+Extras que fomentan la adopción. Suman valor, pero no son indispensables para resolver el problema central.
 
-- Rendimiento: *El sistema debe responder una consulta de disponibilidad en menos de 3 segundos.*
-- Disponibilidad: *El sistema debe estar disponible durante el horario de atención.*
-- Usabilidad: *El sistema debe permitir registrar un préstamo sin capacitación previa.*
+*Los beneficios adicionales para fomentar la adopción, como devolución de un porcentaje en pagos, sorteos mensuales o descuentos en comercios asociados. Son atractivos y suman valor, pero no son indispensables para que la billetera resuelva el problema central.*
 
-La teoría de clase 4 (“Cualidades medibles de los no funcionales”) tiene la tabla completa.
+En hospital o biblioteca es lo mismo: contá la situación del dominio, no diseñes la función.
 
 ### Requerimientos de usuario
 
-Alto nivel, lenguaje de negocio: *El usuario quiere…*
+Ahí sí, alto nivel: *El usuario quiere…*
 
 Ejemplo: *El usuario quiere consultar si un libro está disponible antes de acercarse.*
 
 ### Requerimientos de sistema
 
-Precisos, verificables: *El sistema debe…* con dato, estado o condición observable.
+Ahí sí, precisos: *El sistema debe…* con dato, estado o condición observable.
 
 Ejemplo: *El sistema debe actualizar el estado del ejemplar a disponible o prestado al registrar la operación.*
 
 ## Cómo se escribe
 
-> El sistema debe + verbo + objeto + condición observable.
+Necesidad / expectativa / deseo: un párrafo del dominio, una idea.
 
-Un casillero, una idea. Si hay un “y”, casi siempre hay dos requerimientos.
-
-Usuario y sistema pueden hablar de lo mismo en distinto nivel. Eso no es repetir: es traducir.`
+Usuario y sistema: enunciado de requerimiento. Pueden hablar de lo mismo en distinto nivel: eso no es repetir, es traducir.`
   },
   {
     slug: "practica-enunciado-dominio",
@@ -1258,7 +1254,7 @@ Eso todavía no es un requerimiento. Hay que preguntar qué es rápido, qué es 
 
 ## Idea para llevarse
 
-Si el dominio está flojo, los diez casilleros de requerimientos van a estar flojos. Primero el mundo del problema; después la especificación.`
+Si el dominio está flojo, los diez casilleros van a estar flojos. Primero el mundo del problema; después usuario y sistema como requerimientos.`
   },
   {
     slug: "resumen-clase-6",
