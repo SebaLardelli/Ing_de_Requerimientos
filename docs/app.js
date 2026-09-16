@@ -59,7 +59,8 @@
     trabajoAbierto: null,
     aulaError: "",
     hlColor: "amarillo",
-    quizModo: ""
+    quizModo: "",
+    claseActual: ""
   };
 
   const $ = (id) => document.getElementById(id);
@@ -536,9 +537,10 @@
   function pintarTeoriaInicial() {
     const local = temasUsables(loadJSON(LS.temas, []));
     state.temas = local.length ? local : temasDesdeMaterial();
+    if (!state.claseActual && state.temas[0]?.clase) state.claseActual = state.temas[0].clase;
     renderListaTemas();
     pintarTeoriaCompleta();
-    if (!state.temaActual) mostrarTema(state.temas[0]?.slug);
+    if (!state.temaActual) mostrarTema(temasDeClase(state.claseActual)[0]?.slug || state.temas[0]?.slug);
   }
 
   function aplicarTemaRemoto(payload) {
@@ -907,21 +909,22 @@
 
   function renderListaTemas() {
     const box = $("lista-temas");
+    const abierta = claseEnPantalla();
     box.innerHTML = clasesDeTemas().map((clase) => {
       const temas = state.temas.filter((t) => t.clase === clase && t.slug !== "practica-multiple-choice").sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
-      const primero = temas[0]?.slug || "";
-      const items = temas.map((t) => `
+      const activa = clase === abierta;
+      const items = activa ? temas.map((t) => `
         <button class="topic-btn ${state.temaActual && state.temaActual.slug === t.slug ? "active" : ""}" data-slug="${t.slug}" type="button">
           ${escapeHtml(t.titulo)}
         </button>
-      `).join("");
+      `).join("") : "";
       return `
-        <div class="clase-grupo">
+        <div class="clase-grupo ${activa ? "abierto" : ""}">
           <div class="clase-cab">
-            <button class="clase-ir" type="button" data-slug="${escapeHtml(primero)}" ${primero ? "" : "disabled"}>${escapeHtml(clase)}</button>
+            <button class="clase-ir" type="button" data-clase="${escapeHtml(clase)}">${escapeHtml(clase)}</button>
             <button class="btn-add-apartado" type="button" data-clase="${escapeHtml(clase)}">+ Apartado</button>
           </div>
-          ${items || "<p class='hint'>Todavía no hay apartados.</p>"}
+          ${activa ? (items || "<p class='hint'>Todavía no hay apartados.</p>") : ""}
         </div>
       `;
     }).join("");
@@ -929,7 +932,7 @@
       btn.onclick = () => mostrarTema(btn.dataset.slug, { ir: true });
     });
     box.querySelectorAll(".clase-ir").forEach((btn) => {
-      btn.onclick = () => { if (btn.dataset.slug) mostrarTema(btn.dataset.slug, { ir: true }); };
+      btn.onclick = () => abrirClase(btn.dataset.clase);
     });
     box.querySelectorAll(".btn-add-apartado").forEach((btn) => {
       btn.onclick = () => abrirModalApartado(btn.dataset.clase);
@@ -966,6 +969,14 @@
     return temasUsables(state.temas).slice().sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
   }
 
+  function claseEnPantalla() {
+    return state.claseActual || state.temaActual?.clase || clasesDeTemas()[0] || "Clase 1";
+  }
+
+  function temasDeClase(clase) {
+    return temasOrdenados().filter((t) => t.clase === (clase || claseEnPantalla()));
+  }
+
   function htmlBloqueTema(tema) {
     const quiz = parsearQuizzes(tema.contenido);
     const cuerpo = quiz.items.length
@@ -987,18 +998,15 @@
       obsTemas.disconnect();
       obsTemas = null;
     }
-    const temas = temasOrdenados();
-    box.innerHTML = clasesDeTemas().map((clase) => {
-      const deClase = temas.filter((t) => t.clase === clase);
-      if (!deClase.length) return "";
-      const bloques = deClase.map(htmlBloqueTema).join("");
-      return `
-        <section class="clase-texto" id="clase-${escapeHtml(slugify(clase))}" data-clase="${escapeHtml(clase)}">
-          <h2>${escapeHtml(clase)}</h2>
-          ${bloques}
-        </section>
-      `;
-    }).join("");
+    const clase = claseEnPantalla();
+    state.claseActual = clase;
+    const temas = temasDeClase(clase);
+    box.innerHTML = `
+      <section class="clase-texto" data-clase="${escapeHtml(clase)}">
+        <h2>${escapeHtml(clase)}</h2>
+        ${temas.map(htmlBloqueTema).join("") || "<p class='hint'>Todavía no hay apartados en esta clase.</p>"}
+      </section>
+    `;
     temas.forEach((t) => {
       const quiz = parsearQuizzes(t.contenido);
       if (quiz.items.length) cablearQuiz(quiz.items, { id: "quiz-tema-" + t.slug });
@@ -1006,6 +1014,20 @@
     box.classList.remove("hidden");
     $("editor-teoria").classList.add("hidden");
     observarTemas();
+  }
+
+  function abrirClase(clase) {
+    const temas = temasDeClase(clase);
+    state.claseActual = clase;
+    state.temaActual = temas[0] || state.temaActual;
+    $("tema-contenido").classList.remove("hidden");
+    $("editor-teoria").classList.add("hidden");
+    pintarTeoriaCompleta();
+    if (state.temaActual) actualizarCabezaTema(state.temaActual);
+    renderListaTemas();
+    renderRevisionesTema();
+    const root = raizScrollTeoria();
+    if (root) root.scrollTop = 0;
   }
 
   function raizScrollTeoria() {
@@ -1060,14 +1082,20 @@
   function mostrarTema(slug, { ir = false, reconstruir = false } = {}) {
     const tema = state.temas.find((t) => t.slug === slug) || state.temas[0];
     if (!tema) return;
+    const cambioClase = tema.clase !== state.claseActual;
     state.temaActual = tema;
+    state.claseActual = tema.clase;
     actualizarCabezaTema(tema);
     $("tema-contenido").classList.remove("hidden");
     $("editor-teoria").classList.add("hidden");
-    if (reconstruir || !document.getElementById("tema-" + tema.slug)) pintarTeoriaCompleta();
+    if (reconstruir || cambioClase || !document.getElementById("tema-" + tema.slug)) pintarTeoriaCompleta();
     renderListaTemas();
     renderRevisionesTema();
     if (ir) requestAnimationFrame(() => requestAnimationFrame(() => irABloqueTema(tema.slug)));
+    else if (cambioClase) {
+      const root = raizScrollTeoria();
+      if (root) root.scrollTop = 0;
+    }
   }
 
   function parsearQuizzes(md) {

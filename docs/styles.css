@@ -323,6 +323,12 @@ a { color: var(--accent); }
 }
 .topic-list { display: flex; flex-direction: column; gap: 18px; flex: 1 1 auto; min-height: 0; max-height: calc(100dvh - 240px); overflow: auto; padding-right: 4px; }
 .clase-grupo { display: flex; flex-direction: column; gap: 2px; }
+.clase-grupo.abierto {
+  padding: 8px 6px 10px;
+  border-radius: 14px;
+  background: var(--accent-dim);
+}
+.clase-grupo.abierto .clase-ir { color: var(--ink); }
 .clase-cab {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 0 8px 8px;
