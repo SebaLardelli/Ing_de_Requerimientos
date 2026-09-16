@@ -909,6 +909,7 @@
     const box = $("lista-temas");
     box.innerHTML = clasesDeTemas().map((clase) => {
       const temas = state.temas.filter((t) => t.clase === clase && t.slug !== "practica-multiple-choice").sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+      const primero = temas[0]?.slug || "";
       const items = temas.map((t) => `
         <button class="topic-btn ${state.temaActual && state.temaActual.slug === t.slug ? "active" : ""}" data-slug="${t.slug}" type="button">
           ${escapeHtml(t.titulo)}
@@ -917,7 +918,7 @@
       return `
         <div class="clase-grupo">
           <div class="clase-cab">
-            <strong>${escapeHtml(clase)}</strong>
+            <button class="clase-ir" type="button" data-slug="${escapeHtml(primero)}" ${primero ? "" : "disabled"}>${escapeHtml(clase)}</button>
             <button class="btn-add-apartado" type="button" data-clase="${escapeHtml(clase)}">+ Apartado</button>
           </div>
           ${items || "<p class='hint'>Todavía no hay apartados.</p>"}
@@ -926,6 +927,9 @@
     }).join("");
     box.querySelectorAll(".topic-btn").forEach((btn) => {
       btn.onclick = () => mostrarTema(btn.dataset.slug, { ir: true });
+    });
+    box.querySelectorAll(".clase-ir").forEach((btn) => {
+      btn.onclick = () => { if (btn.dataset.slug) mostrarTema(btn.dataset.slug, { ir: true }); };
     });
     box.querySelectorAll(".btn-add-apartado").forEach((btn) => {
       btn.onclick = () => abrirModalApartado(btn.dataset.clase);
@@ -941,8 +945,8 @@
       if (on && box) {
         const br = b.getBoundingClientRect();
         const cr = box.getBoundingClientRect();
-        if (br.top < cr.top + 6 || br.bottom > cr.bottom - 6 || br.left < cr.left + 6 || br.right > cr.right - 6) {
-          b.scrollIntoView({ block: "nearest", inline: "nearest" });
+        if (br.top < cr.top + 8 || br.bottom > cr.bottom - 8) {
+          box.scrollTop += (br.top + br.height / 2) - (cr.top + cr.height / 2);
         }
       }
     });
@@ -969,8 +973,7 @@
       : markdown(tema.contenido);
     return `
       <section class="tema-bloque" id="tema-${escapeHtml(tema.slug)}" data-slug="${escapeHtml(tema.slug)}">
-        <div class="kicker">${escapeHtml(tema.clase)}${tema.actualizado_por ? ` · ${escapeHtml(tema.actualizado_por)}` : ""}</div>
-        <h2>${escapeHtml(tema.titulo)}</h2>
+        <h3>${escapeHtml(tema.titulo)}</h3>
         ${tema.resumen ? `<p class="lead">${escapeHtml(tema.resumen)}</p>` : ""}
         <div class="tema-cuerpo">${cuerpo}</div>
       </section>
@@ -985,7 +988,17 @@
       obsTemas = null;
     }
     const temas = temasOrdenados();
-    box.innerHTML = temas.map(htmlBloqueTema).join("");
+    box.innerHTML = clasesDeTemas().map((clase) => {
+      const deClase = temas.filter((t) => t.clase === clase);
+      if (!deClase.length) return "";
+      const bloques = deClase.map(htmlBloqueTema).join("");
+      return `
+        <section class="clase-texto" id="clase-${escapeHtml(slugify(clase))}" data-clase="${escapeHtml(clase)}">
+          <h2>${escapeHtml(clase)}</h2>
+          ${bloques}
+        </section>
+      `;
+    }).join("");
     temas.forEach((t) => {
       const quiz = parsearQuizzes(t.contenido);
       if (quiz.items.length) cablearQuiz(quiz.items, { id: "quiz-tema-" + t.slug });
@@ -995,18 +1008,24 @@
     observarTemas();
   }
 
+  function raizScrollTeoria() {
+    return $("tema-contenido");
+  }
+
   function observarTemas() {
     if (obsTemas) obsTemas.disconnect();
     const bloques = document.querySelectorAll(".tema-bloque");
     if (!bloques.length) return;
+    const root = raizScrollTeoria();
     obsTemas = new IntersectionObserver((entradas) => {
       if (teoriaSaltando || editandoTeoria()) return;
       const visibles = entradas.filter((e) => e.isIntersecting);
       if (!visibles.length) return;
-      visibles.sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+      visibles.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
       const slug = visibles[0].target.dataset.slug;
-      if (!slug || state.temaActual?.slug === slug) {
-        if (slug) marcarTemaActivoLista(slug);
+      if (!slug) return;
+      if (state.temaActual?.slug === slug) {
+        marcarTemaActivoLista(slug);
         return;
       }
       const tema = state.temas.find((t) => t.slug === slug);
@@ -1015,20 +1034,27 @@
       actualizarCabezaTema(tema);
       marcarTemaActivoLista(slug);
     }, {
-      root: null,
-      rootMargin: "-18% 0px -62% 0px",
-      threshold: [0, 0.15, 0.4]
+      root: root || null,
+      rootMargin: "0px 0px -68% 0px",
+      threshold: [0.02, 0.2]
     });
     bloques.forEach((b) => obsTemas.observe(b));
   }
 
   function irABloqueTema(slug) {
     const el = document.getElementById("tema-" + slug);
+    const root = raizScrollTeoria();
     if (!el) return;
     teoriaSaltando = true;
     clearTimeout(teoriaSaltoTimer);
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-    teoriaSaltoTimer = setTimeout(() => { teoriaSaltando = false; }, 700);
+    if (root) {
+      const extra = 12;
+      const top = root.scrollTop + el.getBoundingClientRect().top - root.getBoundingClientRect().top - extra;
+      root.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    } else {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    teoriaSaltoTimer = setTimeout(() => { teoriaSaltando = false; }, 800);
   }
 
   function mostrarTema(slug, { ir = false, reconstruir = false } = {}) {
@@ -1041,7 +1067,7 @@
     if (reconstruir || !document.getElementById("tema-" + tema.slug)) pintarTeoriaCompleta();
     renderListaTemas();
     renderRevisionesTema();
-    if (ir) requestAnimationFrame(() => irABloqueTema(tema.slug));
+    if (ir) requestAnimationFrame(() => requestAnimationFrame(() => irABloqueTema(tema.slug)));
   }
 
   function parsearQuizzes(md) {

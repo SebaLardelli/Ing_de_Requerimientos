@@ -219,7 +219,50 @@ a { color: var(--accent); }
   padding-top: 26px;
   min-height: calc(100dvh - 118px);
 }
-.panel.active > * { flex: 1 1 auto; }
+.panel.active > * { flex: 1 1 auto; min-height: 0; }
+
+#panel-teoria.panel.active {
+  height: calc(100dvh - 118px);
+  min-height: 0;
+  max-height: calc(100dvh - 118px);
+  overflow: hidden;
+  padding-bottom: 16px;
+}
+#panel-teoria .layout {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
+}
+#panel-teoria .layout > .card { min-height: 0; height: 100%; }
+#panel-teoria .side {
+  position: relative;
+  top: auto;
+  max-height: 100%;
+  overflow: hidden;
+}
+#panel-teoria .article {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#panel-teoria .teoria-unida {
+  overflow: hidden;
+}
+#panel-teoria .teoria-flujo {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+#panel-teoria #editor-teoria,
+#panel-teoria #revisiones-teoria {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
 
 .btn {
   border: 1px solid var(--line-strong);
@@ -286,6 +329,18 @@ a { color: var(--accent); }
   border-bottom: 1px solid var(--line);
   margin-bottom: 6px;
 }
+.clase-ir {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0;
+  text-align: left;
+}
+.clase-ir:hover { color: var(--accent); }
 .clase-cab strong {
   font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500;
 }
@@ -317,34 +372,52 @@ a { color: var(--accent); }
 }
 
 .article { padding: 26px 28px 32px; }
-.tema-bloque {
-  padding: 28px 0 36px;
+.clase-texto {
+  padding: 8px 0 28px;
+}
+.clase-texto + .clase-texto {
+  margin-top: 18px;
+  padding-top: 28px;
   border-top: 1px solid var(--line);
-  scroll-margin-top: 92px;
 }
-.tema-bloque:first-child {
-  border-top: 0;
-  padding-top: 4px;
+.content .clase-texto > h2 {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 18px;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
 }
-.content .tema-bloque > h2 {
+.tema-bloque {
+  padding: 4px 0 22px;
+  scroll-margin-top: 12px;
+}
+.tema-bloque + .tema-bloque { padding-top: 10px; }
+.content .tema-bloque > h3 {
   display: block;
   width: 100%;
   max-width: none;
-  margin: 6px 0 10px;
+  margin: 10px 0 8px;
   padding: 0;
   background: none;
   border: 0;
   border-radius: 0;
-  font-size: 1.42rem;
-  line-height: 1.25;
+  font-size: 1.28rem;
+  line-height: 1.3;
   color: var(--title);
 }
 .teoria-unida .article-head {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   z-index: 3;
-  margin: -8px -8px 18px;
-  padding: 10px 8px 14px;
+  margin: 0 0 12px;
+  padding: 0 0 12px;
   background: var(--card);
   border-bottom: 1px solid var(--line);
 }
@@ -817,16 +890,23 @@ html[data-theme="light"] .modal-back { background: rgba(28, 25, 21, 0.35); }
   .layout, .practica, .diff { grid-template-columns: 1fr; }
   .layout, .practica, .panel.active { min-height: 0; }
   .layout, .practica { gap: 12px; }
-  .side { position: sticky; top: 0; z-index: 6; max-height: none; }
-  .topic-list {
-    max-height: none;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    gap: 12px;
-    padding-bottom: 8px;
+  #panel-teoria.panel.active {
+    height: calc(100dvh - 168px);
+    max-height: calc(100dvh - 168px);
   }
-  .clase-grupo { min-width: 220px; flex: 0 0 auto; width: auto; }
+  #panel-teoria .layout {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .side { position: relative; top: auto; z-index: 1; max-height: 32vh; }
+  .topic-list {
+    max-height: 24vh;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    gap: 10px;
+    padding-bottom: 4px;
+  }
+  .clase-grupo { min-width: 0; flex: none; width: 100%; }
   .chat { height: auto; min-height: 360px; }
   .article-head { flex-direction: column; align-items: stretch; }
   .article-head .row { width: 100%; }
