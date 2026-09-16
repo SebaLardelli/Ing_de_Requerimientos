@@ -993,6 +993,42 @@
     ta.setSelectionRange(cursor, cursor);
   }
 
+  function envolverNegritaTeoria() {
+    const ta = $("teoria-md");
+    if (!ta) return;
+    const start = ta.selectionStart ?? 0;
+    const end = ta.selectionEnd ?? start;
+    const sel = ta.value.slice(start, end);
+    const alrededor = ta.value.slice(Math.max(0, start - 2), start) === "**"
+      && ta.value.slice(end, end + 2) === "**";
+    const yaMarcado = /^\*\*[\s\S]*\*\*$/.test(sel);
+    let next = ta.value;
+    let from = start;
+    let to = end;
+    if (alrededor) {
+      next = ta.value.slice(0, start - 2) + sel + ta.value.slice(end + 2);
+      from = start - 2;
+      to = from + sel.length;
+    } else if (yaMarcado) {
+      const inner = sel.slice(2, -2);
+      next = ta.value.slice(0, start) + inner + ta.value.slice(end);
+      from = start;
+      to = start + inner.length;
+    } else if (!sel) {
+      const ph = "texto";
+      next = ta.value.slice(0, start) + "**" + ph + "**" + ta.value.slice(end);
+      from = start + 2;
+      to = from + ph.length;
+    } else {
+      next = ta.value.slice(0, start) + "**" + sel + "**" + ta.value.slice(end);
+      from = start;
+      to = end + 4;
+    }
+    ta.value = next;
+    ta.focus();
+    ta.setSelectionRange(from, to);
+  }
+
   async function guardarTeoria() {
     if (!exigeNombre() || !state.temaActual) return;
     const nuevo = $("teoria-md").value.trim();
@@ -1995,6 +2031,13 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     $("btn-md-titulo").onclick = () => insertarBloqueTeoria("titulo");
     $("btn-md-texto").onclick = () => insertarBloqueTeoria("texto");
     $("btn-md-lista").onclick = () => insertarBloqueTeoria("lista");
+    $("btn-md-negrita").onclick = envolverNegritaTeoria;
+    $("teoria-md").addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        envolverNegritaTeoria();
+      }
+    });
     $("btn-cancelar-teoria").onclick = () => mostrarTema(state.temaActual.slug);
     $("btn-guardar-teoria").onclick = guardarTeoria;
     $("btn-nueva-clase").onclick = () => abrirModalApartado("", { nuevaClase: true });
