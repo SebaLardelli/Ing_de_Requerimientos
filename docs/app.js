@@ -1030,16 +1030,26 @@
     if (root) root.scrollTop = 0;
   }
 
-  function htmlTemaImpresion(tema) {
+  function htmlTemaImpresion(tema, nro) {
     const quiz = parsearQuizzes(tema.contenido);
     const md = quiz.intro || tema.contenido || "";
     return `
       <article class="print-tema">
-        <h3>${escapeHtml(tema.titulo)}</h3>
+        <h3><span class="print-n">${escapeHtml(String(nro))}</span>${escapeHtml(tema.titulo)}</h3>
         ${tema.resumen ? `<p class="print-lead">${escapeHtml(tema.resumen)}</p>` : ""}
         <div class="print-cuerpo">${markdown(md)}</div>
       </article>
     `;
+  }
+
+  function htmlIndiceImpresion() {
+    const bloques = clasesDeTemas().map((clase) => {
+      const temas = temasDeClase(clase);
+      if (!temas.length) return "";
+      const items = temas.map((t, i) => `<li><span>${i + 1}.</span> ${escapeHtml(t.titulo)}</li>`).join("");
+      return `<div class="print-indice-clase"><h2>${escapeHtml(clase)}</h2><ol>${items}</ol></div>`;
+    }).join("");
+    return `<nav class="print-indice"><h1>Índice</h1>${bloques}</nav>`;
   }
 
   function htmlTeoriaImpresion() {
@@ -1048,8 +1058,11 @@
       if (!temas.length) return "";
       return `
         <section class="print-clase">
-          <h1>${escapeHtml(clase)}</h1>
-          ${temas.map(htmlTemaImpresion).join("")}
+          <header class="print-clase-cab">
+            <p class="print-kicker">Ingeniería de requerimientos</p>
+            <h1>${escapeHtml(clase)}</h1>
+          </header>
+          ${temas.map((t, i) => htmlTemaImpresion(t, i + 1)).join("")}
         </section>
       `;
     }).join("");
@@ -1057,40 +1070,129 @@
 
   function cssImpresionTeoria() {
     return `
-      @page { margin: 16mm 16mm 18mm; }
+      @page { size: A4; margin: 16mm 15mm 18mm; }
       * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
       body {
-        margin: 0;
-        color: #111;
+        color: #16141f;
         background: #fff;
-        font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
-        font-size: 11.5pt;
-        line-height: 1.5;
+        font-family: Georgia, "Palatino Linotype", Palatino, "Times New Roman", serif;
+        font-size: 11pt;
+        line-height: 1.55;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
-      .print-portada { margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid #6149da; }
-      .print-portada p { margin: 4px 0; color: #444; }
-      h1 {
-        font-size: 20pt;
-        margin: 0 0 16px;
-        color: #1a1460;
+      .print-barra {
+        position: sticky; top: 0; z-index: 5;
+        display: flex; gap: 8px; align-items: center; justify-content: space-between;
+        padding: 10px 14px;
+        background: #171522; color: #fefff9;
+        font-family: "Segoe UI", sans-serif; font-size: 13px;
+      }
+      .print-barra button {
+        border: 0; border-radius: 999px; padding: 8px 14px;
+        background: #6149da; color: #fff; font-weight: 700; cursor: pointer;
+      }
+      .print-barra span { opacity: 0.85; }
+      .print-hoja { max-width: 210mm; margin: 0 auto; padding: 8mm 6mm 12mm; }
+      .print-portada {
+        min-height: 240mm;
+        display: flex; flex-direction: column; justify-content: center;
+        padding: 18mm 8mm 14mm;
+        page-break-after: always;
+        break-after: page;
+      }
+      .print-portada .marca {
+        display: inline-block;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase;
+        color: #6149da; font-weight: 700; margin: 0 0 18px;
+      }
+      .print-portada h1 {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 28pt; line-height: 1.15; font-weight: 800;
+        letter-spacing: -0.03em; margin: 0 0 12px; color: #171522;
+      }
+      .print-portada .subtitulo { font-size: 14pt; color: #3d3a4d; margin: 0 0 28px; }
+      .print-portada .meta {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 10pt; color: #5c5870; margin: 0;
+      }
+      .print-raya { width: 42px; height: 4px; background: #6149da; border: 0; margin: 22px 0; }
+      .print-indice { page-break-after: always; break-after: page; padding: 4mm 2mm 10mm; }
+      .print-indice > h1 {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 18pt; margin: 0 0 18px; color: #171522;
+      }
+      .print-indice-clase { margin: 0 0 16px; page-break-inside: avoid; }
+      .print-indice-clase h2 {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 11pt; letter-spacing: 0.08em; text-transform: uppercase;
+        color: #6149da; margin: 0 0 6px; font-weight: 700;
+      }
+      .print-indice ol { margin: 0; padding: 0; list-style: none; }
+      .print-indice li {
+        display: flex; gap: 8px;
+        padding: 3px 0; border-bottom: 1px dotted #d8d4e6;
+        font-size: 10.5pt;
+      }
+      .print-indice li span { color: #8b87a0; min-width: 1.4em; font-family: "Segoe UI", sans-serif; font-size: 9.5pt; }
+      .print-clase { page-break-before: always; break-before: page; }
+      .print-clase-cab {
+        margin: 0 0 18px; padding-bottom: 10px;
+        border-bottom: 2px solid #171522;
         page-break-after: avoid;
       }
-      .print-clase { page-break-before: always; }
-      .print-clase:first-of-type { page-break-before: auto; }
-      .print-tema { margin: 0 0 18px; page-break-inside: avoid; }
-      h3 { font-size: 14pt; margin: 16px 0 6px; color: #111; page-break-after: avoid; }
-      .print-lead { font-style: italic; color: #333; margin: 0 0 10px; }
-      .print-cuerpo p, .print-cuerpo li { margin: 0 0 8px; }
-      .print-cuerpo ul, .print-cuerpo ol { margin: 0 0 10px; padding-left: 1.2em; }
-      .print-cuerpo h2, .print-cuerpo h3 { font-size: 12.5pt; margin: 14px 0 6px; page-break-after: avoid; }
-      img { max-width: 100%; height: auto; background: #fefff9; padding: 6px; border: 1px solid #ddd; }
-      table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
-      th, td { border: 1px solid #ccc; padding: 5px 7px; text-align: left; }
-      blockquote { margin: 10px 0; padding: 4px 12px; border-left: 3px solid #6149da; color: #333; }
-      mark { background: #ffe58a; color: #111; }
+      .print-kicker {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 8.5pt; letter-spacing: 0.16em; text-transform: uppercase;
+        color: #6149da; margin: 0 0 4px; font-weight: 700;
+      }
+      .print-clase-cab h1 {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 22pt; margin: 0; letter-spacing: -0.03em; color: #171522;
+      }
+      .print-tema { margin: 0 0 16px; }
+      .print-tema > h3 {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 13.5pt; line-height: 1.25; margin: 18px 0 6px;
+        color: #171522; page-break-after: avoid;
+      }
+      .print-n {
+        display: inline-block; min-width: 1.5em; margin-right: 8px;
+        color: #6149da; font-weight: 800; font-size: 11pt;
+      }
+      .print-lead { font-style: italic; color: #3d3a4d; margin: 0 0 10px; }
+      .print-cuerpo p { margin: 0 0 8px; }
+      .print-cuerpo li { margin: 0 0 4px; }
+      .print-cuerpo ul, .print-cuerpo ol { margin: 0 0 10px; padding-left: 1.25em; }
+      .print-cuerpo h2, .print-cuerpo h3, .print-cuerpo h4 {
+        font-family: "Segoe UI", sans-serif;
+        color: #171522; page-break-after: avoid;
+      }
+      .print-cuerpo h2 { font-size: 12.5pt; margin: 14px 0 6px; }
+      .print-cuerpo h3 { font-size: 11.5pt; margin: 12px 0 5px; }
+      .print-cuerpo h4 { font-size: 11pt; margin: 10px 0 4px; }
+      img {
+        display: block; max-width: 100%; max-height: 95mm; width: auto; height: auto;
+        margin: 10px auto 14px; padding: 6px; background: #f7f6fb;
+        border: 1px solid #d8d4e6; page-break-inside: avoid;
+      }
+      table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 9.5pt; }
+      thead { display: table-header-group; }
+      th, td { border: 1px solid #c9c5d6; padding: 5px 7px; text-align: left; vertical-align: top; }
+      th { background: #efedf7; font-family: "Segoe UI", sans-serif; font-size: 9pt; }
+      blockquote {
+        margin: 10px 0 12px; padding: 6px 12px;
+        border-left: 3px solid #6149da; background: #f7f6fb; color: #2a2738;
+      }
+      code { font-family: Consolas, "IBM Plex Mono", monospace; font-size: 9.5pt; }
+      mark { background: #fff3b0; color: #111; padding: 0 0.12em; }
+      hr { border: 0; border-top: 1px solid #d8d4e6; margin: 16px 0; }
       @media print {
-        .print-clase { page-break-before: always; }
-        .print-clase:first-of-type { page-break-before: auto; }
+        .print-barra { display: none !important; }
+        .print-hoja { max-width: none; margin: 0; padding: 0; }
+        a { color: inherit; text-decoration: none; }
       }
     `;
   }
@@ -1099,7 +1201,7 @@
     const cuerpo = htmlTeoriaImpresion();
     if (!cuerpo.trim()) return toast("No hay teoría para imprimir.");
     const base = new URL("./", location.href).href;
-    const cuando = new Date().toLocaleDateString("es-AR");
+    const cuando = new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
     const doc = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1109,12 +1211,21 @@
   <style>${cssImpresionTeoria()}</style>
 </head>
 <body>
-  <header class="print-portada">
-    <h1>Laboratorio de Ingeniería de Requerimientos</h1>
-    <p>Teoría completa · ${cuando}</p>
-    <p>En el diálogo de impresión elegí <strong>Guardar como PDF</strong>.</p>
-  </header>
-  ${cuerpo}
+  <div class="print-barra">
+    <span>Vista para imprimir · Guardar como PDF</span>
+    <button type="button" onclick="window.print()">Imprimir</button>
+  </div>
+  <div class="print-hoja">
+    <header class="print-portada">
+      <p class="marca">Laboratorio de requerimientos</p>
+      <h1>Teoría de Ingeniería de Requerimientos</h1>
+      <p class="subtitulo">Apunte completo de las clases</p>
+      <hr class="print-raya" />
+      <p class="meta">${cuando}</p>
+    </header>
+    ${htmlIndiceImpresion()}
+    ${cuerpo}
+  </div>
 </body>
 </html>`;
     const w = window.open("", "teoria-pdf");
@@ -1125,27 +1236,8 @@
     w.document.open();
     w.document.write(doc);
     w.document.close();
-    const imprimir = () => {
-      w.focus();
-      w.print();
-    };
-    const imgs = [...w.document.images];
-    if (!imgs.length) {
-      setTimeout(imprimir, 200);
-      return;
-    }
-    let listos = 0;
-    const uno = () => {
-      listos += 1;
-      if (listos >= imgs.length) imprimir();
-    };
-    imgs.forEach((img) => {
-      if (img.complete) uno();
-      else {
-        img.addEventListener("load", uno, { once: true });
-        img.addEventListener("error", uno, { once: true });
-      }
-    });
+    w.focus();
+    toast("Se abrió la vista. Ahí tocá Imprimir y elegí Guardar como PDF.");
   }
 
   function raizScrollTeoria() {
