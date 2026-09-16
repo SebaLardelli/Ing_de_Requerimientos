@@ -58,7 +58,8 @@
     aiBusy: false,
     trabajoAbierto: null,
     aulaError: "",
-    hlColor: "amarillo"
+    hlColor: "amarillo",
+    quizModo: ""
   };
 
   const $ = (id) => document.getElementById(id);
@@ -977,7 +978,7 @@
     return { intro, items };
   }
 
-  function htmlQuiz(items, { id = "quiz-practica" } = {}) {
+  function htmlQuiz(items, { id = "quiz-practica", mostrarClase = true } = {}) {
     const preguntas = items.map((q, i) => {
       const ops = q.opciones.map((op, j) => `
         <label class="quiz-op">
@@ -985,7 +986,7 @@
           <span>${escapeHtml(op.texto)}</span>
         </label>
       `).join("");
-      const clase = q.clase ? `<span class="kicker">${escapeHtml(q.clase)}</span>` : "";
+      const clase = mostrarClase && q.clase ? `<span class="kicker">${escapeHtml(q.clase)}</span>` : "";
       return `
         <article class="quiz-item" data-i="${i}">
           ${clase}
@@ -2280,16 +2281,128 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     return Array.isArray(window.PREGUNTAS_TEORIA) ? window.PREGUNTAS_TEORIA : [];
   }
 
+  function barajar(lista) {
+    const a = (lista || []).slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function slugClase(clase) {
+    return String(clase || "clase").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  }
+
+  function preguntasAgrupadas() {
+    const grupos = new Map();
+    bancoPreguntas().forEach((q) => {
+      const clave = q.clase || "Otras";
+      if (!grupos.has(clave)) grupos.set(clave, []);
+      grupos.get(clave).push(q);
+    });
+    const claves = [...grupos.keys()].sort((a, b) => {
+      const na = parseInt(String(a).replace(/\D/g, ""), 10);
+      const nb = parseInt(String(b).replace(/\D/g, ""), 10);
+      if (!Number.isNaN(na) && !Number.isNaN(nb) && na !== nb) return na - nb;
+      return String(a).localeCompare(String(b), "es");
+    });
+    return { grupos, claves };
+  }
+
+  function tandaSimulacro() {
+    const banco = bancoPreguntas();
+    const n = Math.min(20, banco.length);
+    return barajar(banco).slice(0, n).map((q) => ({
+      ...q,
+      opciones: barajar(q.opciones)
+    }));
+  }
+
+  function mostrarModoQuiz(modo) {
+    state.quizModo = modo;
+    document.querySelectorAll(".quiz-modo-btn").forEach((b) => {
+      b.classList.toggle("active", b.dataset.modo === modo);
+    });
+    document.querySelectorAll(".quiz-panel").forEach((p) => {
+      p.classList.toggle("hidden", p.dataset.modo !== modo);
+    });
+    if (modo === "simulacro") {
+      const box = $("quiz-simulacro-box");
+      if (box && box.dataset.listo !== "1") armarSimulacro();
+    }
+  }
+
+  function armarSimulacro() {
+    const box = $("quiz-simulacro-box");
+    if (!box) return;
+    const items = tandaSimulacro();
+    if (!items.length) {
+      box.innerHTML = `<p class="hint">No hay preguntas para armar el simulacro.</p>`;
+      return;
+    }
+    const n = items.length;
+    box.innerHTML = `
+      <p class="hint">${n === 20 ? "Veinte preguntas mezcladas de cualquier clase." : `Hay ${n} preguntas disponibles (el simulacro usa hasta 20).`} Las opciones también se barajan. Comprobar muestra la explicación.</p>
+      ${htmlQuiz(items, { id: "quiz-simulacro-inner", mostrarClase: true })}
+    `;
+    cablearQuiz(items, { id: "quiz-simulacro-inner" });
+    box.dataset.listo = "1";
+  }
+
   function renderQuizEstudio() {
     const box = $("quiz-estudio");
     if (!box) return;
-    const banco = bancoPreguntas();
-    if (!banco.length) {
+    if (box.dataset.armado === "1") {
+      if (state.quizModo) mostrarModoQuiz(state.quizModo);
+      return;
+    }
+    const { grupos, claves } = preguntasAgrupadas();
+    if (!claves.length) {
       box.innerHTML = `<p class="hint">No se pudo cargar el banco de preguntas. Recargá con Ctrl+F5.</p>`;
       return;
     }
-    box.innerHTML = htmlQuiz(banco, { id: "quiz-estudio-inner" });
-    cablearQuiz(banco, { id: "quiz-estudio-inner" });
+    const botones = [
+      ...claves.map((c) => `<button class="btn small quiz-modo-btn" type="button" data-modo="${escapeHtml(c)}">${escapeHtml(c)} <span class="quiz-n">${grupos.get(c).length}</span></button>`),
+      `<button class="btn small quiz-modo-btn" type="button" data-modo="simulacro">Simulacro</button>`
+    ].join("");
+    const paneles = claves.map((c) => {
+      const items = grupos.get(c);
+      const id = "quiz-" + slugClase(c);
+      return `
+        <div class="quiz-panel hidden" data-modo="${escapeHtml(c)}">
+          <h3>${escapeHtml(c)}</h3>
+          <p class="hint">Todas las preguntas de esta clase (${items.length}). Practicá acá, independiente de las otras. La explicación aparece al comprobar.</p>
+          ${htmlQuiz(items, { id, mostrarClase: false })}
+        </div>
+      `;
+    }).join("");
+    box.innerHTML = `
+      <div class="quiz-modos" id="quiz-modos">${botones}</div>
+      ${paneles}
+      <div class="quiz-panel hidden" data-modo="simulacro">
+        <h3>Simulacro de examen</h3>
+        <p class="hint">Mezcla 20 preguntas de cualquier clase. Nueva tanda arma otro set.</p>
+        <div class="row" style="margin:10px 0 16px">
+          <button class="btn primary" id="btn-nueva-tanda" type="button">Nueva tanda</button>
+        </div>
+        <div id="quiz-simulacro-box"></div>
+      </div>
+    `;
+    claves.forEach((c) => cablearQuiz(grupos.get(c), { id: "quiz-" + slugClase(c) }));
+    box.querySelectorAll(".quiz-modo-btn").forEach((b) => {
+      b.onclick = () => mostrarModoQuiz(b.dataset.modo);
+    });
+    const btnTanda = $("btn-nueva-tanda");
+    if (btnTanda) {
+      btnTanda.onclick = () => {
+        const sim = $("quiz-simulacro-box");
+        if (sim) delete sim.dataset.listo;
+        armarSimulacro();
+      };
+    }
+    box.dataset.armado = "1";
+    mostrarModoQuiz(state.quizModo || claves[0]);
   }
 
   function pintarPuntosClase6() {
