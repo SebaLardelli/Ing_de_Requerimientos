@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=20260916e" />
+  <link rel="stylesheet" href="./styles.css?v=20260916f" />
   <script>
     (function () {
       var t = localStorage.getItem("ir.tema") || "dark";
@@ -45,6 +45,7 @@
     <nav class="tabs" aria-label="Secciones">
       <button class="tab active" data-tab="teoria" type="button">Teoría</button>
       <button class="tab" data-tab="practica" type="button">Práctica</button>
+      <button class="tab" data-tab="examen" type="button">Examen</button>
       <button class="tab" data-tab="trabajos" type="button">Trabajos</button>
       <button class="tab" data-tab="ajustes" type="button">Ajustes</button>
     </nav>
@@ -55,7 +56,7 @@
       <div class="layout">
         <aside class="card side">
           <h2>Temas</h2>
-          <p class="hint">Hay teoría por clase, un multiple choice y cómo entrevistar el dominio. Se pueden agregar clases y apartados.</p>
+          <p class="hint">Hay teoría por clase y un bloque de Práctica: cómo entrevistar y armar el dominio. El multiple choice está en Examen.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn small" id="btn-nueva-clase" type="button">+ Clase</button>
           </div>
@@ -126,6 +127,13 @@
             <button class="btn primary" id="btn-caso-nuevo" type="button">Nuevo caso (IA)</button>
             <button class="btn" id="btn-caso-hospital" type="button">Hospital</button>
             <button class="btn" id="btn-caso-biblioteca" type="button">Biblioteca</button>
+          </div>
+          <div id="banner-examen" class="banner-examen hidden">
+            <div>
+              <strong>Simulacro de examen.</strong>
+              <span class="hint">Parte 1: la entrevista y el dominio (acá). Parte 2: veinte multiple choice. Parte 3: el gráfico de la clase 6, punto por punto. Bajá cuando termines la parte 1.</span>
+            </div>
+            <button class="btn ghost small" id="btn-salir-examen" type="button">Salir del simulacro</button>
           </div>
           <div id="chat-log" class="chat-log"></div>
           <div class="composer">
@@ -213,7 +221,36 @@
           <p class="hint">La IA mira el formato, la coherencia, la redacción (mayúsculas, puntos, tildes) y te dice qué mejorar.</p>
           <div id="lista-req" class="req-list" style="margin-top:12px"></div>
           <div id="feedback-ia" class="content" style="margin-top:12px"></div>
+
+          <div id="bloque-examen" class="bloque-examen hidden">
+            <h3>Parte 2 — Veinte preguntas (todas las clases)</h3>
+            <p class="hint">Elegí una. Comprobar muestra la explicación. Son 20, tomadas de la práctica teórica.</p>
+            <div id="quiz-examen-box"></div>
+
+            <h3 style="margin-top:22px">Parte 3 — El gráfico de la clase 6, punto por punto</h3>
+            <p class="hint">Describí cada caja y cada flecha con tus palabras. Después podés comparar con la teoría.</p>
+            <img class="examen-foto" src="./teoria/clase6-proceso.png" alt="Proceso de elicitación, especificación y validación (Loucopoulos)" />
+            <div id="examen-grafico-puntos"></div>
+            <div class="row" style="margin-top:10px">
+              <button class="btn" id="btn-guia-clase6" type="button">Comparar con la teoría</button>
+            </div>
+          </div>
         </div>
+      </div>
+    </section>
+
+    <section id="panel-examen" class="panel">
+      <div class="layout layout-one">
+        <article class="card block">
+          <div class="kicker">Práctica teórica</div>
+          <h2>Multiple choice de todas las clases</h2>
+          <p class="hint">Acá se practica la teoría de las clases 1 a 6. Elegí una opción y comprobá. La explicación aparece recién entonces.</p>
+          <div class="row" style="margin:12px 0 18px">
+            <button class="btn primary" id="btn-simular-examen" type="button">Simular examen</button>
+          </div>
+          <p class="hint">El simulacro suma la práctica común (entrevista y dominio), veinte preguntas y describir el gráfico de Loucopoulos punto por punto.</p>
+          <div id="quiz-estudio"></div>
+        </article>
       </div>
     </section>
 
@@ -292,7 +329,8 @@
   <script src="./config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="./theory.js?v=20260916e"></script>
-  <script src="./app.js?v=20260916e"></script>
+  <script src="./theory.js?v=20260916f"></script>
+  <script src="./quiz.js?v=20260916f"></script>
+  <script src="./app.js?v=20260916f"></script>
 </body>
 </html>

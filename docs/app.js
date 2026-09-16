@@ -58,7 +58,9 @@
     aiBusy: false,
     trabajoAbierto: null,
     aulaError: "",
-    hlColor: "amarillo"
+    hlColor: "amarillo",
+    examen: false,
+    quizExamen: []
   };
 
   const $ = (id) => document.getElementById(id);
@@ -521,7 +523,7 @@
   }
 
   function temasUsables(lista) {
-    return (lista || []).map(normalizarTema).filter((t) => t.slug && (t.titulo || t.contenido));
+    return (lista || []).map(normalizarTema).filter((t) => t.slug && t.slug !== "practica-multiple-choice" && (t.titulo || t.contenido));
   }
 
   function editandoTeoria() {
@@ -591,6 +593,7 @@
         if (sembrar) {
           completarTemasFaltantes();
           parchearTemasTeoria();
+          sacarTemaMultipleChoice();
         }
         return;
       }
@@ -602,6 +605,7 @@
       if (sembrar) {
         completarTemasFaltantes();
         parchearTemasTeoria();
+        sacarTemaMultipleChoice();
       }
       return;
     }
@@ -640,6 +644,21 @@
     state.temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
     saveJSON(LS.temas, state.temas);
     renderListaTemas();
+  }
+
+  async function sacarTemaMultipleChoice() {
+    if (!state.sb || state._sacarMc) return;
+    state._sacarMc = true;
+    try {
+      await state.sb.from("temas_teoria").delete().eq("slug", "practica-multiple-choice");
+    } catch (_) { /* si RLS no deja borrar, se oculta igual en la lista */ }
+    const n = state.temas.length;
+    state.temas = state.temas.filter((t) => t.slug !== "practica-multiple-choice");
+    if (state.temas.length !== n) {
+      saveJSON(LS.temas, state.temas);
+      if (state.temaActual?.slug === "practica-multiple-choice") mostrarTema(state.temas[0]?.slug);
+      else renderListaTemas();
+    }
   }
 
   const TEORIA_PARCHE_SLUGS = ["practica-escribir-reqs", "practica-como-se-trabaja", "practica-enunciado-dominio", "practica-entrevista-dominio", "rfn-cualidades-medibles", "resumen-clase-4", "clase6-proceso-loucopoulos", "clase6-partiendo-del-usuario"];
@@ -888,7 +907,7 @@
   function renderListaTemas() {
     const box = $("lista-temas");
     box.innerHTML = clasesDeTemas().map((clase) => {
-      const temas = state.temas.filter((t) => t.clase === clase).sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+      const temas = state.temas.filter((t) => t.clase === clase && t.slug !== "practica-multiple-choice").sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
       const items = temas.map((t) => `
         <button class="topic-btn ${state.temaActual && state.temaActual.slug === t.slug ? "active" : ""}" data-slug="${t.slug}" type="button">
           ${escapeHtml(t.titulo)}
@@ -960,16 +979,18 @@
     return { intro, items };
   }
 
-  function htmlQuiz(items) {
+  function htmlQuiz(items, { id = "quiz-practica" } = {}) {
     const preguntas = items.map((q, i) => {
       const ops = q.opciones.map((op, j) => `
         <label class="quiz-op">
-          <input type="radio" name="quiz-${i}" value="${j}" />
+          <input type="radio" name="${id}-${i}" value="${j}" />
           <span>${escapeHtml(op.texto)}</span>
         </label>
       `).join("");
+      const clase = q.clase ? `<span class="kicker">${escapeHtml(q.clase)}</span>` : "";
       return `
         <article class="quiz-item" data-i="${i}">
+          ${clase}
           <p class="quiz-q"><strong>${i + 1}.</strong> ${escapeHtml(q.pregunta)}</p>
           <div class="quiz-ops">${ops}</div>
           <p class="quiz-fb hint hidden"></p>
@@ -977,19 +998,19 @@
       `;
     }).join("");
     return `
-      <div class="quiz" id="quiz-practica">
+      <div class="quiz" id="${id}">
         ${preguntas}
         <div class="row" style="margin-top:12px">
-          <button class="btn primary" id="btn-quiz-comprobar" type="button">Comprobar</button>
-          <button class="btn ghost" id="btn-quiz-reintentar" type="button">Reintentar</button>
+          <button class="btn primary" id="btn-${id}-comprobar" type="button">Comprobar</button>
+          <button class="btn ghost" id="btn-${id}-reintentar" type="button">Reintentar</button>
         </div>
-        <p class="quiz-puntaje hint" id="quiz-puntaje"></p>
+        <p class="quiz-puntaje hint" id="${id}-puntaje"></p>
       </div>
     `;
   }
 
-  function cablearQuiz(items) {
-    const box = $("quiz-practica");
+  function cablearQuiz(items, { id = "quiz-practica" } = {}) {
+    const box = $(id);
     if (!box) return;
     const pintar = (corregir) => {
       let bien = 0;
@@ -1026,7 +1047,7 @@
           fb.textContent = q.porque || (elegido === idxOk ? "Bien." : "Revisá la teoría de esa clase.");
         }
       });
-      const puntaje = $("quiz-puntaje");
+      const puntaje = $(id + "-puntaje");
       if (!puntaje) return;
       if (!corregir) {
         puntaje.textContent = "";
@@ -1034,8 +1055,8 @@
       }
       puntaje.textContent = `Salieron ${bien} bien de ${items.length}.` + (hechas < items.length ? ` Faltó marcar ${items.length - hechas}.` : "");
     };
-    const btnOk = $("btn-quiz-comprobar");
-    const btnReset = $("btn-quiz-reintentar");
+    const btnOk = $("btn-" + id + "-comprobar");
+    const btnReset = $("btn-" + id + "-reintentar");
     if (btnOk) btnOk.onclick = () => pintar(true);
     if (btnReset) btnReset.onclick = () => {
       box.querySelectorAll("input[type=radio]").forEach((r) => { r.checked = false; });
@@ -1052,8 +1073,8 @@
     $("tema-resumen").textContent = tema.resumen || "";
     const quiz = parsearQuizzes(tema.contenido);
     if (quiz.items.length) {
-      $("tema-contenido").innerHTML = (quiz.intro ? markdown(quiz.intro) : "") + htmlQuiz(quiz.items);
-      cablearQuiz(quiz.items);
+      $("tema-contenido").innerHTML = (quiz.intro ? markdown(quiz.intro) : "") + htmlQuiz(quiz.items, { id: "quiz-tema" });
+      cablearQuiz(quiz.items, { id: "quiz-tema" });
     } else {
       $("tema-contenido").innerHTML = markdown(tema.contenido);
     }
@@ -2257,15 +2278,89 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     toast(proveedor === "gemini" ? "Ahora las respuestas van por Gemini." : "Ahora las respuestas van por Groq.");
   }
 
+  function barajar(lista) {
+    const a = (lista || []).slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function bancoPreguntas() {
+    return Array.isArray(window.PREGUNTAS_TEORIA) ? window.PREGUNTAS_TEORIA : [];
+  }
+
+  function renderQuizEstudio() {
+    const box = $("quiz-estudio");
+    if (!box) return;
+    const banco = bancoPreguntas();
+    box.innerHTML = htmlQuiz(banco, { id: "quiz-estudio-inner" });
+    cablearQuiz(banco, { id: "quiz-estudio-inner" });
+  }
+
+  function pintarPuntosClase6() {
+    const box = $("examen-grafico-puntos");
+    if (!box || !Array.isArray(window.PUNTOS_CLASE6)) return;
+    box.innerHTML = window.PUNTOS_CLASE6.map((p, i) => `
+      <div class="field">
+        <label for="ex-p-${i}"><strong>${i + 1}.</strong> ${escapeHtml(p.titulo)}${p.etiqueta ? ` — ${escapeHtml(p.etiqueta)}` : ""}</label>
+        <textarea id="ex-p-${i}" rows="2" placeholder="Describí este punto con tus palabras."></textarea>
+        <p class="hint guia-clase6 hidden">${escapeHtml(p.guia)}</p>
+      </div>
+    `).join("");
+  }
+
+  function pintarModoExamen() {
+    $("banner-examen")?.classList.toggle("hidden", !state.examen);
+    $("bloque-examen")?.classList.toggle("hidden", !state.examen);
+    if (!state.examen) return;
+    const box = $("quiz-examen-box");
+    if (box) {
+      box.innerHTML = htmlQuiz(state.quizExamen, { id: "quiz-examen" });
+      cablearQuiz(state.quizExamen, { id: "quiz-examen" });
+    }
+    pintarPuntosClase6();
+  }
+
+  function entrarExamen() {
+    const banco = bancoPreguntas();
+    if (banco.length < 20) return toast("Falta el banco de preguntas.");
+    state.examen = true;
+    state.quizExamen = barajar(banco).slice(0, 20).map((q) => ({
+      ...q,
+      opciones: barajar(q.opciones)
+    }));
+    pintarModoExamen();
+    irTab("practica");
+    toast("Simulacro: primero la entrevista y el dominio; abajo, 20 preguntas y el gráfico.");
+  }
+
+  function salirExamen() {
+    state.examen = false;
+    state.quizExamen = [];
+    pintarModoExamen();
+    toast("Saliste del simulacro.");
+  }
+
   function irTab(tab) {
     state.tab = tab;
     document.querySelectorAll(".tab").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
     document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + tab));
     if (tab === "trabajos") renderTrabajos();
+    if (tab === "examen") renderQuizEstudio();
   }
 
   function eventos() {
     document.querySelectorAll(".tab").forEach((b) => b.onclick = () => irTab(b.dataset.tab));
+    const btnExamen = $("btn-simular-examen");
+    if (btnExamen) btnExamen.onclick = entrarExamen;
+    const btnSalirEx = $("btn-salir-examen");
+    if (btnSalirEx) btnSalirEx.onclick = salirExamen;
+    const btnGuia = $("btn-guia-clase6");
+    if (btnGuia) btnGuia.onclick = () => {
+      document.querySelectorAll(".guia-clase6").forEach((el) => el.classList.toggle("hidden"));
+    };
     $("btn-nombre").onclick = () => {
       $("input-nombre").value = state.nombre;
       $("modal-nombre").classList.add("show");
