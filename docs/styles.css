@@ -260,7 +260,7 @@ a { color: var(--accent); }
   border-radius: 24px;
   box-shadow: var(--shadow);
 }
-.side { padding: 14px; align-self: start; }
+.side { padding: 14px; align-self: start; position: sticky; top: 14px; max-height: calc(100dvh - 28px); display: flex; flex-direction: column; }
 .side h2, .article-head h2, .block h2, .block h3,
 .content h2, .content h3 {
   font-family: var(--sans);
@@ -278,7 +278,7 @@ a { color: var(--accent); }
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-.topic-list { display: flex; flex-direction: column; gap: 18px; max-height: 68vh; overflow: auto; padding-right: 4px; }
+.topic-list { display: flex; flex-direction: column; gap: 18px; flex: 1 1 auto; min-height: 0; max-height: calc(100dvh - 240px); overflow: auto; padding-right: 4px; }
 .clase-grupo { display: flex; flex-direction: column; gap: 2px; }
 .clase-cab {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -317,6 +317,41 @@ a { color: var(--accent); }
 }
 
 .article { padding: 26px 28px 32px; }
+.tema-bloque {
+  padding: 28px 0 36px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 92px;
+}
+.tema-bloque:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+.content .tema-bloque > h2 {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 6px 0 10px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  font-size: 1.42rem;
+  line-height: 1.25;
+  color: var(--title);
+}
+.teoria-unida .article-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin: -8px -8px 18px;
+  padding: 10px 8px 14px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+.teoria-unida .article-head h2 {
+  font-size: 1.05rem;
+  padding: 4px 12px;
+}
 .article-head {
   display: flex; justify-content: space-between; gap: 16px;
   align-items: flex-start; margin-bottom: 16px;
@@ -782,15 +817,16 @@ html[data-theme="light"] .modal-back { background: rgba(28, 25, 21, 0.35); }
   .layout, .practica, .diff { grid-template-columns: 1fr; }
   .layout, .practica, .panel.active { min-height: 0; }
   .layout, .practica { gap: 12px; }
-  .side { position: static; top: auto; }
+  .side { position: sticky; top: 0; z-index: 6; max-height: none; }
   .topic-list {
     max-height: none;
-    flex-direction: column;
-    overflow: visible;
-    gap: 18px;
-    padding-bottom: 0;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 12px;
+    padding-bottom: 8px;
   }
-  .clase-grupo { min-width: 0; flex: none; width: 100%; }
+  .clase-grupo { min-width: 220px; flex: 0 0 auto; width: auto; }
   .chat { height: auto; min-height: 360px; }
   .article-head { flex-direction: column; align-items: stretch; }
   .article-head .row { width: 100%; }

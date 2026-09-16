@@ -63,6 +63,9 @@
   };
 
   const $ = (id) => document.getElementById(id);
+  let obsTemas = null;
+  let teoriaSaltando = false;
+  let teoriaSaltoTimer = 0;
   const uid = () => {
     if (crypto.randomUUID) return crypto.randomUUID();
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -534,6 +537,7 @@
     const local = temasUsables(loadJSON(LS.temas, []));
     state.temas = local.length ? local : temasDesdeMaterial();
     renderListaTemas();
+    pintarTeoriaCompleta();
     if (!state.temaActual) mostrarTema(state.temas[0]?.slug);
   }
 
@@ -547,10 +551,8 @@
     if (tipo === "DELETE") {
       state.temas = state.temas.filter((t) => !mismoId(t.id, row.id) && t.slug !== row.slug);
       saveJSON(LS.temas, state.temas);
-      if (state.temaActual && (mismoId(state.temaActual.id, row.id) || state.temaActual.slug === row.slug)) {
-        if (!editandoTeoria()) mostrarTema(state.temas[0]?.slug);
-        else renderListaTemas();
-      } else renderListaTemas();
+      if (!editandoTeoria()) mostrarTema(state.temaActual?.slug || state.temas[0]?.slug, { reconstruir: true });
+      else renderListaTemas();
       return;
     }
     const n = normalizarTema(payload.new);
@@ -559,8 +561,7 @@
     else state.temas.push(n);
     state.temas.sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
     saveJSON(LS.temas, state.temas);
-    const abierto = state.temaActual && (mismoId(state.temaActual.id, n.id) || state.temaActual.slug === n.slug);
-    if (abierto && !editandoTeoria()) mostrarTema(n.slug);
+    if (!editandoTeoria()) mostrarTema(state.temaActual?.slug || n.slug, { reconstruir: true });
     else renderListaTemas();
   }
 
@@ -599,7 +600,7 @@
       const slugAbierto = state.temaActual?.slug;
       state.temas = remotos;
       saveJSON(LS.temas, state.temas);
-      if (!editandoTeoria()) mostrarTema(slugAbierto || state.temas[0]?.slug);
+      if (!editandoTeoria()) mostrarTema(slugAbierto || state.temas[0]?.slug, { reconstruir: true });
       else renderListaTemas();
       if (sembrar) {
         completarTemasFaltantes();
@@ -655,7 +656,8 @@
     state.temas = state.temas.filter((t) => t.slug !== "practica-multiple-choice");
     if (state.temas.length !== n) {
       saveJSON(LS.temas, state.temas);
-      if (state.temaActual?.slug === "practica-multiple-choice") mostrarTema(state.temas[0]?.slug);
+      if (state.temaActual?.slug === "practica-multiple-choice") mostrarTema(state.temas[0]?.slug, { reconstruir: true });
+      else if (!editandoTeoria()) pintarTeoriaCompleta();
       else renderListaTemas();
     }
   }
@@ -699,7 +701,7 @@
     }
     if (!toco) return;
     saveJSON(LS.temas, state.temas);
-    if (!editandoTeoria() && TEORIA_PARCHE_SLUGS.includes(state.temaActual?.slug)) mostrarTema(state.temaActual.slug);
+    if (!editandoTeoria()) mostrarTema(state.temaActual?.slug || state.temas[0]?.slug, { reconstruir: true });
     else renderListaTemas();
   }
 
@@ -891,7 +893,7 @@
       state.temas.sort((a, b) => (a.orden || 0) - (b.orden || 0));
       saveJSON(LS.temas, state.temas);
       $("modal-apartado").classList.remove("show");
-      mostrarTema(tema.slug);
+      mostrarTema(tema.slug, { reconstruir: true });
       $("tema-contenido").classList.add("hidden");
       $("editor-teoria").classList.remove("hidden");
       $("teoria-titulo").value = tema.titulo;
@@ -928,15 +930,118 @@
     box.querySelectorAll(".btn-add-apartado").forEach((btn) => {
       btn.onclick = () => abrirModalApartado(btn.dataset.clase);
     });
+    if (state.temaActual?.slug) marcarTemaActivoLista(state.temaActual.slug);
   }
 
-  function llevarAlTema() {
-    const art = $("tema-leido") || document.querySelector("#panel-teoria .article");
-    if (!art) return;
-    const rect = art.getBoundingClientRect();
-    const visible = rect.top < window.innerHeight * 0.42 && rect.bottom > 140;
-    if (visible) return;
-    art.scrollIntoView({ behavior: "smooth", block: "start" });
+  function marcarTemaActivoLista(slug) {
+    const box = $("lista-temas");
+    document.querySelectorAll(".topic-btn").forEach((b) => {
+      const on = b.dataset.slug === slug;
+      b.classList.toggle("active", on);
+      if (on && box) {
+        const br = b.getBoundingClientRect();
+        const cr = box.getBoundingClientRect();
+        if (br.top < cr.top + 6 || br.bottom > cr.bottom - 6 || br.left < cr.left + 6 || br.right > cr.right - 6) {
+          b.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+      }
+    });
+  }
+
+  function actualizarCabezaTema(tema) {
+    if (!tema) return;
+    $("tema-clase").textContent = tema.clase + (tema.actualizado_por ? ` · última edición: ${tema.actualizado_por}` : "");
+    $("tema-titulo").textContent = tema.titulo;
+    if ($("tema-resumen")) $("tema-resumen").textContent = tema.resumen || "";
+    $("teoria-titulo").value = tema.titulo || "";
+    $("teoria-resumen").value = tema.resumen || "";
+    $("teoria-md").value = tema.contenido || "";
+  }
+
+  function temasOrdenados() {
+    return temasUsables(state.temas).slice().sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+  }
+
+  function htmlBloqueTema(tema) {
+    const quiz = parsearQuizzes(tema.contenido);
+    const cuerpo = quiz.items.length
+      ? (quiz.intro ? markdown(quiz.intro) : "") + htmlQuiz(quiz.items, { id: "quiz-tema-" + tema.slug })
+      : markdown(tema.contenido);
+    return `
+      <section class="tema-bloque" id="tema-${escapeHtml(tema.slug)}" data-slug="${escapeHtml(tema.slug)}">
+        <div class="kicker">${escapeHtml(tema.clase)}${tema.actualizado_por ? ` · ${escapeHtml(tema.actualizado_por)}` : ""}</div>
+        <h2>${escapeHtml(tema.titulo)}</h2>
+        ${tema.resumen ? `<p class="lead">${escapeHtml(tema.resumen)}</p>` : ""}
+        <div class="tema-cuerpo">${cuerpo}</div>
+      </section>
+    `;
+  }
+
+  function pintarTeoriaCompleta() {
+    const box = $("tema-contenido");
+    if (!box || editandoTeoria()) return;
+    if (obsTemas) {
+      obsTemas.disconnect();
+      obsTemas = null;
+    }
+    const temas = temasOrdenados();
+    box.innerHTML = temas.map(htmlBloqueTema).join("");
+    temas.forEach((t) => {
+      const quiz = parsearQuizzes(t.contenido);
+      if (quiz.items.length) cablearQuiz(quiz.items, { id: "quiz-tema-" + t.slug });
+    });
+    box.classList.remove("hidden");
+    $("editor-teoria").classList.add("hidden");
+    observarTemas();
+  }
+
+  function observarTemas() {
+    if (obsTemas) obsTemas.disconnect();
+    const bloques = document.querySelectorAll(".tema-bloque");
+    if (!bloques.length) return;
+    obsTemas = new IntersectionObserver((entradas) => {
+      if (teoriaSaltando || editandoTeoria()) return;
+      const visibles = entradas.filter((e) => e.isIntersecting);
+      if (!visibles.length) return;
+      visibles.sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+      const slug = visibles[0].target.dataset.slug;
+      if (!slug || state.temaActual?.slug === slug) {
+        if (slug) marcarTemaActivoLista(slug);
+        return;
+      }
+      const tema = state.temas.find((t) => t.slug === slug);
+      if (!tema) return;
+      state.temaActual = tema;
+      actualizarCabezaTema(tema);
+      marcarTemaActivoLista(slug);
+    }, {
+      root: null,
+      rootMargin: "-18% 0px -62% 0px",
+      threshold: [0, 0.15, 0.4]
+    });
+    bloques.forEach((b) => obsTemas.observe(b));
+  }
+
+  function irABloqueTema(slug) {
+    const el = document.getElementById("tema-" + slug);
+    if (!el) return;
+    teoriaSaltando = true;
+    clearTimeout(teoriaSaltoTimer);
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    teoriaSaltoTimer = setTimeout(() => { teoriaSaltando = false; }, 700);
+  }
+
+  function mostrarTema(slug, { ir = false, reconstruir = false } = {}) {
+    const tema = state.temas.find((t) => t.slug === slug) || state.temas[0];
+    if (!tema) return;
+    state.temaActual = tema;
+    actualizarCabezaTema(tema);
+    $("tema-contenido").classList.remove("hidden");
+    $("editor-teoria").classList.add("hidden");
+    if (reconstruir || !document.getElementById("tema-" + tema.slug)) pintarTeoriaCompleta();
+    renderListaTemas();
+    renderRevisionesTema();
+    if (ir) requestAnimationFrame(() => irABloqueTema(tema.slug));
   }
 
   function parsearQuizzes(md) {
@@ -1061,30 +1166,6 @@
       box.querySelectorAll("input[type=radio]").forEach((r) => { r.checked = false; });
       pintar(false);
     };
-  }
-
-  function mostrarTema(slug, { ir = false } = {}) {
-    const tema = state.temas.find((t) => t.slug === slug) || state.temas[0];
-    if (!tema) return;
-    state.temaActual = tema;
-    $("tema-clase").textContent = tema.clase + (tema.actualizado_por ? ` · última edición: ${tema.actualizado_por}` : "");
-    $("tema-titulo").textContent = tema.titulo;
-    $("tema-resumen").textContent = tema.resumen || "";
-    const quiz = parsearQuizzes(tema.contenido);
-    if (quiz.items.length) {
-      $("tema-contenido").innerHTML = (quiz.intro ? markdown(quiz.intro) : "") + htmlQuiz(quiz.items, { id: "quiz-tema" });
-      cablearQuiz(quiz.items, { id: "quiz-tema" });
-    } else {
-      $("tema-contenido").innerHTML = markdown(tema.contenido);
-    }
-    $("tema-contenido").classList.remove("hidden");
-    $("editor-teoria").classList.add("hidden");
-    $("teoria-titulo").value = tema.titulo || "";
-    $("teoria-resumen").value = tema.resumen || "";
-    $("teoria-md").value = tema.contenido;
-    renderListaTemas();
-    renderRevisionesTema();
-    if (ir) requestAnimationFrame(llevarAlTema);
   }
 
   function esRevDelTema(r, tema) {
@@ -1346,7 +1427,7 @@
       if (i >= 0) state.temas[i] = state.temaActual;
       saveJSON(LS.temas, state.temas);
       saveJSON(LS.revisiones, state.revisiones);
-      mostrarTema(state.temaActual.slug);
+      mostrarTema(state.temaActual.slug, { reconstruir: true, ir: true });
       $("revisiones-teoria").classList.remove("hidden");
       renderRevisionesTema();
       requestAnimationFrame(() => {
@@ -2424,6 +2505,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + tab));
     if (tab === "trabajos") renderTrabajos();
     if (tab === "practica-teoria") renderQuizEstudio();
+    if (tab === "teoria" && !$("tema-contenido")?.querySelector(".tema-bloque")) pintarTeoriaCompleta();
   }
 
   function eventos() {

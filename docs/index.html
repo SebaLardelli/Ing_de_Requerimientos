@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=20260916k" />
+  <link rel="stylesheet" href="./styles.css?v=20260916l" />
   <script>
     (function () {
       var t = localStorage.getItem("ir.tema") || "dark";
@@ -56,13 +56,13 @@
       <div class="layout">
         <aside class="card side">
           <h2>Temas</h2>
-          <p class="hint">Hay teoría por clase y un bloque de Práctica: cómo entrevistar y armar el dominio. El multiple choice está en Práctica de teoría.</p>
+          <p class="hint">La teoría va seguida, de la clase 1 a la práctica. El costado te marca el apartado en el que estás y te lleva al que toques.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn small" id="btn-nueva-clase" type="button">+ Clase</button>
           </div>
           <div id="lista-temas" class="topic-list"></div>
         </aside>
-        <article class="card article">
+        <article class="card article teoria-unida">
           <div class="article-head" id="tema-leido">
             <div>
               <div class="kicker" id="tema-clase"></div>
@@ -73,8 +73,8 @@
               <button class="btn ghost" id="btn-ver-cambios" type="button">Qué cambió</button>
             </div>
           </div>
-          <p class="lead" id="tema-resumen"></p>
-          <div id="tema-contenido" class="content"></div>
+          <p class="lead hidden" id="tema-resumen"></p>
+          <div id="tema-contenido" class="content teoria-flujo"></div>
           <div id="editor-teoria" class="hidden">
             <div class="field">
               <label for="teoria-titulo">Título del apartado</label>
@@ -329,8 +329,8 @@
   <script src="./config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="./theory.js?v=20260916k"></script>
-  <script src="./quiz.js?v=20260916k"></script>
-  <script src="./app.js?v=20260916k"></script>
+  <script src="./theory.js?v=20260916l"></script>
+  <script src="./quiz.js?v=20260916l"></script>
+  <script src="./app.js?v=20260916l"></script>
 </body>
 </html>
