@@ -23,6 +23,8 @@ html[data-theme="dark"] {
   --clay-soft: rgba(97, 73, 218, 0.16);
   --gold: #c9c2ff;
   --gold-dim: rgba(97, 73, 218, 0.1);
+  --highlight: rgba(255, 214, 70, 0.46);
+  --highlight-ink: #fff6c8;
   --ok: #6fbf66;
   --warn: #f29334;
   --shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
@@ -57,6 +59,8 @@ html[data-theme="light"] {
   --clay-soft: rgba(97, 73, 218, 0.1);
   --gold: #1c1930;
   --gold-dim: rgba(14, 12, 22, 0.05);
+  --highlight: rgba(255, 220, 64, 0.82);
+  --highlight-ink: #0e0c16;
   --ok: #3f7a38;
   --warn: #b86a14;
   --shadow: 0 8px 24px rgba(14, 12, 22, 0.06);
@@ -308,6 +312,16 @@ a { color: var(--accent); }
 .lead { color: var(--ink-soft); font-size: 1.05rem; margin: 14px 0 12px; }
 .content h2, .content h3 { margin-top: 1.15em; }
 .content p, .content li { line-height: 1.65; }
+.content strong, .content b {
+  font-weight: 800;
+  color: var(--highlight-ink);
+  background: linear-gradient(104deg, transparent 0.08em, var(--highlight) 0.12em, var(--highlight) calc(100% - 0.08em), transparent calc(100% - 0.04em));
+  padding: 0.05em 0.22em;
+  margin: 0 -0.04em;
+  border-radius: 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
 .content blockquote {
   margin: 12px 0;
   padding: 8px 14px;
