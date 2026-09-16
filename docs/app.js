@@ -1030,6 +1030,124 @@
     if (root) root.scrollTop = 0;
   }
 
+  function htmlTemaImpresion(tema) {
+    const quiz = parsearQuizzes(tema.contenido);
+    const md = quiz.intro || tema.contenido || "";
+    return `
+      <article class="print-tema">
+        <h3>${escapeHtml(tema.titulo)}</h3>
+        ${tema.resumen ? `<p class="print-lead">${escapeHtml(tema.resumen)}</p>` : ""}
+        <div class="print-cuerpo">${markdown(md)}</div>
+      </article>
+    `;
+  }
+
+  function htmlTeoriaImpresion() {
+    return clasesDeTemas().map((clase) => {
+      const temas = temasDeClase(clase);
+      if (!temas.length) return "";
+      return `
+        <section class="print-clase">
+          <h1>${escapeHtml(clase)}</h1>
+          ${temas.map(htmlTemaImpresion).join("")}
+        </section>
+      `;
+    }).join("");
+  }
+
+  function cssImpresionTeoria() {
+    return `
+      @page { margin: 16mm 16mm 18mm; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: #111;
+        background: #fff;
+        font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+        font-size: 11.5pt;
+        line-height: 1.5;
+      }
+      .print-portada { margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid #6149da; }
+      .print-portada p { margin: 4px 0; color: #444; }
+      h1 {
+        font-size: 20pt;
+        margin: 0 0 16px;
+        color: #1a1460;
+        page-break-after: avoid;
+      }
+      .print-clase { page-break-before: always; }
+      .print-clase:first-of-type { page-break-before: auto; }
+      .print-tema { margin: 0 0 18px; page-break-inside: avoid; }
+      h3 { font-size: 14pt; margin: 16px 0 6px; color: #111; page-break-after: avoid; }
+      .print-lead { font-style: italic; color: #333; margin: 0 0 10px; }
+      .print-cuerpo p, .print-cuerpo li { margin: 0 0 8px; }
+      .print-cuerpo ul, .print-cuerpo ol { margin: 0 0 10px; padding-left: 1.2em; }
+      .print-cuerpo h2, .print-cuerpo h3 { font-size: 12.5pt; margin: 14px 0 6px; page-break-after: avoid; }
+      img { max-width: 100%; height: auto; background: #fefff9; padding: 6px; border: 1px solid #ddd; }
+      table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10pt; }
+      th, td { border: 1px solid #ccc; padding: 5px 7px; text-align: left; }
+      blockquote { margin: 10px 0; padding: 4px 12px; border-left: 3px solid #6149da; color: #333; }
+      mark { background: #ffe58a; color: #111; }
+      @media print {
+        .print-clase { page-break-before: always; }
+        .print-clase:first-of-type { page-break-before: auto; }
+      }
+    `;
+  }
+
+  function imprimirTeoriaPdf() {
+    const cuerpo = htmlTeoriaImpresion();
+    if (!cuerpo.trim()) return toast("No hay teoría para imprimir.");
+    const base = new URL("./", location.href).href;
+    const cuando = new Date().toLocaleDateString("es-AR");
+    const doc = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <base href="${escapeHtml(base)}" />
+  <title>Teoría · Ingeniería de Requerimientos</title>
+  <style>${cssImpresionTeoria()}</style>
+</head>
+<body>
+  <header class="print-portada">
+    <h1>Laboratorio de Ingeniería de Requerimientos</h1>
+    <p>Teoría completa · ${cuando}</p>
+    <p>En el diálogo de impresión elegí <strong>Guardar como PDF</strong>.</p>
+  </header>
+  ${cuerpo}
+</body>
+</html>`;
+    const w = window.open("", "teoria-pdf");
+    if (!w) {
+      toast("El navegador bloqueó la ventana. Permití popups y volvé a tocar Imprimir PDF.");
+      return;
+    }
+    w.document.open();
+    w.document.write(doc);
+    w.document.close();
+    const imprimir = () => {
+      w.focus();
+      w.print();
+    };
+    const imgs = [...w.document.images];
+    if (!imgs.length) {
+      setTimeout(imprimir, 200);
+      return;
+    }
+    let listos = 0;
+    const uno = () => {
+      listos += 1;
+      if (listos >= imgs.length) imprimir();
+    };
+    imgs.forEach((img) => {
+      if (img.complete) uno();
+      else {
+        img.addEventListener("load", uno, { once: true });
+        img.addEventListener("error", uno, { once: true });
+      }
+    });
+  }
+
   function raizScrollTeoria() {
     return $("tema-contenido");
   }
@@ -2598,6 +2716,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     $("btn-cancelar-teoria").onclick = () => mostrarTema(state.temaActual.slug);
     $("btn-guardar-teoria").onclick = guardarTeoria;
     $("btn-nueva-clase").onclick = () => abrirModalApartado("", { nuevaClase: true });
+    $("btn-imprimir-teoria").onclick = imprimirTeoriaPdf;
     $("btn-crear-apartado").onclick = crearApartado;
     $("btn-cancelar-apartado").onclick = () => $("modal-apartado").classList.remove("show");
     $("nuevo-titulo").addEventListener("keydown", (e) => {
