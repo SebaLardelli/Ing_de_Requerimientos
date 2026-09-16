@@ -5,7 +5,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Resolver de forma exacta el problema, aunque no sea el correcto.", ok: false },
       { texto: "Resolver de forma aproximada el problema correcto.", ok: true },
-      { texto: "Empezar a programar y ajustar el problema después.", ok: false }
+      { texto: "Empezar a programar y ajustar el problema después.", ok: false },
+      { texto: "Elegir el framework primero y recién después el problema.", ok: false }
     ],
     porque: "Es mejor atacar el problema correcto, aunque sea aproximado, que resolver con precisión el problema equivocado."
   },
@@ -15,7 +16,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Nada: el programa ya contiene todo el conocimiento.", ok: false },
       { texto: "Diseños, requerimientos, decisiones y pruebas: el conocimiento del dominio.", ok: true },
-      { texto: "Solo la documentación de marketing.", ok: false }
+      { texto: "Solo la documentación de marketing.", ok: false },
+      { texto: "Únicamente el código fuente comentado.", ok: false }
     ],
     porque: "El software es información. Si solo miramos lo que corre, se pierde lo que permite mantenerlo y evolucionarlo."
   },
@@ -25,7 +27,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Un sistema diez veces más grande cuesta aproximadamente diez veces más.", ok: false },
       { texto: "Agregar personas siempre baja el costo por unidad, como en una fábrica.", ok: false },
-      { texto: "Agrandar el sistema cuesta más que proporcionalmente: aparecen más vías de comunicación.", ok: true }
+      { texto: "Agrandar el sistema cuesta más que proporcionalmente: aparecen más vías de comunicación.", ok: true },
+      { texto: "El costo por línea de código baja si el equipo se duplica.", ok: false }
     ],
     porque: "Más gente y más partes no se escalan como ladrillos. Crece el costo de coordinar y de tener una visión global."
   },
@@ -35,7 +38,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "El usuario (confiabilidad, facilidad de uso, corrección).", ok: true },
       { texto: "Solo el desarrollador, al mirar el código.", ok: false },
-      { texto: "El compilador, si el programa anda.", ok: false }
+      { texto: "El compilador, si el programa anda.", ok: false },
+      { texto: "El jefe de proyecto, al mirar el Gantt.", ok: false }
     ],
     porque: "Las externas las percibe quien usa el sistema. Las internas (verificabilidad, estructura) las perciben quienes lo construyen."
   },
@@ -45,17 +49,130 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Escribir código hasta que compile.", ok: false },
       { texto: "Pasos con propósito, recursos, restricciones y productos.", ok: true },
-      { texto: "Una metodología ágil concreta, como SCRUM.", ok: false }
+      { texto: "Una metodología ágil concreta, como SCRUM.", ok: false },
+      { texto: "El conjunto de tickets abiertos en un tablero.", ok: false }
     ],
     porque: "Proceso no es “el método de moda”: son actividades, productos intermedios y un criterio de entrada y de salida."
   },
+  {
+    clase: "Clase 1",
+    pregunta: "En el ambiente de desarrollo conviven tres familias de información. ¿Cuáles son?",
+    opciones: [
+      { texto: "Marketing, ventas y soporte.", ok: false },
+      { texto: "Representaciones del software, conocimiento de ingeniería y conocimiento del dominio.", ok: true },
+      { texto: "Front, back y base de datos.", ok: false },
+      { texto: "Código, tests y deploys.", ok: false }
+    ],
+    porque: "El analista trabaja en esa intersección. Un requerimiento mal escrito es conocimiento del dominio que se está perdiendo."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "Que el software sea intangible implica sobre todo que:",
+    opciones: [
+      { texto: "No se puede vender.", ok: false },
+      { texto: "Cuesta controlarlo y medirlo: no se “ve” como un puente.", ok: true },
+      { texto: "No tiene usuarios reales.", ok: false },
+      { texto: "No hace falta documentarlo.", ok: false }
+    ],
+    porque: "A diferencia de un edificio, no hay un objeto físico que inspeccionar. Por eso importan modelos, trazas y acuerdos escritos."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "“Cambiar software es fácil” es una idea errónea porque:",
+    opciones: [
+      { texto: "El código no se puede editar.", ok: false },
+      { texto: "Un cambio es un cambio de diseño, no solo de código.", ok: true },
+      { texto: "Solo se puede cambiar el hardware.", ok: false },
+      { texto: "Los usuarios nunca piden cambios.", ok: false }
+    ],
+    porque: "Es maleable, pero “agregar un botón de urgente” puede alterar prioridades, responsabilidades y el trabajo de varios sectores."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "Según IEEE, el software como conocimiento acumulado incluye:",
+    opciones: [
+      { texto: "Solo el binario que se instala.", ok: false },
+      { texto: "Programas, procedimientos, documentación y datos de operación.", ok: true },
+      { texto: "Únicamente los casos de uso dibujados.", ok: false },
+      { texto: "Solo las librerías de terceros.", ok: false }
+    ],
+    porque: "El ejecutable es el final de una cadena de representaciones. Si nos quedamos solo con él, el saber se evapora."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "Sin verificabilidad (cualidad interna) es muy difícil garantizar:",
+    opciones: [
+      { texto: "El logo de la empresa.", ok: false },
+      { texto: "Confiabilidad (cualidad externa).", ok: true },
+      { texto: "Que el código compile.", ok: false },
+      { texto: "La cantidad de pantallas.", ok: false }
+    ],
+    porque: "Las externas no salen solas de las internas, pero las internas ayudan a conseguirlas. Si no se puede comprobar, no se puede depender del sistema."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "El project manager, frente a las cualidades, mira sobre todo:",
+    opciones: [
+      { texto: "Reusabilidad y portabilidad del código.", ok: false },
+      { texto: "Productividad, visibilidad y oportunidad (entregar a tiempo y ver el avance).", ok: true },
+      { texto: "Solo que la interfaz sea amistosa.", ok: false },
+      { texto: "Que el compilador no tire warnings.", ok: false }
+    ],
+    porque: "Usuario, ingeniero y manager no están equivocados: miran distinto. El analista hace visibles los conflictos."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "Con 5 personas, las vías de comunicación (si todos hablan con todos) son:",
+    opciones: [
+      { texto: "5", ok: false },
+      { texto: "10", ok: true },
+      { texto: "25", ok: false },
+      { texto: "4", ok: false }
+    ],
+    porque: "Crecen de forma cuadrática: n(n−1)/2. Con 5 hay 10 vías. Por eso un documento de requerimientos no es burocracia: evita 45 conversaciones informales."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "En este curso, los requerimientos respecto del software son:",
+    opciones: [
+      { texto: "Un trámite previo que se tira cuando empieza el código.", ok: false },
+      { texto: "Parte del software, no un anexo decorativo.", ok: true },
+      { texto: "Solo el contrato legal de compra.", ok: false },
+      { texto: "Un diagrama UML obligatorio.", ok: false }
+    ],
+    porque: "Reducir el software a “lo que corre” es útil para la máquina y peligroso para quien lo construye."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "La corrección funcional responde a la pregunta:",
+    opciones: [
+      { texto: "¿Se libera a tiempo?", ok: false },
+      { texto: "¿Hace lo que dice la especificación?", ok: true },
+      { texto: "¿Corre en distintos ambientes?", ok: false },
+      { texto: "¿El proceso de construcción es eficiente?", ok: false }
+    ],
+    porque: "Corrección no es lo mismo que performance, amistosidad u oportunidad. Si solo listamos funciones, las otras cualidades quedan implícitas."
+  },
+  {
+    clase: "Clase 1",
+    pregunta: "Antes de dar por cerrado un requerimiento, un criterio de salida típico es que sea:",
+    opciones: [
+      { texto: "Largo y con varios “y”.", ok: false },
+      { texto: "Claro, verificable y acordado con el stakeholder.", ok: true },
+      { texto: "Aprobado solo por el programador.", ok: false },
+      { texto: "Escrito en inglés técnico.", ok: false }
+    ],
+    porque: "Sin criterio de salida, el trabajo nunca termina o se da por terminado demasiado pronto. El requerimiento se produce; no “aparece”."
+  },
+
   {
     clase: "Clase 2",
     pregunta: "¿Quién es un stakeholder?",
     opciones: [
       { texto: "Solo quien firmó el contrato o paga el desarrollo.", ok: false },
       { texto: "Quien influye en los requerimientos o es impactado por el sistema, aunque no lo haya pedido.", ok: true },
-      { texto: "Solo los usuarios que van a tocar la pantalla.", ok: false }
+      { texto: "Solo los usuarios que van a tocar la pantalla.", ok: false },
+      { texto: "Solo el equipo de desarrollo.", ok: false }
     ],
     porque: "Wieringa y Glinz: stakeholder es quien influye o es impactado. Puede ganar o perder con el cambio sin haber sido consultado."
   },
@@ -65,7 +182,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Un conflicto de prioridades entre dos sectores.", ok: false },
       { texto: "La misma palabra con dos significados distintos según quién habla.", ok: true },
-      { texto: "Un requerimiento que todavía no se escribió.", ok: false }
+      { texto: "Un requerimiento que todavía no se escribió.", ok: false },
+      { texto: "La distancia geográfica entre equipos.", ok: false }
     ],
     porque: "Hay que construir un acuerdo de significados. El usuario habla dominio; el analista tiende a hablar tecnología."
   },
@@ -75,7 +193,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Un deseo.", ok: false },
       { texto: "Un requerimiento de sistema.", ok: false },
-      { texto: "Un gap semántico.", ok: true }
+      { texto: "Un gap semántico.", ok: true },
+      { texto: "Un RFN de rendimiento.", ok: false }
     ],
     porque: "Una sola palabra, dos mundos. Si no se pregunta, el sistema implementa una sola de las dos."
   },
@@ -85,7 +204,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Que el lenguaje de programación sea viejo.", ok: false },
       { texto: "Complejidad, conformidad, modificabilidad e invisibilidad: no se “ven” como un edificio.", ok: true },
-      { texto: "Que el equipo no use inteligencia artificial.", ok: false }
+      { texto: "Que el equipo no use inteligencia artificial.", ok: false },
+      { texto: "Que no haya suficientes licencias de IDE.", ok: false }
     ],
     porque: "Esas dificultades no se eliminan con una herramienta nueva. El analista las vuelve explícitas en los requerimientos."
   },
@@ -95,17 +215,130 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Reemplazar la entrevista por un documento legal.", ok: false },
       { texto: "Dejar claros derechos y deberes del usuario y del analista (explicar, elegir, respetar el proceso).", ok: true },
-      { texto: "Fijar el precio del sistema antes de entender el dominio.", ok: false }
+      { texto: "Fijar el precio del sistema antes de entender el dominio.", ok: false },
+      { texto: "Evitar que el usuario hable del negocio.", ok: false }
     ],
     porque: "Si nadie elige entre alternativas, no hay requerimiento: hay una frase decorativa. El contrato social ordena esa relación."
   },
+  {
+    clase: "Clase 2",
+    pregunta: "La conformidad, como dificultad esencial, significa que:",
+    opciones: [
+      { texto: "El software debe copiar exactamente a la competencia.", ok: false },
+      { texto: "Llega último y debe adaptarse a instituciones, leyes y sistemas ya existentes; mucha complejidad es arbitraria.", ok: true },
+      { texto: "Hay que usar el mismo lenguaje de programación en todo el país.", ok: false },
+      { texto: "Los usuarios deben conformarse con lo que hay.", ok: false }
+    ],
+    porque: "Gran parte de la complejidad es “así lo hace Contaduría”, no una ley de la naturaleza."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "Un modelo útil en ingeniería de software:",
+    opciones: [
+      { texto: "Debe ser una maqueta exacta a escala, sin simplificar nada.", ok: false },
+      { texto: "Es una proyección con un propósito: simplifica y asume imprecisión controlada. El original puede no existir todavía.", ok: true },
+      { texto: "Solo sirve si el sistema ya está en producción.", ok: false },
+      { texto: "Reemplaza hablar con stakeholders.", ok: false }
+    ],
+    porque: "Se modela para entender lo que existe y para imaginar lo que se quiere construir. Abstracción silencia lo que no importa para ese propósito."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "Según Brooks, lo más difícil de construir un sistema es:",
+    opciones: [
+      { texto: "Elegir el color de la interfaz.", ok: false },
+      { texto: "Decidir con precisión qué construir; el error se paga caro y cuesta rectificarlo.", ok: true },
+      { texto: "Instalar el entorno de desarrollo.", ok: false },
+      { texto: "Escribir los comentarios del código.", ok: false }
+    ],
+    porque: "Ninguna otra parte del trabajo conceptual es tan dañina si se hace mal. El problema de fondo es adquirir conocimiento."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "Macaulay agrupa stakeholders, entre otros, por interés de:",
+    opciones: [
+      { texto: "Solo “amigos” y “enemigos” del proyecto.", ok: false },
+      { texto: "Construcción, financiero, introducción/operación y uso.", ok: true },
+      { texto: "Front-end y back-end.", ok: false },
+      { texto: "Nacionales y extranjeros.", ok: false }
+    ],
+    porque: "No alcanza con el usuario de pantalla. Quien compra, quien mantiene y quien opera también influyen o son impactados."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "Un deber del usuario en el contrato social es:",
+    opciones: [
+      { texto: "Hablar solo en jerga técnica.", ok: false },
+      { texto: "Destinar tiempo, ser específico, priorizar y comunicar los cambios.", ok: true },
+      { texto: "Aprobar cualquier diseño que traiga el programador.", ok: false },
+      { texto: "No revisar documentos para no perder tiempo.", ok: false }
+    ],
+    porque: "El usuario también tiene deberes: educar al analista en el negocio, decidir a tiempo y respetar el proceso."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "Un derecho del usuario es esperar que el analista:",
+    opciones: [
+      { texto: "Hable solo en entidades y casos de uso, sin explicar.", ok: false },
+      { texto: "Hable su lenguaje, aprenda el negocio y ofrezca alternativas, no un único diseño.", ok: true },
+      { texto: "Empiece a programar en la primera reunión.", ok: false },
+      { texto: "No documente nada para ir más rápido.", ok: false }
+    ],
+    porque: "No es “el técnico manda”. Si el analista habla solo en jerga, está incumpliendo su parte."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "La invisibilidad del software implica que:",
+    opciones: [
+      { texto: "No se puede hacer ningún diagrama.", ok: false },
+      { texto: "No tiene un mapa geográfico: hay vistas (flujo, datos, dependencias), pero no se “ve” como un edificio.", ok: true },
+      { texto: "Los usuarios no existen.", ok: false },
+      { texto: "No hace falta acordar entre varias mentes.", ok: false }
+    ],
+    porque: "Por eso cuesta pensar y acordar. Los modelos son ayudas, no la realidad."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "Los desarrolladores se traban en requerimientos cuando:",
+    opciones: [
+      { texto: "Escuchan demasiado al usuario.", ok: false },
+      { texto: "Se orientan demasiado pronto a la solución (“yo ya sé cómo lo armo”).", ok: true },
+      { texto: "Piden un glosario.", ok: false },
+      { texto: "Detectan un conflicto.", ok: false }
+    ],
+    porque: "“Necesitamos ordenar los turnos” todavía no dice si el problema es sobreasignación, ausentes o mostrador saturado."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "En la práctica de este laboratorio, un conflicto entre stakeholders hay que:",
+    opciones: [
+      { texto: "Esconderlo para que el dominio quede limpio.", ok: false },
+      { texto: "Detectar al menos uno y dejarlo escrito, sacado del chat.", ok: true },
+      { texto: "Resolverlo eligiendo siempre al que paga.", ok: false },
+      { texto: "Convertirlo de inmediato en un RFN.", ok: false }
+    ],
+    porque: "Hacer visible el conflicto es trabajo del analista. No se pide diseñar acá la solución del conflicto; sí detectarlo."
+  },
+  {
+    clase: "Clase 2",
+    pregunta: "Blum resume el desarrollo, entre otros pasos, como pasar de:",
+    opciones: [
+      { texto: "Código a marketing.", ok: false },
+      { texto: "Modelo conceptual (solución entendida) a modelo formal y luego a implementación.", ok: true },
+      { texto: "Hardware a firmware.", ok: false },
+      { texto: "Test a requerimiento.", ok: false }
+    ],
+    porque: "Es una secuencia de transformaciones desde lo informal mental hasta lo formal ejecutable."
+  },
+
   {
     clase: "Clase 3",
     pregunta: "Estudios de IBM y Bell Labs sobre defectos indican que:",
     opciones: [
       { texto: "La mayoría de los defectos se insertan al programar.", ok: false },
       { texto: "Una parte muy grande se inserta en la fase de requerimientos, y corregirlos tarde cuesta mucho más.", ok: true },
-      { texto: "Los defectos de requerimientos casi no se pueden detectar hasta producción.", ok: false }
+      { texto: "Los defectos de requerimientos casi no se pueden detectar hasta producción.", ok: false },
+      { texto: "Casi todos los defectos vienen del hardware.", ok: false }
     ],
     porque: "Cerca del 80% se insertan en requerimientos. Corregir en un producto ya liberado puede costar entre 100 y 200 veces más."
   },
@@ -115,7 +348,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Usar el framework más nuevo.", ok: false },
       { texto: "Input del usuario y enunciados claros de requerimientos.", ok: true },
-      { texto: "Congelar el alcance el día uno y no hablar más con el cliente.", ok: false }
+      { texto: "Congelar el alcance el día uno y no hablar más con el cliente.", ok: false },
+      { texto: "Tener el doble de programadores.", ok: false }
     ],
     porque: "En los que fallan aparecen falta de input del usuario, requerimientos incompletos, cambios constantes y expectativas irreales."
   },
@@ -125,7 +359,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Los elimina: no hace falta escribir lo pedido.", ok: false },
       { texto: "Cambia cuándo y con qué formalidad aparecen; no elimina descubrir qué se desea.", ok: true },
-      { texto: "Solo sirve si ya existe una SRS IEEE completa.", ok: false }
+      { texto: "Solo sirve si ya existe una SRS IEEE completa.", ok: false },
+      { texto: "Prohíbe hablar con el usuario después del sprint 1.", ok: false }
     ],
     porque: "Gause y Weinberg: los requerimientos son la parte en la que la gente intenta descubrir qué se desea. El método no reemplaza eso."
   },
@@ -135,17 +370,141 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "El código no compila.", ok: false },
       { texto: "No se puede trazar a una prueba del mismo nivel.", ok: true },
-      { texto: "El usuario no sabe usar git.", ok: false }
+      { texto: "El usuario no sabe usar git.", ok: false },
+      { texto: "El sprint dura más de dos semanas.", ok: false }
     ],
     porque: "Baja por especificación y diseño, y sube por verificación. Si no hay prueba, el requerimiento no está bien escrito."
   },
+  {
+    clase: "Clase 3",
+    pregunta: "En un ciclo predictivo (cascada), respecto del alcance:",
+    opciones: [
+      { texto: "Se fijan recursos y tiempo, y el alcance se va ajustando.", ok: false },
+      { texto: "Se fijan los requerimientos y después se formula el plan (costo y tiempo).", ok: true },
+      { texto: "No hay requerimientos en ningún momento.", ok: false },
+      { texto: "Solo hay backlog, nunca documento.", ok: false }
+    ],
+    porque: "En adaptativo (ágil) se fijan recursos y tiempo, y el alcance se estima. Ninguno elimina los requerimientos."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "En SCRUM, los requerimientos viven sobre todo como:",
+    opciones: [
+      { texto: "Un único documento firmado que no se toca.", ok: false },
+      { texto: "Ítems de backlog (historias, criterios de aceptación) que se refinan de a poco.", ok: true },
+      { texto: "Solo diagramas de clases.", ok: false },
+      { texto: "Tickets de bugs de producción.", ok: false }
+    ],
+    porque: "El cambio se espera. La dificultad: si nadie prioriza, el backlog se vuelve una lista infinita de deseos."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "RUP se caracteriza, entre otras cosas, por:",
+    opciones: [
+      { texto: "No tener disciplina de requerimientos.", ok: false },
+      { texto: "Fases (concepción, elaboración, construcción, transición) y una disciplina formal de requerimientos.", ok: true },
+      { texto: "Ser exactamente igual a una cascada de un solo paso.", ok: false },
+      { texto: "Prohibir casos de uso.", ok: false }
+    ],
+    porque: "Ventaja: estructura en sistemas grandes. Dificultad: se puede burocratizar. El caso de uso no reemplaza entender el dominio."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "La cascada encaja peor cuando:",
+    opciones: [
+      { texto: "El problema es estable y se puede especificar pronto.", ok: false },
+      { texto: "El dominio todavía se está descubriendo.", ok: true },
+      { texto: "Hay que trazar cada RF a una prueba.", ok: false },
+      { texto: "El club de barrio ya cerró el alcance con criterios de aceptación.", ok: false }
+    ],
+    porque: "Es secuencial y predictivo. Se rompe si fingís que el problema ya está cerrado."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "Según IEEE, calidad no es solo “cumplir la spec” porque:",
+    opciones: [
+      { texto: "La spec siempre está perfecta.", ok: false },
+      { texto: "También hay que satisfacer necesidades y expectativas del usuario; si la especificación está mal, cumplirla no alcanza.", ok: true },
+      { texto: "Calidad es únicamente ausencia de bugs de código.", ok: false },
+      { texto: "IEEE no habla de calidad.", ok: false }
+    ],
+    porque: "Juran mira satisfacción y ausencia de deficiencias. Deming: lo difícil es traducir necesidades futuras a características medibles."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "Dorfman marca como beneficio de buenos requerimientos:",
+    opciones: [
+      { texto: "No hace falta estimar ni acordar.", ok: false },
+      { texto: "Acuerdo sobre la tarea y el criterio de aceptación, base para estimar, menos retrabajo.", ok: true },
+      { texto: "Que el código se escriba solo.", ok: false },
+      { texto: "Eliminar a los stakeholders.", ok: false }
+    ],
+    porque: "Esas ventajas crecen con el tamaño y la complejidad."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "Los errores de requerimientos suelen ser, entre otros:",
+    opciones: [
+      { texto: "Solo fallos del compilador.", ok: false },
+      { texto: "Hechos incorrectos, omisiones, inconsistencias y ambigüedades; se pueden detectar con inspecciones.", ok: true },
+      { texto: "Únicamente problemas de red.", ok: false },
+      { texto: "Errores que nunca se pueden revisar antes del código.", ok: false }
+    ],
+    porque: "Si la especificación está mal, el diseño “correcto” y el programa “correcto” siguen resolviendo el problema equivocado."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "Los RFN (rendimiento, seguridad, disponibilidad) empujan sobre todo:",
+    opciones: [
+      { texto: "El color del logo.", ok: false },
+      { texto: "La forma arquitectónica del sistema.", ok: true },
+      { texto: "La cantidad de reuniones de stand-up.", ok: false },
+      { texto: "El nombre de las tablas.", ok: false }
+    ],
+    porque: "El plano arquitectónico no es una metodología de gestión: es estructura. Un analista que ignora eso escribe RFN que nadie puede cumplir."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "En equipos distribuidos, el ciclo de vida suele necesitar:",
+    opciones: [
+      { texto: "Menos explicitación, porque “todos se entienden”.", ok: false },
+      { texto: "Más explicitación: glosario, decisiones, trazas. Hay más gap semántico y más vías de comunicación.", ok: true },
+      { texto: "Eliminar los requerimientos escritos.", ok: false },
+      { texto: "Solo videollamadas, nunca documentos.", ok: false }
+    ],
+    porque: "Más distancia = más deseconomía de escala. Lo escrito deja de ser “papel” y pasa a ser el suelo común."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "SCRUM frente a RUP, para el analista, es sobre todo elegir:",
+    opciones: [
+      { texto: "La moda del año.", ok: false },
+      { texto: "El nivel de formalidad según el riesgo del dominio.", ok: true },
+      { texto: "Si hay usuarios o no.", ok: false },
+      { texto: "Si se programa en Java o en Python.", ok: false }
+    ],
+    porque: "SCRUM optimiza aprendizaje corto. RUP optimiza explicitación y control de artefactos."
+  },
+  {
+    clase: "Clase 3",
+    pregunta: "En el congreso de metodologías de la práctica, cada método se explica preguntando, entre otras cosas:",
+    opciones: [
+      { texto: "Solo el nombre del autor.", ok: false },
+      { texto: "Qué es, cómo funciona, qué lugar ocupan los requerimientos, ventaja, dificultad y un ejemplo.", ok: true },
+      { texto: "Cuántas líneas de código produce.", ok: false },
+      { texto: "Si viene incluida en Windows.", ok: false }
+    ],
+    porque: "No se copia una definición: se explica con ejemplo. Un método formal no reemplaza entender el dominio."
+  },
+
   {
     clase: "Clase 4",
     pregunta: "Una necesidad, en este laboratorio, se escribe:",
     opciones: [
       { texto: "Como “El sistema debe…” con verbo y condición observable.", ok: false },
       { texto: "Contando el problema de fondo: de qué dependen hoy y por qué eso motiva el proyecto.", ok: true },
-      { texto: "Como historia de usuario con criterio de aceptación.", ok: false }
+      { texto: "Como historia de usuario con criterio de aceptación.", ok: false },
+      { texto: "Como un RFN de usabilidad.", ok: false }
     ],
     porque: "Necesidad, deseo y expectativa se cuentan como el dominio, no como un RF."
   },
@@ -155,7 +514,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "El deseo es un RFN medible y la necesidad es un RF.", ok: false },
       { texto: "El deseo suma valor (fomenta adopción), pero el proyecto podría arrancar sin él.", ok: true },
-      { texto: "El deseo lo pide el gerente y la necesidad el usuario final.", ok: false }
+      { texto: "El deseo lo pide el gerente y la necesidad el usuario final.", ok: false },
+      { texto: "El deseo siempre es más urgente que la necesidad.", ok: false }
     ],
     porque: "Sin la necesidad el proyecto no cumple su razón de ser. El deseo es extra atractivo, no indispensable."
   },
@@ -165,7 +525,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Un RFN escrito “El sistema debe responder en menos de 3 segundos”.", ok: false },
       { texto: "Qué esperan, en prosa: experiencia, costo, seguridad, no quedar atrás.", ok: true },
-      { texto: "Un botón o una pantalla que el usuario imagina.", ok: false }
+      { texto: "Un botón o una pantalla que el usuario imagina.", ok: false },
+      { texto: "Un caso de uso de RUP.", ok: false }
     ],
     porque: "En los casilleros se cuenta el dominio. El RFN medible es una especificación posterior."
   },
@@ -175,7 +536,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Se escriben dos de cada uno, con “El usuario quiere” y “El sistema debe”.", ok: false },
       { texto: "No se piden: acá se trabaja el dominio, el interés, el conflicto y el gap si aparece.", ok: true },
-      { texto: "Se piden solo si el caso es el hospital.", ok: false }
+      { texto: "Se piden solo si el caso es el hospital.", ok: false },
+      { texto: "Reemplazan a necesidad, deseo y expectativa.", ok: false }
     ],
     porque: "La pestaña Práctica no es para listar RF. Primero el mundo del problema."
   },
@@ -185,7 +547,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "“El sistema debe estar disponible durante el horario de atención.”", ok: false },
       { texto: "“El sistema debe ser rápido, amigable y seguro.”", ok: true },
-      { texto: "“El sistema debe mostrar el resultado de una consulta en menos de 3 segundos.”", ok: false }
+      { texto: "“El sistema debe mostrar el resultado de una consulta en menos de 3 segundos.”", ok: false },
+      { texto: "“El sistema debe identificar al usuario antes de asociarlo a un préstamo.”", ok: false }
     ],
     porque: "Rápido, amigable y seguro no se prueban. Hace falta una cualidad medible: número, horario o prueba."
   },
@@ -195,17 +558,130 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Solo el renglón escrito en la SRS.", ok: false },
       { texto: "Lo que necesita el usuario, lo que debe satisfacer el sistema, y su representación documentada.", ok: true },
-      { texto: "Cualquier idea que alguien dijo en una reunión.", ok: false }
+      { texto: "Cualquier idea que alguien dijo en una reunión.", ok: false },
+      { texto: "Únicamente un caso de uso con actor.", ok: false }
     ],
     porque: "Las tres son el mismo requerimiento en distintos estados: necesidad del usuario, lo que el sistema satisface, y lo escrito."
   },
+  {
+    clase: "Clase 4",
+    pregunta: "Un requerimiento de usuario, frente a uno de sistema, es:",
+    opciones: [
+      { texto: "Más técnico y con fechas de implementación.", ok: false },
+      { texto: "De alto nivel, en lenguaje natural, sin detalle técnico: describe la necesidad de una persona.", ok: true },
+      { texto: "El mismo texto, pero en inglés.", ok: false },
+      { texto: "Una historia de SCRUM con puntos de esfuerzo.", ok: false }
+    ],
+    porque: "El de sistema traduce con precisión el comportamiento y sirve de base para diseño. Ambos nacen de la misma conversación."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "Los RF dicen qué hace el sistema. Los RFN dicen:",
+    opciones: [
+      { texto: "Qué color tiene cada botón.", ok: false },
+      { texto: "Qué tan bien, bajo qué condiciones de calidad (tiempo, disponibilidad, seguridad…).", ok: true },
+      { texto: "Quién programa cada módulo.", ok: false },
+      { texto: "El presupuesto del proyecto.", ok: false }
+    ],
+    porque: "Formato: El sistema debe + acción/cualidad + objeto + condiciones observables. Atómico, claro, verificable y acordado."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "Elicitar, etimológicamente y en esta clase, es:",
+    opciones: [
+      { texto: "Pedirle al stakeholder “pasame los requerimientos” en un formulario y listo.", ok: false },
+      { texto: "Obtener, hacer salir: trasladar ideas del usuario a requerimientos. Es un proceso social, no un formulario.", ok: true },
+      { texto: "Dibujar la arquitectura antes de hablar con nadie.", ok: false },
+      { texto: "Copiar la SRS de un sistema parecido sin preguntar.", ok: false }
+    ],
+    porque: "Las palabras del stakeholder no son automáticamente un requerimiento. “Que sea fácil” es una pista, no un enunciado."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "La SRS sirve, entre otras cosas, para:",
+    opciones: [
+      { texto: "Diseñar la base de datos al detalle.", ok: false },
+      { texto: "Modelizar lo que se necesita, comunicar (a menudo como contrato) y ser base para testear.", ok: true },
+      { texto: "Reemplazar a los usuarios en las pruebas.", ok: false },
+      { texto: "Documentar solo el logo y el hosting.", ok: false }
+    ],
+    porque: "Si solo lista funciones (entrada-proceso-salida) deja afuera objetivos, restricciones y RFN. El propósito excede la lista de funciones."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "La perspectiva organizacional pide que el sistema:",
+    opciones: [
+      { texto: "Tenga todos los botones que alguien imaginó.", ok: false },
+      { texto: "Baje costos de proceso, se alinee al negocio y sirva a distintos stakeholders; no solo “automatizar”.", ok: true },
+      { texto: "Ignore reglamentos y sindicatos.", ok: false },
+      { texto: "Se pida “porque sí”, sin proceso detrás.", ok: false }
+    ],
+    porque: "Un RF puede estar bien escrito y, aun así, no servirle a la organización si no achica el costo ni le sirve al mostrador."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "Para separar necesidad de deseo, una pregunta útil al entrevistar es:",
+    opciones: [
+      { texto: "¿Qué color les gusta más?", ok: false },
+      { texto: "Si esto no existiera el primer día, ¿el sector podría trabajar?", ok: true },
+      { texto: "¿Qué framework prefieren?", ok: false },
+      { texto: "¿Cuántos programadores hay?", ok: false }
+    ],
+    porque: "Si el sector no puede trabajar sin eso, es necesidad. Si suma adopción o comodidad, es deseo."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "“El sistema debe ser rápido” se vuelve un RFN medible, por ejemplo, así:",
+    opciones: [
+      { texto: "El sistema debe ser bastante rápido.", ok: false },
+      { texto: "El sistema debe mostrar el resultado de una consulta de disponibilidad en menos de 3 segundos en horario de atención.", ok: true },
+      { texto: "El sistema debe ser instantáneo siempre.", ok: false },
+      { texto: "El sistema debe ser al toque.", ok: false }
+    ],
+    porque: "Rendimiento se pregunta: ¿en cuánto tiempo? Palabras que no cierran: rápido, instantáneo, al toque."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "Un buen requerimiento (cuando sí se especifica) debería ser, entre otras cosas:",
+    opciones: [
+      { texto: "Largo, con varios “y” para abarcar todo.", ok: false },
+      { texto: "Atómico, claro, verificable y acordado.", ok: true },
+      { texto: "Técnico: que nombre la base de datos.", ok: false },
+      { texto: "Vago, para dejar margen al programador.", ok: false }
+    ],
+    porque: "Si hay un “y”, casi siempre hay dos requerimientos. Si no se puede imaginar una prueba, no está bien escrito."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "El rol de los requerimientos incluye, según la clase:",
+    opciones: [
+      { texto: "Solo decorar la carpeta del proyecto.", ok: false },
+      { texto: "Acuerdo, contrato, base de diseño, menos defectos, verificación y evolución.", ok: true },
+      { texto: "Reemplazar las pruebas.", ok: false },
+      { texto: "Fijar el sueldo del equipo.", ok: false }
+    ],
+    porque: "Ingeniería de requerimientos es el proceso sistemático de desarrollarlos: cooperativo e iterativo, no solo un documento."
+  },
+  {
+    clase: "Clase 4",
+    pregunta: "Observación, entrevista y prototipo se eligen según:",
+    opciones: [
+      { texto: "Cuál queda más linda en el informe.", ok: false },
+      { texto: "El acceso a la gente, si el conocimiento es tácito o explícito, y el riesgo.", ok: true },
+      { texto: "Lo que pida el framework.", ok: false },
+      { texto: "Siempre se usa solo encuesta.", ok: false }
+    ],
+    porque: "La observación sirve cuando el usuario no puede explicar lo que hace. El prototipo, cuando la idea es vaga. La entrevista, para repreguntar."
+  },
+
   {
     clase: "Clase 5",
     pregunta: "Elicitar, en este curso, es sobre todo:",
     opciones: [
       { texto: "Pedirle al stakeholder “pasame los requerimientos” en un formulario.", ok: false },
       { texto: "Un proceso social: obtener, interpretar, acordar; las palabras del stakeholder no son automáticamente un requerimiento.", ok: true },
-      { texto: "Dibujar la arquitectura antes de hablar con nadie.", ok: false }
+      { texto: "Dibujar la arquitectura antes de hablar con nadie.", ok: false },
+      { texto: "Copiar pantallas de un competidor.", ok: false }
     ],
     porque: "“Que sea fácil” es una pista, no un enunciado. Hay que preguntar, interpretar y volver a preguntar."
   },
@@ -215,7 +691,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "La lista completa de RF y RFN numerados.", ok: false },
       { texto: "Contexto, organización, necesidad, cómo se hace hoy, objetivo y lo que todavía no se sabe.", ok: true },
-      { texto: "El stack tecnológico y las pantallas.", ok: false }
+      { texto: "El stack tecnológico y las pantallas.", ok: false },
+      { texto: "El diagrama de clases final.", ok: false }
     ],
     porque: "En esta etapa el objetivo es comprender. No se espera definir todos los requerimientos."
   },
@@ -225,7 +702,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Falta el logo de la empresa.", ok: false },
       { texto: "No se sabe qué es rápido, qué es seguro, quién lo define ni qué pasa si falla.", ok: true },
-      { texto: "Las transferencias siempre son un deseo, nunca una necesidad.", ok: false }
+      { texto: "Las transferencias siempre son un deseo, nunca una necesidad.", ok: false },
+      { texto: "Hace falta firmarlo ante escribano.", ok: false }
     ],
     porque: "Hay que preguntar y recién después escribir un enunciado verificable."
   },
@@ -234,18 +712,142 @@ const PREGUNTAS_TEORIA = [
     pregunta: "Un buen requerimiento (cuando sí se especifica) debería ser, entre otras cosas:",
     opciones: [
       { texto: "Largo, con varios “y” para abarcar todo.", ok: false },
-      { texto: "Atómico, claro, verificable y acordado.", ok: true },
-      { texto: "Técnico: que nombre la base de datos.", ok: false }
+      { texto: "Claro, preciso, consistente, verificable y factible.", ok: true },
+      { texto: "Técnico: que nombre la base de datos.", ok: false },
+      { texto: "Ambiguo a propósito, para negociar después.", ok: false }
     ],
-    porque: "Si hay un “y”, casi siempre hay dos requerimientos. Si no se puede imaginar una prueba, no está bien escrito."
+    porque: "“Rápido”, “seguro”, “fácil”, “etc.” son banderas rojas. Si admite dos lecturas, todavía no está listo."
   },
+  {
+    clase: "Clase 5",
+    pregunta: "Los procesos centrales de RE según Loucopoulos son:",
+    opciones: [
+      { texto: "Programar, desplegar y vender.", ok: false },
+      { texto: "Elicitación, especificación, validación y gestión.", ok: true },
+      { texto: "Stand-up, retro y demo.", ok: false },
+      { texto: "Análisis, diseño y coding solamente.", ok: false }
+    ],
+    porque: "Los productos de un proceso alimentan al otro. Si la validación falla, se vuelve a elicitar."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "El analista, en RE, no empieza:",
+    opciones: [
+      { texto: "Comprendiendo el problema.", ok: false },
+      { texto: "Escribiendo la lista de RF. Primero: comprender → preguntar → escuchar → interpretar → analizar → especificar → validar.", ok: true },
+      { texto: "Preguntando.", ok: false },
+      { texto: "Escuchando.", ok: false }
+    ],
+    porque: "Deming: si no podés describir lo que hacés como un proceso, no sabés lo que estás haciendo. No es “anotar lo que dijo el cliente”."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "Validar, en RE, es sobre todo:",
+    opciones: [
+      { texto: "Verificar que el código cumple la spec.", ok: false },
+      { texto: "Certificar que se ataca el problema correcto: el modelo contra las intenciones de clientes y usuarios.", ok: true },
+      { texto: "Pasar el linter.", ok: false },
+      { texto: "Firmar el contrato de hosting.", ok: false }
+    ],
+    porque: "No es lo mismo que verificar implementación. Técnicas: revisiones, prototipos, casos de uso, validación con usuarios."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "Especificar, en esta mirada, define:",
+    opciones: [
+      { texto: "Cómo se va a implementar (tablas, clases, APIs).", ok: false },
+      { texto: "El comportamiento deseado y otras propiedades, sin decir cómo se implementa: un contrato del problema.", ok: true },
+      { texto: "Solo el color de la interfaz.", ok: false },
+      { texto: "El cronograma de vacaciones.", ok: false }
+    ],
+    porque: "El input lo da la elicitación. Si falta información, se pide más elicitación. Cada parte dispara validación."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "La elicitación, como producto, crea sobre todo:",
+    opciones: [
+      { texto: "El contrato legal final.", ok: false },
+      { texto: "Modelos cada vez más precisos, no todavía una especificación formal. El propósito es volverse experto del dominio.", ok: true },
+      { texto: "El código de producción.", ok: false },
+      { texto: "El manual de marketing.", ok: false }
+    ],
+    porque: "Empieza con modelos mentales del dominio y se va acercando al software. Corre en paralelo con especificar y validar."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "Un requerimiento es rastreable (trazabilidad) si se sabe, entre otras cosas:",
+    opciones: [
+      { texto: "Solo el color del botón asociado.", ok: false },
+      { texto: "Quién lo sugirió, por qué existe, con qué otros se relaciona y cómo llega a diseño y pruebas.", ok: true },
+      { texto: "En qué servidor está el repo.", ok: false },
+      { texto: "Cuántos likes tuvo en la reunión.", ok: false }
+    ],
+    porque: "Hacia atrás: de la SRS a la fuente. Hacia adelante: al diseño y a las pruebas. Sin eso, “agregar pago online” es un salto a ciegas."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "Los requerimientos cambian porque, entre otras razones:",
+    opciones: [
+      { texto: "El analista nunca debería gestionar cambios.", ok: false },
+      { texto: "Hay errores, el usuario entiende mejor su problema, aparecen límites técnicos, prioridades nuevas o cambia el entorno.", ok: true },
+      { texto: "Solo cambian si el código tiene bugs.", ok: false },
+      { texto: "IEEE prohíbe cambiarlos.", ok: false }
+    ],
+    porque: "Hay más estables (esencia) y más volátiles (instanciación en un ambiente). Un pedido de cambio se identifica, se analiza e impacto, y recién después se implementa."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "“Necesitamos que los clientes puedan pagar fácilmente” se vuelve requerimiento cuando:",
+    opciones: [
+      { texto: "Se copia textual a la SRS.", ok: false },
+      { texto: "Se pregunta qué es “fácilmente” y queda, por ejemplo: pagar con medios ya registrados.", ok: true },
+      { texto: "Se agrega la palabra “ágil”.", ok: false },
+      { texto: "Se pone en negrita.", ok: false }
+    ],
+    porque: "Eso ya se puede discutir, priorizar y probar. La frase original admite mil lecturas."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "En el laboratorio, el contexto del enunciado del dominio es:",
+    opciones: [
+      { texto: "Un PDF inventado en el escritorio.", ok: false },
+      { texto: "El chat con quien quiere la aplicación.", ok: true },
+      { texto: "La documentación del framework.", ok: false },
+      { texto: "Las pantallas de un competidor.", ok: false }
+    ],
+    porque: "No se inventa el dominio. Se entrevista. Si no está en el chat o no lo preguntaste, no lo des por sabido."
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "Al cerrar una exploración de dominio conviene sintetizar, entre otras cosas:",
+    opciones: [
+      { texto: "Solo el stack elegido.", ok: false },
+      { texto: "Stakeholders e interés, al menos un conflicto, y un gap semántico si aparece.", ok: true },
+      { texto: "La lista de librerías npm.", ok: false },
+      { texto: "El diagrama de despliegue.", ok: false }
+    ],
+    porque: "Preguntas que sí sirven: ¿quién pierde si sale mal? ¿Qué hacen hoy? ¿Qué significa “urgente”? ¿Quién decide si dos sectores piden lo contrario?"
+  },
+  {
+    clase: "Clase 5",
+    pregunta: "Gestión de requerimientos no es “un botón más”: si se agrega el pago online de un turno hay que:",
+    opciones: [
+      { texto: "Ignorar agenda, cancelación y obra social.", ok: false },
+      { texto: "Ver qué RF de agenda, cancelación y obra social se tocan (impacto y dependencias).", ok: true },
+      { texto: "Borrar la SRS y empezar de cero.", ok: false },
+      { texto: "Pedírselo solo al diseñador visual.", ok: false }
+    ],
+    porque: "Se gestionan cambios acordados y relaciones entre requerimientos. Sin rastreo no se sabe qué se rompe."
+  },
+
   {
     clase: "Clase 6",
     pregunta: "Loucopoulos define la elicitación como:",
     opciones: [
       { texto: "Traducir lo que dijo el usuario a casos de uso y listo.", ok: false },
       { texto: "Adquirir o sonsacar todo el conocimiento relevante para modelar el dominio del problema.", ok: true },
-      { texto: "Validar la interfaz con un prototipo clickeable.", ok: false }
+      { texto: "Validar la interfaz con un prototipo clickeable.", ok: false },
+      { texto: "Escribir la arquitectura de software.", ok: false }
     ],
     porque: "El objetivo es entender el dominio. Sin ese conocimiento no hay especificación consistente ni completa."
   },
@@ -255,7 +857,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Inventar un número razonable para no frenar.", ok: false },
       { texto: "Volver a elicitar: hay necesidad de más conocimiento.", ok: true },
-      { texto: "Pasar el hueco a un RFN de usabilidad.", ok: false }
+      { texto: "Pasar el hueco a un RFN de usabilidad.", ok: false },
+      { texto: "Cerrar el requerimiento como “a definir”.", ok: false }
     ],
     porque: "Especificación y elicitación se alimentan. El hueco obliga a volver a preguntar."
   },
@@ -265,7 +868,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "El analista se enamora de su propio modelo.", ok: false },
       { texto: "La presencia del observador deforma lo que se observa.", ok: true },
-      { texto: "El usuario copia los requerimientos de un competidor.", ok: false }
+      { texto: "El usuario copia los requerimientos de un competidor.", ok: false },
+      { texto: "El dominio no existe.", ok: false }
     ],
     porque: "Si mirás la ventanilla, ese día pueden atender “como corresponde”. Lo observado no es necesariamente el día a día."
   },
@@ -275,7 +879,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Solo la programación.", ok: false },
       { texto: "La elicitación y también la validación (conocimiento del dominio).", ok: true },
-      { texto: "Solo al usuario, nunca a la validación.", ok: false }
+      { texto: "Solo al usuario, nunca a la validación.", ok: false },
+      { texto: "Únicamente el diseño de pantallas.", ok: false }
     ],
     porque: "Validar no es solo “¿le gusta al usuario?”. También: ¿esto es coherente con el mundo del problema?"
   },
@@ -285,7 +890,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "50 minutos programando y 10 preguntando.", ok: false },
       { texto: "40 para estudiarlo, 15 para revisarlo, 5 para resolverlo.", ok: true },
-      { texto: "30 de brainstorming y 30 de diseño de pantallas.", ok: false }
+      { texto: "30 de brainstorming y 30 de diseño de pantallas.", ok: false },
+      { texto: "60 minutos eligiendo el framework.", ok: false }
     ],
     porque: "Primero el dominio; la “solución” al final es corta si el problema se entendió."
   },
@@ -295,7 +901,8 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Resolverlo eligiendo al que paga.", ok: false },
       { texto: "Detectar al menos uno y dejarlo escrito, sacado del chat.", ok: true },
-      { texto: "Evitarlo para que el dominio quede limpio.", ok: false }
+      { texto: "Evitarlo para que el dominio quede limpio.", ok: false },
+      { texto: "Mandarlo a legal y no anotarlo.", ok: false }
     ],
     porque: "Hacer visible el conflicto es trabajo del analista. No se pide diseñar la solución del conflicto acá, sí detectarlo."
   },
@@ -305,9 +912,109 @@ const PREGUNTAS_TEORIA = [
     opciones: [
       { texto: "Hay que inventar uno típico del dominio (por ejemplo “urgente”).", ok: false },
       { texto: "Se deja vacío: solo se anota si aparece.", ok: true },
-      { texto: "Se copia el ejemplo de la teoría para que no quede en blanco.", ok: false }
+      { texto: "Se copia el ejemplo de la teoría para que no quede en blanco.", ok: false },
+      { texto: "Se pone “no hay stakeholders”.", ok: false }
     ],
     porque: "No se inventan hechos. El gap es “si aparece”."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "Sin conocer el dominio, Loucopoulos marca que no se puede:",
+    opciones: [
+      { texto: "Elegir un color de marca.", ok: false },
+      { texto: "Entender la terminología ni testear consistencia y completitud de una especificación.", ok: true },
+      { texto: "Abrir un editor de código.", ok: false },
+      { texto: "Hacer una reunión de kickoff.", ok: false }
+    ],
+    porque: "El producto de IR, en esta mirada, es conocimiento del dominio, no “la lista de botones”."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "El conocimiento del dominio, como problema de elicitación, suele estar:",
+    opciones: [
+      { texto: "En un único cajón, limpio y sin conflictos.", ok: false },
+      { texto: "Distribuido en fuentes distintas, a menudo conflictivo, y en parte en expertos humanos.", ok: true },
+      { texto: "Solo en el código del sistema viejo.", ok: false },
+      { texto: "Únicamente en el contrato de compra.", ok: false }
+    ],
+    porque: "Personas, planillas, reglamentos, el sistema viejo. Administración y profesionales pueden no contar el mismo “turno”."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "Un sesgo típico del usuario al elicitar es:",
+    opciones: [
+      { texto: "Pedir siempre un glosario.", ok: false },
+      { texto: "Quedar pegado al sistema actual (“la nueva app tiene que tener las mismas pantallas”).", ok: true },
+      { texto: "Hablar demasiado del dominio.", ok: false },
+      { texto: "Validar los modelos que le muestran.", ok: false }
+    ],
+    porque: "El ingeniero también sesga: pregunta lo que ya espera oír o traduce demasiado pronto a diseño."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "Los stakeholders, al elicitar, a menudo:",
+    opciones: [
+      { texto: "Traen la SRS lista y sin huecos.", ok: false },
+      { texto: "No saben qué desean obtener; saben qué les duele. Se expresan con sus términos y conocimiento implícito.", ok: true },
+      { texto: "Tienen todos el mismo requerimiento, dicho igual.", ok: false },
+      { texto: "Ignoran la política del sector.", ok: false }
+    ],
+    porque: "Hay factores políticos y el ambiente de negocios cambia: lo elicitado ayer puede no valer igual mañana."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "Loucopoulos lista técnicas de elicitación. Esta clase se centra en:",
+    opciones: [
+      { texto: "Solo el análisis de código.", ok: false },
+      { texto: "Partir del usuario: entrevistas, cuestionarios, surveys, brainstorming.", ok: true },
+      { texto: "Únicamente reuso de requerimientos de otro país.", ok: false },
+      { texto: "Diseño de base de datos.", ok: false }
+    ],
+    porque: "También hay objetivos/metas, escenarios, formularios, lenguaje natural, reuso y análisis de tareas. No hay técnica universal."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "El análisis de formularios, como técnica, sirve porque:",
+    opciones: [
+      { texto: "Los formularios son siempre RFN.", ok: false },
+      { texto: "Lo que ya se anota en papel o Excel es conocimiento del dominio.", ok: true },
+      { texto: "Reemplaza hablar con el usuario.", ok: false },
+      { texto: "Garantiza que no hay Hawthorne.", ok: false }
+    ],
+    porque: "Escenarios recorren un día de punta a punta. Lenguaje natural hay que interpretarlo, no copiarlo como RF."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "Una entrevista, según el proceso de la clase, incluye al final:",
+    opciones: [
+      { texto: "Empezar a programar lo acordado en voz alta.", ok: false },
+      { texto: "Validar lo obtenido: seguimiento para confirmar supuestos y devolver feedback (“esto entendí; ¿es así?”).", ok: true },
+      { texto: "No tomar notas, para no sesgar.", ok: false },
+      { texto: "Imponer la solución que el analista ya traía.", ok: false }
+    ],
+    porque: "Planeamiento, conducción (sin prejuicios), consolidar minutas y validar. Si nunca se les devolvió lo escrito, no se elicitó en serio."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "En el gráfico, la flecha de especificación hacia elicitación se etiqueta como:",
+    opciones: [
+      { texto: "Feedback del usuario.", ok: false },
+      { texto: "Necesidad de más conocimiento.", ok: true },
+      { texto: "Modelos a validar.", ok: false },
+      { texto: "Conocimiento del dominio.", ok: false }
+    ],
+    porque: "No es un pipeline de una sola pasada. Al especificar aparecen huecos y hay que volver a preguntar."
+  },
+  {
+    clase: "Clase 6",
+    pregunta: "Partir del usuario es el medio más directo, pero resbala porque:",
+    opciones: [
+      { texto: "El usuario siempre entrega RF listos.", ok: false },
+      { texto: "No siempre puede transmitir, puede no querer el sistema y su tiempo es limitado.", ok: true },
+      { texto: "Está prohibido por Loucopoulos.", ok: false },
+      { texto: "Solo funciona con prototipos clickeables.", ok: false }
+    ],
+    porque: "Hay entrevistas abiertas y estructuradas, cuestionarios, surveys y brainstorming. Pide habilidades del analista."
   }
 ];
 
