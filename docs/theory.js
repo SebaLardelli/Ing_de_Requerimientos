@@ -458,7 +458,7 @@ Al entrevistar a un gerente, preguntá: *si esto no existiera el primer día, ¿
 - El **rol** de los requerimientos: acuerdo, contrato, base de diseño, menos defectos, verificación y evolución.
 - La mirada **organizacional**: alinear el sistema con el negocio, no solo “automatizar”.
 - La **SRS**: modeliza lo que se necesita, comunica y sirve para testear.
-- **Funcionales vs no funcionales**, y en la práctica: necesidades, deseos, expectativas, usuario y sistema.
+- **Funcionales vs no funcionales**, y en este laboratorio: necesidades, deseos y expectativas en prosa del dominio.
 
 ## Idea para llevarse
 
@@ -1076,24 +1076,24 @@ Mejor, dos enunciados:
     clase: "Práctica",
     titulo: "Cómo se trabaja la práctica",
     orden: 40,
-    resumen: "El chat es el contexto. De ahí sale el dominio y, después, dos requerimientos de cada tipo. Corregir revisa formato, coherencia y qué mejorar.",
+    resumen: "El chat es el contexto. De ahí sale el dominio y dos de cada una: necesidad, deseo y expectativa. Acá no se escriben requerimientos.",
     contenido: `## Qué se practica acá
 
-En la pestaña **Práctica** no se diseña ni se programa. Se hace el trabajo del analista: preguntar, interpretar y escribir.
+En la pestaña **Práctica** no se diseña ni se programa. Se hace el trabajo del analista: preguntar, interpretar y escribir el dominio.
 
 1. Se abre un caso (Hospital, Biblioteca o uno nuevo).
 2. Se entrevista a la IA. Habla como la persona que **quiere desarrollar una aplicación**.
 3. Ese chat **es el contexto**. No se inventa el dominio en el escritorio.
 4. Se completa el dominio (organización, cómo se hace hoy, objetivo, lo que falta saber).
-5. Se escriben **dos requerimientos de cada tipo**: necesidad, deseo, expectativa, usuario y sistema.
+5. Se escriben **dos necesidades, dos deseos y dos expectativas**, contadas como el problema. **Acá no se escriben requerimientos** de usuario ni de sistema.
 6. **Corregir** revisa el formato, si es coherente con el chat y aconseja qué mejorar. El trabajo queda en **Trabajos**, cerrado, para que cada compañero abra el que le interesa.
 
 ## Relación con las clases
 
 - **Clase 2:** stakeholders, conflictos, gap semántico. Salen de la entrevista.
-- **Clase 3:** el método no reemplaza escribir bien lo pedido.
-- **Clase 4:** necesidades, deseos, expectativas, usuario vs sistema.
-- **Clase 5:** primero el dominio; después los requerimientos.
+- **Clase 3:** el método no reemplaza entender el problema.
+- **Clase 4:** necesidades, deseos y expectativas (en prosa). Usuario vs sistema queda para más adelante.
+- **Clase 5:** primero el dominio.
 
 ## Idea para llevarse
 
@@ -1176,12 +1176,12 @@ La teoría de la **clase 3** (ciclo de vida, Standish, costo de corregir tarde) 
     clase: "Práctica",
     titulo: "Escribir dos de cada tipo (clase 4)",
     orden: 43,
-    resumen: "La práctica pide dos de cada tipo, sacados del chat. Necesidad, deseo y expectativa se cuentan como el dominio, no como un RF.",
+    resumen: "La práctica pide dos necesidades, dos deseos y dos expectativas, sacados del chat y contados como el dominio. No se piden requerimientos.",
     contenido: `## Qué hay que entregar
 
-En este laboratorio se piden **dos de cada uno**. Salen del chat, no se inventan.
+En este laboratorio se piden **dos de cada uno**: necesidad, deseo y expectativa. Salen del chat, no se inventan.
 
-**Necesidad, expectativa y deseo no se escriben como requerimiento** (“el sistema debe…”). Se cuentan como en el dominio del problema.
+**Acá no se piden requerimientos de usuario ni de sistema.** Tampoco se escribe “el sistema debe”. Se cuenta el problema.
 
 ### Necesidad
 
@@ -1205,23 +1205,9 @@ Extras que fomentan la adopción. Suman valor, pero no son indispensables para r
 
 En hospital o biblioteca es lo mismo: contá la situación del dominio, no diseñes la función.
 
-### Requerimientos de usuario
-
-Ahí sí, alto nivel: *El usuario quiere…*
-
-Ejemplo: *El usuario quiere consultar si un libro está disponible antes de acercarse.*
-
-### Requerimientos de sistema
-
-Ahí sí, precisos: *El sistema debe…* con dato, estado o condición observable.
-
-Ejemplo: *El sistema debe actualizar el estado del ejemplar a disponible o prestado al registrar la operación.*
-
 ## Cómo se escribe
 
-Necesidad / expectativa / deseo: un párrafo del dominio, una idea.
-
-Usuario y sistema: enunciado de requerimiento. Pueden hablar de lo mismo en distinto nivel: eso no es repetir, es traducir.`
+Un párrafo del dominio, una idea. Si hay un “y” que mezcla dos problemas, casi siempre hay dos casilleros.`
   },
   {
     slug: "practica-enunciado-dominio",
@@ -1244,7 +1230,7 @@ En esta etapa el objetivo es comprender. **No** se espera definir todos los requ
 
 ## Cómo se obtiene en el laboratorio
 
-Se entrevista. La IA no suelta todo de una vez. Se pregunta, se interpreta, se vuelve a preguntar. Después se completa el formulario de dominio y recién ahí se escriben los dos de cada tipo.
+Se entrevista. La IA no suelta todo de una vez. Se pregunta, se interpreta, se vuelve a preguntar. Después se completa el formulario de dominio y recién ahí se escriben las dos necesidades, dos deseos y dos expectativas.
 
 ## De la frase al requerimiento (después)
 
@@ -1254,7 +1240,7 @@ Eso todavía no es un requerimiento. Hay que preguntar qué es rápido, qué es 
 
 ## Idea para llevarse
 
-Si el dominio está flojo, los diez casilleros van a estar flojos. Primero el mundo del problema; después usuario y sistema como requerimientos.`
+Si el dominio está flojo, los seis casilleros van a estar flojos. Primero el mundo del problema; en este laboratorio no se piden requerimientos de usuario ni de sistema.`
   },
   {
     slug: "resumen-clase-6",
@@ -1377,7 +1363,7 @@ El usuario responde: esto sí, esto no, esto no se entendió, esto falta. Ese fe
 
 El **dominio** alimenta elicitación y validación. El **usuario** alimenta elicitación y validación, y recibe especificación y modelos. **Elicitación y especificación** se prestan conocimiento (y piden más). **Especificación y validación** se prestan modelos y resultados.
 
-Si cortás una flecha, el proceso se vuelve “anotar lo que dijo uno y darlo por cerrado”. En la pestaña Práctica del laboratorio eso se ve claro: el chat es elicitación; el dominio y los diez casilleros son especificación; **Corregir** y el ojo del compañero en Trabajos se parecen a validar — y casi siempre aparece necesidad de más conocimiento.`
+Si cortás una flecha, el proceso se vuelve “anotar lo que dijo uno y darlo por cerrado”. En la pestaña Práctica del laboratorio eso se ve claro: el chat es elicitación; el dominio y los seis casilleros (necesidad, deseo, expectativa) son especificación; **Corregir** y el ojo del compañero en Trabajos se parecen a validar — y casi siempre aparece necesidad de más conocimiento.`
   },
   {
     slug: "clase6-problemas-elicitacion",
@@ -1433,7 +1419,7 @@ Técnicas que propone:
 6. **Reuso de requerimientos** — no inventar desde cero si el dominio ya tuvo sistemas parecidos.
 7. **Análisis de tareas** — qué pasos hace hoy la persona, en qué orden, con qué excepciones.
 
-En el laboratorio, el chat con la IA es **partir del usuario**. El formulario de dominio y los diez casilleros empiezan a parecer especificación. Si falta un dato, la flecha “necesidad de más conocimiento” te manda otra vez al chat.`
+En el laboratorio, el chat con la IA es **partir del usuario**. El formulario de dominio y los seis casilleros empiezan a parecer especificación. Si falta un dato, la flecha “necesidad de más conocimiento” te manda otra vez al chat.`
   },
   {
     slug: "clase6-partiendo-del-usuario",

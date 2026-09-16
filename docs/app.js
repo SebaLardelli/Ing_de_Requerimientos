@@ -20,9 +20,7 @@
   const TIPOS_PRACTICA = [
     { tipo: "necesidad", titulo: "Necesidad" },
     { tipo: "deseo", titulo: "Deseo" },
-    { tipo: "expectativa", titulo: "Expectativa" },
-    { tipo: "usuario", titulo: "Usuario" },
-    { tipo: "sistema", titulo: "Sistema" }
+    { tipo: "expectativa", titulo: "Expectativa" }
   ];
 
   const CASOS = {
@@ -596,7 +594,7 @@
     renderListaTemas();
   }
 
-  const TEORIA_PARCHE_SLUGS = ["practica-escribir-reqs", "rfn-cualidades-medibles"];
+  const TEORIA_PARCHE_SLUGS = ["practica-escribir-reqs", "practica-como-se-trabaja", "practica-enunciado-dominio", "rfn-cualidades-medibles", "resumen-clase-4", "clase6-proceso-loucopoulos", "clase6-partiendo-del-usuario"];
 
   async function parchearTemasTeoria() {
     if (!state.sb || state._parcheTeoria) return;
@@ -607,8 +605,13 @@
       if (!fuente) continue;
       const remoto = state.temas.find((t) => t.slug === slug);
       const ya = String(remoto?.contenido || "");
-      if (slug === "practica-escribir-reqs" && ya.includes("Aplicado a una billetera virtual")) continue;
+      if (slug === "practica-escribir-reqs" && ya.includes("Acá no se piden requerimientos de usuario ni de sistema")) continue;
+      if (slug === "practica-como-se-trabaja" && ya.includes("Acá no se escriben requerimientos")) continue;
+      if (slug === "practica-enunciado-dominio" && ya.includes("no se piden requerimientos de usuario ni de sistema")) continue;
       if (slug === "rfn-cualidades-medibles" && ya.includes("se cuentan en prosa del dominio")) continue;
+      if (slug === "resumen-clase-4" && ya.includes("en este laboratorio: necesidades, deseos y expectativas")) continue;
+      if (slug === "clase6-proceso-loucopoulos" && ya.includes("los seis casilleros (necesidad, deseo, expectativa)")) continue;
+      if (slug === "clase6-partiendo-del-usuario" && ya.includes("los seis casilleros empiezan")) continue;
       const row = {
         slug,
         clase: fuente.clase,
@@ -1083,6 +1086,14 @@
     return state.mensajes.filter((m) => mismoId(m.sesion_id, sesionId));
   }
 
+  function esTipoPractica(tipo) {
+    return TIPOS_PRACTICA.some((d) => d.tipo === tipo);
+  }
+
+  function reqsPractica(sesionId) {
+    return reqsDe(sesionId).filter((r) => esTipoPractica(r.tipo));
+  }
+
   function reqsDe(sesionId) {
     return state.reqs.filter((r) => mismoId(r.sesion_id, sesionId));
   }
@@ -1199,7 +1210,7 @@
     const extras = lista.filter((r) => {
       const deTipo = lista.filter((x) => x.tipo === r.tipo);
       const idx = deTipo.findIndex((x) => x.id === r.id);
-      return idx > 1 || !TIPOS_PRACTICA.some((d) => d.tipo === r.tipo);
+      return idx > 1 && esTipoPractica(r.tipo);
     });
     if (!extras.length) {
       box.innerHTML = "";
@@ -1607,18 +1618,16 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
   }
 
   function promptCorreccionReq() {
-    return `Sos docente de ingeniería de requerimientos. Revisá TODO el trabajo: dominio, los 10 casilleros (necesidad, deseo, expectativa, usuario, sistema) y el chat.
+    return `Sos docente de ingeniería de requerimientos. Revisá TODO el trabajo: dominio, los 6 casilleros (2 necesidades, 2 deseos, 2 expectativas) y el chat.
 
 Mirás cuatro cosas:
 1) FORMATO.
-- Necesidad, deseo y expectativa: prosa del dominio (como el caso de la billetera virtual). NO uses "El sistema debe". Contá el problema o la expectativa en lenguaje de negocio, sacado del chat.
+Necesidad, deseo y expectativa: prosa del dominio (como el caso de la billetera virtual). NO uses "El sistema debe" ni "El usuario quiere". Contá el problema o la expectativa en lenguaje de negocio, sacado del chat.
   Necesidad: el problema de fondo que motiva el proyecto (de qué dependen hoy).
   Expectativa: qué esperan (experiencia, costo, seguridad, no quedar atrás).
   Deseo: extras que fomentan adopción; atractivos pero no indispensables.
-- Usuario: "El usuario quiere…" sin diseño técnico.
-- Sistema: "El sistema debe" + verbo + objeto + condición observable.
-Atómico (una idea por casillero). Si una necesidad/deseo/expectativa está escrita como RF, marcá el formato.
-2) COHERENCIA. Lo escrito tiene que salir del chat. Si un req no se sostiene, o el dominio se contradice, marcalo.
+Atómico (una idea por casillero). Si algo está escrito como requerimiento (RF, RU o RS), marcá el formato.
+2) COHERENCIA. Lo escrito tiene que salir del chat. Si un casillero no se sostiene, o el dominio se contradice, marcalo.
 3) REDACCIÓN. Mayúscula al empezar, punto al final, tildes, ortografía, concordancia y frases claras. Si falta un punto o arranca en minúscula, corregilo.
 4) CONSEJO. Decí qué mejorar: qué preguntar, qué reescribir, qué falta.
 
@@ -1627,7 +1636,7 @@ No inventes hechos. Si falta evidencia en el chat, decilo.
 Devolvé SOLO un JSON válido:
 {
   "formato": "qué tan bien escribieron la forma; 4 a 8 líneas",
-  "coherencia": "si dominio, chat y reqs se sostienen entre sí; 4 a 8 líneas",
+  "coherencia": "si dominio, chat y casilleros se sostienen entre sí; 4 a 8 líneas",
   "redaccion": "mayúsculas, puntos, tildes y claridad; 4 a 8 líneas. Nombrá ejemplos concretos.",
   "consejos": ["consejo concreto 1", "consejo 2", "consejo 3"],
   "dominio": { "contexto": "", "organizacion": "", "hoy": "", "objetivo": "", "desconocido": "" },
@@ -1638,12 +1647,12 @@ Devolvé SOLO un JSON válido:
     { "tipo": "necesidad", "enunciado": "Hoy dependen de… Ese es el problema de fondo.", "fundamento": "En el chat se dijo que..." }
   ]
 }
-correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltantes: máximo 3 y solo si el chat lo sostiene. consejos: 3 a 5, accionables.`;
+correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltantes: máximo 3 y solo si el chat lo sostiene; tipos permitidos: necesidad, deseo, expectativa. consejos: 3 a 5, accionables.`;
   }
 
   function textoEspecificacion(sesion) {
     const d = dominioDe(sesion.id);
-    const reqs = reqsDe(sesion.id).map((r) =>
+    const reqs = reqsPractica(sesion.id).map((r) =>
       `id=${r.id} | ${r.codigo} [${r.tipo}] (${r.autor}): ${r.enunciado}`
     ).join("\n");
     return [
@@ -1656,7 +1665,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       `Objetivo general: ${d.objetivo || "(vacío)"}`,
       `Lo que todavía no sabemos: ${d.desconocido || "(vacío)"}`,
       "",
-      "ESPECIFICACIÓN — REQUERIMIENTOS",
+      "ESPECIFICACIÓN — NECESIDAD, DESEO Y EXPECTATIVA (prosa del dominio, no requerimientos)",
       reqs || "(ninguno escrito)",
       "",
       "CONTEXTO (últimos mensajes del chat)",
@@ -1696,7 +1705,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       `- Hoy: ${dom.hoy || "sin cambios sugeridos"}`,
       `- Objetivo: ${dom.objetivo || "sin cambios sugeridos"}`,
       `- Desconocido: ${dom.desconocido || "sin cambios sugeridos"}`,
-      "## Requerimientos que escribieron",
+      "## Lo que escribieron",
       escritos || "Ninguno.",
       "## Enunciados reescritos",
       corr || "Ninguno hacía falta reescribir.",
@@ -1722,7 +1731,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     await persistirSlotsReq();
     const faltanTipos = slotsIncompletos();
     if (faltanTipos.length) {
-      return toast("Para practicar escribí 2 de cada tipo. Faltan: " + faltanTipos.join(", ") + ".");
+      return toast("Para practicar escribí 2 necesidades, 2 deseos y 2 expectativas. Faltan: " + faltanTipos.join(", ") + ".");
     }
     if (mensajesDe(state.sesionActual.id).filter((m) => m.rol === "analista").length < 1) {
       return toast("El contexto es el chat: hacé al menos una pregunta antes de corregir.");
@@ -1730,7 +1739,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     if (specVacia(state.sesionActual)) {
       return toast("Completá el dominio a partir del chat antes de corregir.");
     }
-    const lista = reqsDe(state.sesionActual.id);
+    const lista = reqsPractica(state.sesionActual.id);
     state.aiBusy = true;
     $("btn-corregir-req").disabled = true;
     $("btn-corregir-req").textContent = "Corrigiendo…";
@@ -1750,13 +1759,13 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
         const req = lista.find((r) => r.id === c.id) || lista.find((r) => r.codigo === c.codigo);
         if (!req || !c.enunciado_corregido) continue;
         req.enunciado = String(c.enunciado_corregido).trim();
-        if (c.tipo) req.tipo = c.tipo;
+        if (c.tipo && esTipoPractica(c.tipo)) req.tipo = c.tipo;
         await upsert("requerimientos", req, LS.reqs, "reqs");
       }
 
       for (const f of data.faltantes || []) {
         if (!f.enunciado) continue;
-        const tipo = f.tipo || "sistema";
+        const tipo = esTipoPractica(f.tipo) ? f.tipo : "necesidad";
         const row = {
           id: uid(),
           sesion_id: state.sesionActual.id,
@@ -1805,7 +1814,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     const msgs = mensajesDe(s.id).map((m) =>
       `<p><strong>${escapeHtml(m.rol === "gerente" ? s.nombre_gerente : "Analista " + m.autor)}</strong> — ${escapeHtml(m.contenido)}</p>`
     ).join("");
-    const reqs = reqsDe(s.id).map((r) =>
+    const reqs = reqsPractica(s.id).map((r) =>
       `<li><strong>${escapeHtml(r.codigo)}</strong> (${escapeHtml(etiquetaTipo(r.tipo))}, ${escapeHtml(r.autor)}): ${escapeHtml(r.enunciado)}</li>`
     ).join("");
     const revs = state.revisionesReq.filter((r) => r.sesion_id === s.id).map((r) =>
@@ -1823,8 +1832,8 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       <p><strong>Hoy.</strong> ${escapeHtml(d.hoy || "sin cargar")}</p>
       <p><strong>Objetivo.</strong> ${escapeHtml(d.objetivo || "sin cargar")}</p>
       <p><strong>Desconocido.</strong> ${escapeHtml(d.desconocido || "sin cargar")}</p>
-      <h3>Requerimientos</h3>
-      <ul>${reqs || "<li>Todavía no escribieron requerimientos.</li>"}</ul>
+      <h3>Necesidades, deseos y expectativas</h3>
+      <ul>${reqs || "<li>Todavía no escribieron el dominio.</li>"}</ul>
       <h3>Chat</h3>
       ${msgs || "<p class='hint'>No hubo entrevista guardada.</p>"}
       <h3>Revisión de la IA</h3>
@@ -1848,14 +1857,14 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       return;
     }
     box.innerHTML = lista.map((s) => {
-      const nReq = reqsDe(s.id).length;
+      const nReq = reqsPractica(s.id).length;
       const abierto = mismoId(state.trabajoAbierto, s.id);
       return `
       <details class="trabajo${abierto ? " abierto" : ""}" data-id="${s.id}" ${abierto ? "open" : ""}>
         <summary class="trabajo-cab">
           <span>
             <strong>${escapeHtml(s.titulo)}</strong>
-            <small>${escapeHtml(s.creado_por || "sin nombre")} · ${nReq} requerimientos · corregido</small>
+            <small>${escapeHtml(s.creado_por || "sin nombre")} · ${nReq} del dominio · corregido</small>
           </span>
           <span class="trabajo-flecha" aria-hidden="true"></span>
         </summary>

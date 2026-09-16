@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=20260915a" />
+  <link rel="stylesheet" href="./styles.css?v=20260915b" />
   <script>
     (function () {
       var t = localStorage.getItem("ir.tema") || "dark";
@@ -55,7 +55,7 @@
       <div class="layout">
         <aside class="card side">
           <h2>Temas</h2>
-          <p class="hint">Hay teoría por clase y un bloque de Práctica: cómo entrevistar, escribir los requerimientos y armar el dominio. Se pueden agregar clases y apartados.</p>
+          <p class="hint">Hay teoría por clase y un bloque de Práctica: cómo entrevistar, armar el dominio y contar necesidades, deseos y expectativas. Se pueden agregar clases y apartados.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn small" id="btn-nueva-clase" type="button">+ Clase</button>
           </div>
@@ -127,8 +127,8 @@
 
         <div class="card block">
           <div class="kicker">Especificación</div>
-          <h2>Dominio y requerimientos</h2>
-          <p class="hint">El contexto es el chat de la izquierda. De ahí sale el dominio (clase 5) y, para practicar, <strong>dos requerimientos de cada tipo</strong> (clase 4).</p>
+          <h2>Dominio del problema</h2>
+          <p class="hint">El contexto es el chat de la izquierda. De ahí sale el dominio (clase 5) y, para practicar, <strong>dos necesidades, dos deseos y dos expectativas</strong> contadas como el problema (clase 4). Acá no se escriben requerimientos.</p>
 
           <div class="field">
             <label for="dom-contexto">Síntesis del contexto (del chat)</label>
@@ -156,8 +156,7 @@
           </div>
 
           <h3 style="margin-top:18px">Del dominio: 2 de cada tipo</h3>
-          <p class="hint">Salen del chat. Necesidad, expectativa y deseo se <strong>cuentan</strong> como el problema, no se escriben como “el sistema debe”.<br>
-          Usuario: <code>El usuario quiere…</code>. Sistema: <code>El sistema debe…</code> (eso sí es requerimiento).</p>
+          <p class="hint">Salen del chat. Se <strong>cuentan</strong> como el problema. No se escriben como requerimiento (“el sistema debe” / “el usuario quiere”).</p>
 
           <div class="req-grupo">
             <h4>Necesidades</h4>
@@ -173,16 +172,6 @@
             <h4>Expectativas</h4>
             <textarea id="req-expectativa-0" class="req-slot" rows="3" placeholder="Qué esperan: experiencia, costo, seguridad, no quedar atrás. No es un RF."></textarea>
             <textarea id="req-expectativa-1" class="req-slot" rows="3" placeholder="Otra expectativa de calidad o de negocio, en prosa."></textarea>
-          </div>
-          <div class="req-grupo">
-            <h4>Requerimientos de usuario</h4>
-            <input id="req-usuario-0" class="req-slot" placeholder="1. El usuario quiere…" />
-            <input id="req-usuario-1" class="req-slot" placeholder="2. El usuario quiere…" />
-          </div>
-          <div class="req-grupo">
-            <h4>Requerimientos de sistema</h4>
-            <input id="req-sistema-0" class="req-slot" placeholder="1. El sistema debe… (preciso, verificable)" />
-            <input id="req-sistema-1" class="req-slot" placeholder="2. El sistema debe… (preciso, verificable)" />
           </div>
 
           <div class="row" style="margin-top:8px">
@@ -270,7 +259,7 @@
   <script src="./config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="./theory.js?v=20260915a"></script>
-  <script src="./app.js?v=20260915a"></script>
+  <script src="./theory.js?v=20260915b"></script>
+  <script src="./app.js?v=20260915b"></script>
 </body>
 </html>
