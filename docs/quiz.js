@@ -363,3 +363,6 @@ const PUNTOS_CLASE6 = [
     guia: "El usuario responde: esto sí, esto no, esto no se entendió, esto falta. Ese feedback es insumo de la validación, no un comentario al margen."
   }
 ];
+
+window.PREGUNTAS_TEORIA = PREGUNTAS_TEORIA;
+window.PUNTOS_CLASE6 = PUNTOS_CLASE6;

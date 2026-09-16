@@ -2284,6 +2284,10 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     const box = $("quiz-estudio");
     if (!box) return;
     const banco = bancoPreguntas();
+    if (!banco.length) {
+      box.innerHTML = `<p class="hint">No se pudo cargar el banco de preguntas. Recargá con Ctrl+F5.</p>`;
+      return;
+    }
     box.innerHTML = htmlQuiz(banco, { id: "quiz-estudio-inner" });
     cablearQuiz(banco, { id: "quiz-estudio-inner" });
   }
