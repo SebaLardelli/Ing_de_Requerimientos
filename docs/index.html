@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=20260916a" />
+  <link rel="stylesheet" href="./styles.css?v=20260916b" />
   <script>
     (function () {
       var t = localStorage.getItem("ir.tema") || "dark";
@@ -129,7 +129,7 @@
         <div class="card block">
           <div class="kicker">Especificación</div>
           <h2>Dominio del problema</h2>
-          <p class="hint">El contexto es el chat de la izquierda. De ahí sale el dominio (clase 5) y, para practicar, <strong>dos necesidades, dos deseos y dos expectativas</strong> contadas como el problema (clase 4). Acá no se escriben requerimientos.</p>
+          <p class="hint">El contexto es el chat de la izquierda. De ahí sale el dominio, el interés o necesidad, un conflicto y —si aparece— un gap semántico. Después, <strong>dos necesidades, dos deseos y dos expectativas</strong> contadas como el problema. Acá no se escriben requerimientos de usuario ni de sistema.</p>
 
           <div class="field">
             <label for="dom-contexto">Síntesis del contexto (del chat)</label>
@@ -151,6 +151,24 @@
             <label for="dom-desconocido">Lo que todavía no sabemos</label>
             <textarea id="dom-desconocido" rows="2" placeholder="Información que falta obtener en el chat"></textarea>
           </div>
+
+          <h3 style="margin-top:18px">De la entrevista</h3>
+          <p class="hint">Salen del chat (clase 2). El gap semántico solo si aparece: si no, dejalo vacío.</p>
+          <div class="field">
+            <label for="dom-interes">Interés o necesidad</label>
+            <textarea id="dom-interes" rows="2" placeholder="Quién necesita qué, y por qué le importa."></textarea>
+            <p class="hint">Ejemplo: <em>Administración necesita ordenar los turnos para que el paciente no dependa de la ventanilla y de las llamadas.</em></p>
+          </div>
+          <div class="field">
+            <label for="dom-conflicto">Conflicto (al menos uno)</label>
+            <textarea id="dom-conflicto" rows="2" placeholder="Dos partes que quieren cosas que no se pueden cumplir a la vez."></textarea>
+            <p class="hint">Ejemplo: <em>El médico quiere menos carga de agenda; administración quiere menos huecos vacíos; el paciente quiere elegir horario.</em></p>
+          </div>
+          <div class="field">
+            <label for="dom-gap">Gap semántico (si aparece)</label>
+            <textarea id="dom-gap" rows="2" placeholder="La misma palabra, dos significados. Si no apareció en el chat, dejalo vacío."></textarea>
+            <p class="hint">Ejemplo: <em>“Urgente” para administración es “llegó sin turno”; para el médico es “no puede esperar”.</em></p>
+          </div>
           <div class="row">
             <button class="btn" id="btn-guardar-dominio" type="button">Guardar dominio</button>
             <button class="btn ghost" id="btn-sintesis-ia" type="button">Pedir síntesis a la IA</button>
@@ -161,17 +179,23 @@
 
           <div class="req-grupo">
             <h4>Necesidades</h4>
-            <textarea id="req-necesidad-0" class="req-slot" rows="3" placeholder="El problema de fondo: de qué dependen hoy y por qué eso motiva el proyecto."></textarea>
+            <p class="hint">El problema de fondo: de qué dependen hoy y por qué eso motiva el proyecto.</p>
+            <p class="hint">Ejemplo (billetera virtual): <em>Los clientes dependen de la sucursal o de transferencias tradicionales lentas y complicadas para manejar sus pagos. Ese es el problema de fondo que motiva todo el proyecto.</em></p>
+            <textarea id="req-necesidad-0" class="req-slot" rows="3" placeholder="Primera necesidad del dominio, en prosa, sacada del chat."></textarea>
             <textarea id="req-necesidad-1" class="req-slot" rows="3" placeholder="Otra necesidad del dominio, en prosa, sacada del chat."></textarea>
           </div>
           <div class="req-grupo">
             <h4>Deseos</h4>
-            <textarea id="req-deseo-0" class="req-slot" rows="3" placeholder="Un extra atractivo que suma, pero el proyecto podría arrancar sin él."></textarea>
+            <p class="hint">Un extra atractivo que suma, pero el proyecto podría arrancar sin él.</p>
+            <p class="hint">Ejemplo (billetera virtual): <em>Los beneficios adicionales para fomentar la adopción, como devolución de un porcentaje en pagos, sorteos mensuales o descuentos en comercios asociados. Son atractivos y suman valor, pero no son indispensables para que la billetera resuelva el problema central.</em></p>
+            <textarea id="req-deseo-0" class="req-slot" rows="3" placeholder="Primer deseo del dominio. No es indispensable."></textarea>
             <textarea id="req-deseo-1" class="req-slot" rows="3" placeholder="Otro deseo del dominio. No es indispensable."></textarea>
           </div>
           <div class="req-grupo">
             <h4>Expectativas</h4>
-            <textarea id="req-expectativa-0" class="req-slot" rows="3" placeholder="Qué esperan: experiencia, costo, seguridad, no quedar atrás. No es un RF."></textarea>
+            <p class="hint">Qué esperan: experiencia, costo, seguridad, no quedar atrás. No es un RF.</p>
+            <p class="hint">Ejemplo (billetera virtual): <em>Que la billetera mejore la experiencia del cliente, que no genere un costo extra (o que el beneficio lo justifique), que sea segura tanto en transacciones como en datos, y que ayude a la empresa a no quedar atrás frente a competidores como Mercado Pago o Modo.</em></p>
+            <textarea id="req-expectativa-0" class="req-slot" rows="3" placeholder="Primera expectativa de calidad o de negocio, en prosa."></textarea>
             <textarea id="req-expectativa-1" class="req-slot" rows="3" placeholder="Otra expectativa de calidad o de negocio, en prosa."></textarea>
           </div>
 
@@ -260,7 +284,7 @@
   <script src="./config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="./theory.js?v=20260916a"></script>
-  <script src="./app.js?v=20260916a"></script>
+  <script src="./theory.js?v=20260916b"></script>
+  <script src="./app.js?v=20260916b"></script>
 </body>
 </html>

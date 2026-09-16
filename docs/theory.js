@@ -1076,7 +1076,7 @@ Mejor, dos enunciados:
     clase: "Práctica",
     titulo: "Cómo se trabaja la práctica",
     orden: 40,
-    resumen: "El chat es el contexto. De ahí sale el dominio y dos de cada una: necesidad, deseo y expectativa. Acá no se escriben requerimientos.",
+    resumen: "El chat es el contexto. Se escribe el dominio, el interés o necesidad, un conflicto y un gap semántico si aparece. Después, necesidad, deseo y expectativa. Acá no se escriben requerimientos.",
     contenido: `## Qué se practica acá
 
 En la pestaña **Práctica** no se diseña ni se programa. Se hace el trabajo del analista: preguntar, interpretar y escribir el dominio.
@@ -1085,12 +1085,13 @@ En la pestaña **Práctica** no se diseña ni se programa. Se hace el trabajo de
 2. Se entrevista a la IA. Habla como la persona que **quiere desarrollar una aplicación**.
 3. Ese chat **es el contexto**. No se inventa el dominio en el escritorio.
 4. Se completa el dominio (organización, cómo se hace hoy, objetivo, lo que falta saber).
-5. Se escriben **dos necesidades, dos deseos y dos expectativas**, contadas como el problema. **Acá no se escriben requerimientos** de usuario ni de sistema.
-6. **Corregir** revisa el formato, si es coherente con el chat y aconseja qué mejorar. El trabajo queda en **Trabajos**, cerrado, para que cada compañero abra el que le interesa.
+5. Se escribe el **interés o necesidad**, se detecta **al menos un conflicto** y, **si aparece**, un **gap semántico**.
+6. Se escriben **dos necesidades, dos deseos y dos expectativas**, contadas como el problema. **Acá no se escriben requerimientos** de usuario ni de sistema.
+7. **Corregir** revisa el formato, si es coherente con el chat y aconseja qué mejorar. El trabajo queda en **Trabajos**, cerrado, para que cada compañero abra el que le interesa.
 
 ## Relación con las clases
 
-- **Clase 2:** stakeholders, conflictos, gap semántico. Salen de la entrevista.
+- **Clase 2:** interés o necesidad, conflicto, gap semántico. Salen de la entrevista.
 - **Clase 3:** el método no reemplaza entender el problema.
 - **Clase 4:** necesidades, deseos y expectativas (en prosa). Usuario vs sistema queda para más adelante.
 - **Clase 5:** primero el dominio.
@@ -1118,13 +1119,13 @@ Durante la conversación tenés que poder:
 
 ## Síntesis que se espera
 
-Al cerrar la entrevista, dejá por escrito:
+Al cerrar la entrevista, dejá por escrito en los casilleros de la práctica:
 
-1. Cinco stakeholders y el interés principal de cada uno.
-2. Un conflicto posible.
-3. Un ejemplo de gap semántico.
+1. El **interés o necesidad** (quién necesita qué y por qué).
+2. Al menos un **conflicto**.
+3. Un **gap semántico** si aparece: la misma palabra, dos significados. Si no apareció, el casillero queda vacío.
 
-Eso se puede anotar en “lo que todavía no sabemos” o en la síntesis del contexto. El objetivo no es diseñar el sistema.
+El objetivo no es diseñar el sistema ni escribir requerimientos de usuario o de sistema.
 
 ## Cómo preguntar
 
@@ -1230,7 +1231,7 @@ En esta etapa el objetivo es comprender. **No** se espera definir todos los requ
 
 ## Cómo se obtiene en el laboratorio
 
-Se entrevista. La IA no suelta todo de una vez. Se pregunta, se interpreta, se vuelve a preguntar. Después se completa el formulario de dominio y recién ahí se escriben las dos necesidades, dos deseos y dos expectativas.
+Se entrevista. La IA no suelta todo de una vez. Se pregunta, se interpreta, se vuelve a preguntar. Después se completa el formulario de dominio, el interés o necesidad, el conflicto y el gap si aparece, y recién ahí las dos necesidades, dos deseos y dos expectativas.
 
 ## De la frase al requerimiento (después)
 

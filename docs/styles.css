@@ -467,6 +467,7 @@ a { color: var(--accent); }
   font-weight: 700;
   letter-spacing: -0.02em;
 }
+.req-grupo .hint { margin: 0 0 8px; }
 .req-slot {
   width: 100%;
   margin: 0 0 6px;

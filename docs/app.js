@@ -400,15 +400,62 @@
   }
 
   function filaDominio(d) {
+    const extra = unpackDominio(d);
     return {
       sesion_id: d.sesion_id,
-      contexto: d.contexto || "",
-      organizacion: d.organizacion || d.org || "",
-      hoy: d.hoy || "",
-      objetivo: d.objetivo || "",
-      desconocido: d.desconocido || "",
+      contexto: extra.contexto || d.contexto || "",
+      organizacion: extra.org || d.organizacion || d.org || "",
+      hoy: extra.hoy || d.hoy || "",
+      objetivo: extra.objetivo || d.objetivo || "",
+      desconocido: packDesconocido({
+        desconocido: extra.desconocido || d.desconocido || "",
+        interes: extra.interes || d.interes || "",
+        conflicto: extra.conflicto || d.conflicto || "",
+        gap: extra.gap || d.gap || ""
+      }),
       autor: d.autor || "",
       actualizado_en: d.actualizado_en || now()
+    };
+  }
+
+  const MARCA_CLASE2 = "<!--ir-clase2-->";
+
+  function packDesconocido(d) {
+    const limpio = String(d.desconocido || "").replace(/\n*<!--ir-clase2-->[\s\S]*$/, "").trim();
+    const extra = {
+      interes: String(d.interes || "").trim(),
+      conflicto: String(d.conflicto || "").trim(),
+      gap: String(d.gap || "").trim()
+    };
+    if (!extra.interes && !extra.conflicto && !extra.gap) return limpio;
+    return (limpio ? limpio + "\n\n" : "") + MARCA_CLASE2 + JSON.stringify(extra);
+  }
+
+  function unpackDominio(d) {
+    const raw = String(d.desconocido || "");
+    const idx = raw.indexOf(MARCA_CLASE2);
+    let desconocido = raw;
+    let interes = d.interes || "";
+    let conflicto = d.conflicto || "";
+    let gap = d.gap || "";
+    if (idx >= 0) {
+      desconocido = raw.slice(0, idx).trim();
+      try {
+        const extra = JSON.parse(raw.slice(idx + MARCA_CLASE2.length).trim() || "{}");
+        interes = extra.interes || interes;
+        conflicto = extra.conflicto || conflicto;
+        gap = extra.gap || gap;
+      } catch (_) { /* el texto viejo se deja en desconocido */ }
+    }
+    return {
+      contexto: d.contexto || "",
+      org: d.org || d.organizacion || "",
+      hoy: d.hoy || "",
+      objetivo: d.objetivo || "",
+      desconocido,
+      interes,
+      conflicto,
+      gap
     };
   }
 
@@ -594,7 +641,7 @@
     renderListaTemas();
   }
 
-  const TEORIA_PARCHE_SLUGS = ["practica-escribir-reqs", "practica-como-se-trabaja", "practica-enunciado-dominio", "rfn-cualidades-medibles", "resumen-clase-4", "clase6-proceso-loucopoulos", "clase6-partiendo-del-usuario"];
+  const TEORIA_PARCHE_SLUGS = ["practica-escribir-reqs", "practica-como-se-trabaja", "practica-enunciado-dominio", "practica-entrevista-dominio", "rfn-cualidades-medibles", "resumen-clase-4", "clase6-proceso-loucopoulos", "clase6-partiendo-del-usuario"];
 
   async function parchearTemasTeoria() {
     if (!state.sb || state._parcheTeoria) return;
@@ -606,7 +653,8 @@
       const remoto = state.temas.find((t) => t.slug === slug);
       const ya = String(remoto?.contenido || "");
       if (slug === "practica-escribir-reqs" && ya.includes("Acá no se piden requerimientos de usuario ni de sistema")) continue;
-      if (slug === "practica-como-se-trabaja" && ya.includes("Acá no se escriben requerimientos")) continue;
+      if (slug === "practica-como-se-trabaja" && ya.includes("interés o necesidad**, se detecta")) continue;
+      if (slug === "practica-entrevista-dominio" && ya.includes("casilleros de la práctica")) continue;
       if (slug === "practica-enunciado-dominio" && ya.includes("no se piden requerimientos de usuario ni de sistema")) continue;
       if (slug === "rfn-cualidades-medibles" && ya.includes("se cuentan en prosa del dominio")) continue;
       if (slug === "resumen-clase-4" && ya.includes("en este laboratorio: necesidades, deseos y expectativas")) continue;
@@ -1137,13 +1185,7 @@
   function dominioDe(sesionId) {
     const sid = String(sesionId || "");
     const d = state.dominios[sid] || state.dominios[sesionId] || loadJSON(LS.dominio, {})[sid] || {};
-    return {
-      contexto: d.contexto || "",
-      org: d.org || d.organizacion || "",
-      hoy: d.hoy || "",
-      objetivo: d.objetivo || "",
-      desconocido: d.desconocido || ""
-    };
+    return unpackDominio(d);
   }
 
   function renderChat() {
@@ -1239,7 +1281,7 @@
   function renderReqs() {
     const box = $("lista-req");
     if (!state.sesionActual) {
-      box.innerHTML = "<p class='hint'>Los requerimientos quedan atados al caso que estén entrevistando.</p>";
+      box.innerHTML = "<p class='hint'>Lo escrito queda atado al caso que estén entrevistando.</p>";
       return;
     }
     const lista = reqsDe(state.sesionActual.id);
@@ -1267,7 +1309,7 @@
     if (!s) {
       $("sesion-titulo").textContent = "Todavía no hay un caso abierto";
       $("sesion-meta").textContent = "Elegí un escenario o pedile a la IA uno nuevo. El chat es el contexto.";
-      ["dom-contexto", "dom-org", "dom-hoy", "dom-objetivo", "dom-desconocido"].forEach((id) => { $(id).value = ""; });
+      ["dom-contexto", "dom-org", "dom-hoy", "dom-objetivo", "dom-desconocido", "dom-interes", "dom-conflicto", "dom-gap"].forEach((id) => { $(id).value = ""; });
       pintarSlotsReq([]);
       renderChat();
       renderReqs();
@@ -1281,6 +1323,9 @@
     $("dom-hoy").value = d.hoy || "";
     $("dom-objetivo").value = d.objetivo || "";
     $("dom-desconocido").value = d.desconocido || "";
+    $("dom-interes").value = d.interes || "";
+    $("dom-conflicto").value = d.conflicto || "";
+    $("dom-gap").value = d.gap || "";
     pintarSlotsReq(reqsDe(s.id));
     renderChat();
     renderReqs();
@@ -1591,7 +1636,10 @@ Evitá hospital y biblioteca. Elegí un dominio cotidiano argentino (club, munic
         {
           role: "system",
           content: `Sos docente de ingeniería de requerimientos. A partir de la entrevista, devolvés un JSON con:
-contexto, organizacion, hoy, objetivo, desconocido, stakeholders (array de {nombre, interes}), conflicto, gap.
+contexto, organizacion, hoy, objetivo, desconocido, interes, conflicto, gap.
+interes: el interés o necesidad de quien pide el cambio (quién necesita qué y por qué).
+conflicto: al menos un conflicto entre stakeholders, si el chat lo sostiene.
+gap: un gap semántico (misma palabra, dos significados) SOLO si aparece en el chat; si no, string vacío.
 No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español formal y breve.`
         },
         { role: "user", content: texto }
@@ -1601,13 +1649,11 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
       $("dom-org").value = d.organizacion || "";
       $("dom-hoy").value = d.hoy || "";
       $("dom-objetivo").value = d.objetivo || "";
-      const extra = [
-        d.desconocido || "",
-        d.stakeholders ? "Stakeholders: " + d.stakeholders.map((s) => `${s.nombre} (${s.interes})`).join("; ") : "",
-        d.conflicto ? "Conflicto: " + d.conflicto : "",
-        d.gap ? "Gap semántico: " + d.gap : ""
-      ].filter(Boolean).join("\n");
-      $("dom-desconocido").value = extra;
+      $("dom-desconocido").value = d.desconocido || "";
+      const stakeholders = (d.stakeholders || []).map((s) => `${s.nombre} (${s.interes})`).filter(Boolean).join("; ");
+      $("dom-interes").value = d.interes || stakeholders || "";
+      $("dom-conflicto").value = d.conflicto || "";
+      $("dom-gap").value = d.gap || "";
       await persistirDominio();
       toast("Síntesis cargada. Revísenla: la IA puede haberse equivocado.");
     } catch (err) {
@@ -1626,13 +1672,25 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
       hoy: $("dom-hoy").value,
       objetivo: $("dom-objetivo").value,
       desconocido: $("dom-desconocido").value,
+      interes: $("dom-interes")?.value || "",
+      conflicto: $("dom-conflicto")?.value || "",
+      gap: $("dom-gap")?.value || "",
       autor: state.nombre,
       actualizado_en: now()
     };
     state.dominios[row.sesion_id] = row;
     saveJSON(LS.dominios, state.dominios);
     const all = loadJSON(LS.dominio, {});
-    all[row.sesion_id] = { contexto: row.contexto, org: row.organizacion, hoy: row.hoy, objetivo: row.objetivo, desconocido: row.desconocido };
+    all[row.sesion_id] = {
+      contexto: row.contexto,
+      org: row.organizacion,
+      hoy: row.hoy,
+      objetivo: row.objetivo,
+      desconocido: row.desconocido,
+      interes: row.interes,
+      conflicto: row.conflicto,
+      gap: row.gap
+    };
     saveJSON(LS.dominio, all);
     try {
       if (state.sb) {
@@ -1654,7 +1712,7 @@ No inventes lo que no se insinuó: si falta, ponelo en desconocido. Español for
   }
 
   function promptCorreccionReq() {
-    return `Sos docente de ingeniería de requerimientos. Revisá TODO el trabajo: dominio, los 6 casilleros (2 necesidades, 2 deseos, 2 expectativas) y el chat.
+    return `Sos docente de ingeniería de requerimientos. Revisá TODO el trabajo: dominio, entrevista (interés o necesidad, conflicto, gap semántico si aparece), los 6 casilleros (2 necesidades, 2 deseos, 2 expectativas) y el chat.
 
 Mirás cuatro cosas:
 1) FORMATO.
@@ -1663,6 +1721,9 @@ Necesidad, deseo y expectativa: prosa del dominio (como el caso de la billetera 
   Expectativa: qué esperan (experiencia, costo, seguridad, no quedar atrás).
   Deseo: extras que fomentan adopción; atractivos pero no indispensables.
 Atómico (una idea por casillero). Si algo está escrito como requerimiento (RF, RU o RS), marcá el formato.
+Interés o necesidad: quién necesita qué y por qué, sacado del chat.
+Conflicto: al menos uno, entre stakeholders.
+Gap semántico: solo si aparece en el chat (misma palabra, dos significados). Si no apareció, no lo inventes.
 2) COHERENCIA. Lo escrito tiene que salir del chat. Si un casillero no se sostiene, o el dominio se contradice, marcalo.
 3) REDACCIÓN. Mayúscula al empezar, punto al final, tildes, ortografía, concordancia y frases claras. Si falta un punto o arranca en minúscula, corregilo.
 4) CONSEJO. Decí qué mejorar: qué preguntar, qué reescribir, qué falta.
@@ -1675,7 +1736,7 @@ Devolvé SOLO un JSON válido:
   "coherencia": "si dominio, chat y casilleros se sostienen entre sí; 4 a 8 líneas",
   "redaccion": "mayúsculas, puntos, tildes y claridad; 4 a 8 líneas. Nombrá ejemplos concretos.",
   "consejos": ["consejo concreto 1", "consejo 2", "consejo 3"],
-  "dominio": { "contexto": "", "organizacion": "", "hoy": "", "objetivo": "", "desconocido": "" },
+  "dominio": { "contexto": "", "organizacion": "", "hoy": "", "objetivo": "", "desconocido": "", "interes": "", "conflicto": "", "gap": "" },
   "correcciones": [
     { "id": "id", "codigo": "RF1", "tipo": "necesidad", "enunciado_original": "...", "enunciado_corregido": "...", "motivo": "formato, coherencia o redacción" }
   ],
@@ -1700,6 +1761,9 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       `Cómo se hace hoy: ${d.hoy || "(vacío)"}`,
       `Objetivo general: ${d.objetivo || "(vacío)"}`,
       `Lo que todavía no sabemos: ${d.desconocido || "(vacío)"}`,
+      `Interés o necesidad: ${d.interes || "(vacío)"}`,
+      `Conflicto: ${d.conflicto || "(vacío)"}`,
+      `Gap semántico: ${d.gap || "(no apareció o vacío)"}`,
       "",
       "ESPECIFICACIÓN — NECESIDAD, DESEO Y EXPECTATIVA (prosa del dominio, no requerimientos)",
       reqs || "(ninguno escrito)",
@@ -1711,7 +1775,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
 
   function specVacia(sesion) {
     const d = dominioDe(sesion.id);
-    const hayDom = [d.contexto, d.org, d.hoy, d.objetivo, d.desconocido].some((x) => String(x || "").trim());
+    const hayDom = [d.contexto, d.org, d.hoy, d.objetivo, d.desconocido, d.interes, d.conflicto, d.gap].some((x) => String(x || "").trim());
     return !hayDom && slotsIncompletos().length === TIPOS_PRACTICA.length;
   }
 
@@ -1741,6 +1805,9 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       `- Hoy: ${dom.hoy || "sin cambios sugeridos"}`,
       `- Objetivo: ${dom.objetivo || "sin cambios sugeridos"}`,
       `- Desconocido: ${dom.desconocido || "sin cambios sugeridos"}`,
+      `- Interés o necesidad: ${dom.interes || "sin cambios sugeridos"}`,
+      `- Conflicto: ${dom.conflicto || "sin cambios sugeridos"}`,
+      `- Gap semántico: ${dom.gap || "sin cambios sugeridos"}`,
       "## Lo que escribieron",
       escritos || "Ninguno.",
       "## Enunciados reescritos",
@@ -1757,6 +1824,9 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     if (dom.hoy) $("dom-hoy").value = dom.hoy;
     if (dom.objetivo) $("dom-objetivo").value = dom.objetivo;
     if (dom.desconocido) $("dom-desconocido").value = dom.desconocido;
+    if (dom.interes) $("dom-interes").value = dom.interes;
+    if (dom.conflicto) $("dom-conflicto").value = dom.conflicto;
+    if (dom.gap) $("dom-gap").value = dom.gap;
     await persistirDominio({ silent: true });
   }
 
@@ -1768,6 +1838,12 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     const faltanTipos = slotsIncompletos();
     if (faltanTipos.length) {
       return toast("Para practicar escribí 2 necesidades, 2 deseos y 2 expectativas. Faltan: " + faltanTipos.join(", ") + ".");
+    }
+    if (!($("dom-interes")?.value || "").trim()) {
+      return toast("Escribí el interés o necesidad que salió de la entrevista.");
+    }
+    if (!($("dom-conflicto")?.value || "").trim()) {
+      return toast("Detectá al menos un conflicto entre quienes intervienen.");
     }
     if (mensajesDe(state.sesionActual.id).filter((m) => m.rol === "analista").length < 1) {
       return toast("El contexto es el chat: hacé al menos una pregunta antes de corregir.");
@@ -1868,6 +1944,9 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       <p><strong>Hoy.</strong> ${escapeHtml(d.hoy || "sin cargar")}</p>
       <p><strong>Objetivo.</strong> ${escapeHtml(d.objetivo || "sin cargar")}</p>
       <p><strong>Desconocido.</strong> ${escapeHtml(d.desconocido || "sin cargar")}</p>
+      <p><strong>Interés o necesidad.</strong> ${escapeHtml(d.interes || "sin cargar")}</p>
+      <p><strong>Conflicto.</strong> ${escapeHtml(d.conflicto || "sin cargar")}</p>
+      <p><strong>Gap semántico.</strong> ${escapeHtml(d.gap || "no apareció")}</p>
       <h3>Necesidades, deseos y expectativas</h3>
       <ul>${reqs || "<li>Todavía no escribieron el dominio.</li>"}</ul>
       <h3>Chat</h3>
