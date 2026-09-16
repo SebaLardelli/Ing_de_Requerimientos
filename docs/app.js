@@ -57,7 +57,8 @@
     canales: [],
     aiBusy: false,
     trabajoAbierto: null,
-    aulaError: ""
+    aulaError: "",
+    hlColor: "amarillo"
   };
 
   const $ = (id) => document.getElementById(id);
@@ -1041,40 +1042,83 @@
     ta.setSelectionRange(cursor, cursor);
   }
 
-  function envolverNegritaTeoria() {
-    const ta = $("teoria-md");
-    if (!ta) return;
+  const COLORES_MARCA = ["amarillo", "verde", "rosa", "celeste", "violeta", "naranja"];
+
+  function pintarPaletaMarca() {
+    document.querySelectorAll(".hl-dot").forEach((btn) => {
+      btn.setAttribute("aria-pressed", btn.dataset.hl === state.hlColor ? "true" : "false");
+    });
+  }
+
+  function rangoMarcaTeoria(ta) {
     const start = ta.selectionStart ?? 0;
     const end = ta.selectionEnd ?? start;
-    const sel = ta.value.slice(start, end);
-    const alrededor = ta.value.slice(Math.max(0, start - 2), start) === "**"
-      && ta.value.slice(end, end + 2) === "**";
-    const yaMarcado = /^\*\*[\s\S]*\*\*$/.test(sel);
+    const val = ta.value;
+    const sel = val.slice(start, end);
+    const exacto = sel.match(/^<mark class="hl-(\w+)">([\s\S]*)<\/mark>$/);
+    if (exacto) return { from: start, to: end, color: exacto[1], inner: exacto[2] };
+    const abierto = val.lastIndexOf("<mark", start);
+    if (abierto >= 0) {
+      const gt = val.indexOf(">", abierto);
+      const cerrado = val.indexOf("</mark>", end);
+      if (gt > abierto && cerrado >= end) {
+        const tag = val.slice(abierto, gt + 1);
+        const cm = tag.match(/class="hl-(\w+)"/);
+        const innerFrom = gt + 1;
+        if (cm && start >= innerFrom && end <= cerrado) {
+          return { from: abierto, to: cerrado + 7, color: cm[1], inner: val.slice(innerFrom, cerrado) };
+        }
+      }
+    }
+    const alrededor = val.slice(Math.max(0, start - 2), start) === "**" && val.slice(end, end + 2) === "**";
+    if (alrededor) return { from: start - 2, to: end + 2, color: null, inner: sel };
+    if (/^\*\*[\s\S]*\*\*$/.test(sel)) return { from: start, to: end, color: null, inner: sel.slice(2, -2) };
+    return { from: start, to: end, color: null, inner: sel };
+  }
+
+  function envolverMarcaTeoria(color) {
+    const ta = $("teoria-md");
+    if (!ta) return;
+    const elegido = COLORES_MARCA.includes(color) ? color : state.hlColor || "amarillo";
+    state.hlColor = elegido;
+    pintarPaletaMarca();
+    const rango = rangoMarcaTeoria(ta);
+    let inner = rango.inner;
+    if (!inner && !rango.color) return;
     let next = ta.value;
-    let from = start;
-    let to = end;
-    if (alrededor) {
-      next = ta.value.slice(0, start - 2) + sel + ta.value.slice(end + 2);
-      from = start - 2;
-      to = from + sel.length;
-    } else if (yaMarcado) {
-      const inner = sel.slice(2, -2);
-      next = ta.value.slice(0, start) + inner + ta.value.slice(end);
-      from = start;
-      to = start + inner.length;
-    } else if (!sel) {
-      const ph = "texto";
-      next = ta.value.slice(0, start) + "**" + ph + "**" + ta.value.slice(end);
-      from = start + 2;
-      to = from + ph.length;
+    let from = rango.from;
+    let to = rango.to;
+    if (rango.color === elegido) {
+      next = ta.value.slice(0, rango.from) + inner + ta.value.slice(rango.to);
+      from = rango.from;
+      to = from + inner.length;
     } else {
-      next = ta.value.slice(0, start) + "**" + sel + "**" + ta.value.slice(end);
-      from = start;
-      to = end + 4;
+      const abierto = `<mark class="hl-${elegido}">`;
+      const wrap = abierto + inner + "</mark>";
+      next = ta.value.slice(0, rango.from) + wrap + ta.value.slice(rango.to);
+      from = rango.from + abierto.length;
+      to = from + inner.length;
     }
     ta.value = next;
     ta.focus();
     ta.setSelectionRange(from, to);
+  }
+
+  function envolverNegritaTeoria() {
+    const ta = $("teoria-md");
+    if (!ta) return;
+    const rango = rangoMarcaTeoria(ta);
+    if (!rango.inner && !rango.color) {
+      const start = ta.selectionStart ?? 0;
+      const ph = "texto";
+      const abierto = `<mark class="hl-${state.hlColor || "amarillo"}">`;
+      const wrap = abierto + ph + "</mark>";
+      ta.value = ta.value.slice(0, start) + wrap + ta.value.slice(start);
+      ta.focus();
+      ta.setSelectionRange(start + abierto.length, start + abierto.length + ph.length);
+      return;
+    }
+    envolverMarcaTeoria(state.hlColor || "amarillo");
   }
 
   async function guardarTeoria() {
@@ -2111,6 +2155,10 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     $("btn-md-texto").onclick = () => insertarBloqueTeoria("texto");
     $("btn-md-lista").onclick = () => insertarBloqueTeoria("lista");
     $("btn-md-negrita").onclick = envolverNegritaTeoria;
+    document.querySelectorAll(".hl-dot").forEach((btn) => {
+      btn.onclick = () => envolverMarcaTeoria(btn.dataset.hl);
+    });
+    pintarPaletaMarca();
     $("teoria-md").addEventListener("keydown", (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
         e.preventDefault();
