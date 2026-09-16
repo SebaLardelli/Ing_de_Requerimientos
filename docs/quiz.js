@@ -313,59 +313,34 @@ const PREGUNTAS_TEORIA = [
 
 const PUNTOS_CLASE6 = [
   {
-    titulo: "Caja: Dominio del problema",
-    etiqueta: "el mundo real",
-    guia: "El mundo real: hospital, biblioteca, taller. Ahí están las reglas, el lenguaje y cómo se trabaja hoy. Sin esto no hay elicitación ni validación serias."
-  },
-  {
-    titulo: "Caja: Usuario",
-    etiqueta: "quien vive el dominio",
-    guia: "Quien vive ese dominio (administrativo, bibliotecario, dueño). Trae necesidades, da feedback y valida modelos. No es el analista."
-  },
-  {
-    titulo: "Caja: Elicitación",
-    etiqueta: "sonsacar conocimiento",
-    guia: "Sonsacar conocimiento: preguntar, observar, leer. Produce conocimiento y requerimientos del usuario todavía crudos."
-  },
-  {
-    titulo: "Caja: Especificación",
-    etiqueta: "modelos de requerimientos",
-    guia: "Pasar ese conocimiento a modelos (enunciados, dominio escrito). Si no alcanza, pide más elicitación."
-  },
-  {
-    titulo: "Caja: Validación",
-    etiqueta: "chequear modelos",
-    guia: "Chequear con el usuario y con el dominio si esos modelos son fieles. Se acepta, se corrige o hay que elicitar otra vez."
-  },
-  {
     titulo: "Dominio del problema → Elicitación",
     etiqueta: "conocimiento del dominio",
-    guia: "El analista no inventa el problema. El dominio alimenta la elicitación: cómo se trabaja hoy, quién atiende, qué planilla se usa."
+    guia: "El analista no inventa el problema. El dominio alimenta la elicitación: cómo se trabaja hoy, quién atiende, qué planilla se usa. Si no entra este conocimiento, la entrevista habla en vacío."
   },
   {
     titulo: "Dominio del problema → Validación",
     etiqueta: "conocimiento del dominio",
-    guia: "Validar no es solo “¿le gusta al usuario?”. También: ¿esto es coherente con el mundo del problema?"
+    guia: "Validar no es solo “¿le gusta al usuario?”. También: ¿esto es coherente con el mundo del problema? Un modelo puede gustar y ser falso respecto de cómo trabaja el sector."
   },
   {
     titulo: "Usuario ↔ Elicitación",
     etiqueta: "requerimientos del usuario",
-    guia: "Flecha de ida y vuelta. El usuario cuenta; el analista elicita y vuelve a preguntar. Todavía no es la especificación formal."
+    guia: "Flecha de ida y vuelta. El usuario cuenta (necesidades, dolores, reglas). El analista elicita y vuelve a preguntar. Lo que sale todavía no es la especificación formal: son requerimientos del usuario, en su lenguaje."
   },
   {
     titulo: "Elicitación → Especificación",
     etiqueta: "conocimiento",
-    guia: "Lo elicitedo se transforma en modelos: de “me contaron” a “queda escrito de forma verificable”."
+    guia: "Lo elicitedo se transforma en modelos: contexto, organización, enunciados. Es el paso de “me contaron” a “queda escrito de forma verificable”."
   },
   {
     titulo: "Especificación → Elicitación",
     etiqueta: "necesidad de más conocimiento",
-    guia: "Al especificar aparecen huecos. Eso obliga a volver a elicitar. Por eso la flecha es doble."
+    guia: "Al especificar aparecen huecos. Eso obliga a volver a elicitar. Por eso la flecha es doble: no es un pipeline de una sola pasada."
   },
   {
     titulo: "Especificación → Usuario",
     etiqueta: "especificación de requerimientos",
-    guia: "La especificación se le muestra al usuario. Tiene que poder reconocer su problema en esos enunciados."
+    guia: "La especificación se le muestra al usuario. Tiene que poder reconocer su problema en esos enunciados. No se esconde en un documento técnico."
   },
   {
     titulo: "Especificación → Validación",
@@ -375,7 +350,7 @@ const PUNTOS_CLASE6 = [
   {
     titulo: "Validación → Especificación",
     etiqueta: "resultados de la validación",
-    guia: "Si el usuario o el dominio no cierran, el resultado vuelve a la especificación: se corrige o se tira lo inventado."
+    guia: "Si el usuario o el dominio no cierran, el resultado vuelve a la especificación: se corrige, se parte un requerimiento o se tira uno inventado."
   },
   {
     titulo: "Especificación / Validación → Usuario",
@@ -385,6 +360,6 @@ const PUNTOS_CLASE6 = [
   {
     titulo: "Usuario → Validación",
     etiqueta: "feedback del usuario",
-    guia: "El usuario responde: esto sí, esto no, esto no se entendió, esto falta. Ese feedback es insumo de la validación."
+    guia: "El usuario responde: esto sí, esto no, esto no se entendió, esto falta. Ese feedback es insumo de la validación, no un comentario al margen."
   }
 ];

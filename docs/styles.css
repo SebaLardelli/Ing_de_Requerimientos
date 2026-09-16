@@ -193,7 +193,7 @@ a { color: var(--accent); }
   border-radius: 999px;
   background: var(--nav-track);
   border: 1px solid var(--line);
-  max-width: 680px;
+  max-width: 820px;
   min-height: 48px;
 }
 .tab {
@@ -395,6 +395,17 @@ a { color: var(--accent); }
   border-radius: 16px;
   background: #fefff9;
   border: 1px solid var(--line);
+}
+.diagrama-cajas {
+  margin: 8px 0 16px;
+  padding-left: 1.2em;
+  color: var(--ink-soft);
+}
+.diagrama-cajas li { margin: 4px 0; }
+.flecha-item {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
 }
 .content blockquote {
   margin: 12px 0;

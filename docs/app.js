@@ -2292,9 +2292,10 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     const box = $("practica-grafico-puntos");
     if (!box || !Array.isArray(window.PUNTOS_CLASE6)) return;
     box.innerHTML = window.PUNTOS_CLASE6.map((p, i) => `
-      <div class="field">
-        <label for="diag-p-${i}"><strong>${i + 1}.</strong> ${escapeHtml(p.titulo)}${p.etiqueta ? ` — ${escapeHtml(p.etiqueta)}` : ""}</label>
-        <textarea id="diag-p-${i}" rows="2" placeholder="Describí este punto con tus palabras."></textarea>
+      <div class="field flecha-item">
+        <label for="diag-p-${i}"><strong>Flecha ${i + 1}.</strong> ${escapeHtml(p.titulo)}</label>
+        <p class="hint">Etiqueta del gráfico: ${escapeHtml(p.etiqueta || "")}</p>
+        <textarea id="diag-p-${i}" rows="3" placeholder="Qué viaja por esta flecha, de dónde sale, a dónde va y por qué existe."></textarea>
         <p class="hint guia-clase6 hidden">${escapeHtml(p.guia)}</p>
       </div>
     `).join("");
@@ -2305,7 +2306,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     document.querySelectorAll(".tab").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
     document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + tab));
     if (tab === "trabajos") renderTrabajos();
-    if (tab === "examen") renderQuizEstudio();
+    if (tab === "practica-teoria") renderQuizEstudio();
   }
 
   function eventos() {

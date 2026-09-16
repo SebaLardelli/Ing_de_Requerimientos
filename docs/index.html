@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=20260916g" />
+  <link rel="stylesheet" href="./styles.css?v=20260916h" />
   <script>
     (function () {
       var t = localStorage.getItem("ir.tema") || "dark";
@@ -45,7 +45,7 @@
     <nav class="tabs" aria-label="Secciones">
       <button class="tab active" data-tab="teoria" type="button">Teoría</button>
       <button class="tab" data-tab="practica" type="button">Práctica</button>
-      <button class="tab" data-tab="examen" type="button">Examen</button>
+      <button class="tab" data-tab="practica-teoria" type="button">Práctica de teoría</button>
       <button class="tab" data-tab="trabajos" type="button">Trabajos</button>
       <button class="tab" data-tab="ajustes" type="button">Ajustes</button>
     </nav>
@@ -56,7 +56,7 @@
       <div class="layout">
         <aside class="card side">
           <h2>Temas</h2>
-          <p class="hint">Hay teoría por clase y un bloque de Práctica: cómo entrevistar y armar el dominio. El multiple choice está en Examen.</p>
+          <p class="hint">Hay teoría por clase y un bloque de Práctica: cómo entrevistar y armar el dominio. El multiple choice está en Práctica de teoría.</p>
           <div class="row" style="margin-bottom:10px">
             <button class="btn small" id="btn-nueva-clase" type="button">+ Clase</button>
           </div>
@@ -216,10 +216,25 @@
           <div id="feedback-ia" class="content" style="margin-top:12px"></div>
 
           <div id="bloque-diagrama" class="bloque-diagrama">
-            <h3>Gráfico de Loucopoulos, punto por punto</h3>
-            <p class="hint">Es el proceso de elicitación, especificación y validación. Describí cada caja y cada flecha con tus palabras. Después podés comparar con la teoría.</p>
+            <h3>Gráfico de Loucopoulos, flecha por flecha</h3>
+            <p class="hint">Es el proceso de elicitación, especificación y validación. Primero ubicá las cinco cajas; después explicá <strong>toda la relación</strong>, flecha por flecha: de dónde sale, a dónde va y qué viaja por esa flecha. Después podés comparar con la teoría.</p>
             <img class="diagrama-foto" src="./teoria/clase6-proceso.png" alt="Proceso de elicitación, especificación y validación (Loucopoulos)" />
+            <h4>Las cinco cajas (para ubicar las flechas)</h4>
+            <ul class="diagrama-cajas">
+              <li><strong>Dominio del problema</strong> — el mundo real.</li>
+              <li><strong>Usuario</strong> — quien vive ese dominio.</li>
+              <li><strong>Elicitación</strong> — sonsacar conocimiento.</li>
+              <li><strong>Especificación</strong> — modelos de requerimientos.</li>
+              <li><strong>Validación</strong> — chequear esos modelos.</li>
+            </ul>
+            <h4>Cada relación</h4>
+            <p class="hint">En cada flecha escribí qué conecta y por qué existe. Las de ida y vuelta se escriben por separado.</p>
             <div id="practica-grafico-puntos"></div>
+            <div class="field" style="margin-top:16px">
+              <label for="diag-relacion">Cómo se leen juntas</label>
+              <textarea id="diag-relacion" rows="3" placeholder="Con las flechas escritas: cómo se alimentan entre sí dominio, usuario, elicitación, especificación y validación. Qué pasa si cortás una flecha."></textarea>
+              <p class="hint guia-clase6 hidden">El dominio alimenta elicitación y validación. El usuario alimenta elicitación y validación, y recibe especificación y modelos. Elicitación y especificación se prestan conocimiento (y piden más). Especificación y validación se prestan modelos y resultados. Si cortás una flecha, el proceso se vuelve anotar lo que dijo uno y darlo por cerrado.</p>
+            </div>
             <div class="row" style="margin-top:10px">
               <button class="btn" id="btn-guia-clase6" type="button">Comparar con la teoría</button>
             </div>
@@ -228,12 +243,12 @@
       </div>
     </section>
 
-    <section id="panel-examen" class="panel">
+    <section id="panel-practica-teoria" class="panel">
       <div class="layout layout-one">
         <article class="card block">
-          <div class="kicker">Práctica teórica</div>
-          <h2>Multiple choice de todas las clases</h2>
-          <p class="hint">Acá se practica la teoría de las clases 1 a 6. Elegí una opción y comprobá. La explicación aparece recién entonces.</p>
+          <div class="kicker">Teoría</div>
+          <h2>Práctica de teoría</h2>
+          <p class="hint">Multiple choice de las clases 1 a 6. Elegí una opción y comprobá. La explicación aparece recién entonces.</p>
           <div id="quiz-estudio"></div>
         </article>
       </div>
@@ -314,8 +329,8 @@
   <script src="./config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="./theory.js?v=20260916g"></script>
-  <script src="./quiz.js?v=20260916g"></script>
-  <script src="./app.js?v=20260916g"></script>
+  <script src="./theory.js?v=20260916h"></script>
+  <script src="./quiz.js?v=20260916h"></script>
+  <script src="./app.js?v=20260916h"></script>
 </body>
 </html>
