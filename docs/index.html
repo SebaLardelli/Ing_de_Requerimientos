@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=20260916f" />
+  <link rel="stylesheet" href="./styles.css?v=20260916g" />
   <script>
     (function () {
       var t = localStorage.getItem("ir.tema") || "dark";
@@ -128,13 +128,6 @@
             <button class="btn" id="btn-caso-hospital" type="button">Hospital</button>
             <button class="btn" id="btn-caso-biblioteca" type="button">Biblioteca</button>
           </div>
-          <div id="banner-examen" class="banner-examen hidden">
-            <div>
-              <strong>Simulacro de examen.</strong>
-              <span class="hint">Parte 1: la entrevista y el dominio (acá). Parte 2: veinte multiple choice. Parte 3: el gráfico de la clase 6, punto por punto. Bajá cuando termines la parte 1.</span>
-            </div>
-            <button class="btn ghost small" id="btn-salir-examen" type="button">Salir del simulacro</button>
-          </div>
           <div id="chat-log" class="chat-log"></div>
           <div class="composer">
             <textarea id="pregunta" placeholder="Preguntá cómo trabajan hoy, quién usaría la app, qué problema quieren resolver…"></textarea>
@@ -222,15 +215,11 @@
           <div id="lista-req" class="req-list" style="margin-top:12px"></div>
           <div id="feedback-ia" class="content" style="margin-top:12px"></div>
 
-          <div id="bloque-examen" class="bloque-examen hidden">
-            <h3>Parte 2 — Veinte preguntas (todas las clases)</h3>
-            <p class="hint">Elegí una. Comprobar muestra la explicación. Son 20, tomadas de la práctica teórica.</p>
-            <div id="quiz-examen-box"></div>
-
-            <h3 style="margin-top:22px">Parte 3 — El gráfico de la clase 6, punto por punto</h3>
-            <p class="hint">Describí cada caja y cada flecha con tus palabras. Después podés comparar con la teoría.</p>
-            <img class="examen-foto" src="./teoria/clase6-proceso.png" alt="Proceso de elicitación, especificación y validación (Loucopoulos)" />
-            <div id="examen-grafico-puntos"></div>
+          <div id="bloque-diagrama" class="bloque-diagrama">
+            <h3>Gráfico de Loucopoulos, punto por punto</h3>
+            <p class="hint">Es el proceso de elicitación, especificación y validación. Describí cada caja y cada flecha con tus palabras. Después podés comparar con la teoría.</p>
+            <img class="diagrama-foto" src="./teoria/clase6-proceso.png" alt="Proceso de elicitación, especificación y validación (Loucopoulos)" />
+            <div id="practica-grafico-puntos"></div>
             <div class="row" style="margin-top:10px">
               <button class="btn" id="btn-guia-clase6" type="button">Comparar con la teoría</button>
             </div>
@@ -245,10 +234,6 @@
           <div class="kicker">Práctica teórica</div>
           <h2>Multiple choice de todas las clases</h2>
           <p class="hint">Acá se practica la teoría de las clases 1 a 6. Elegí una opción y comprobá. La explicación aparece recién entonces.</p>
-          <div class="row" style="margin:12px 0 18px">
-            <button class="btn primary" id="btn-simular-examen" type="button">Simular examen</button>
-          </div>
-          <p class="hint">El simulacro suma la práctica común (entrevista y dominio), veinte preguntas y describir el gráfico de Loucopoulos punto por punto.</p>
           <div id="quiz-estudio"></div>
         </article>
       </div>
@@ -329,8 +314,8 @@
   <script src="./config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="./theory.js?v=20260916f"></script>
-  <script src="./quiz.js?v=20260916f"></script>
-  <script src="./app.js?v=20260916f"></script>
+  <script src="./theory.js?v=20260916g"></script>
+  <script src="./quiz.js?v=20260916g"></script>
+  <script src="./app.js?v=20260916g"></script>
 </body>
 </html>

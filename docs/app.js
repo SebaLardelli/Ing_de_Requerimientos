@@ -58,9 +58,7 @@
     aiBusy: false,
     trabajoAbierto: null,
     aulaError: "",
-    hlColor: "amarillo",
-    examen: false,
-    quizExamen: []
+    hlColor: "amarillo"
   };
 
   const $ = (id) => document.getElementById(id);
@@ -2278,15 +2276,6 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     toast(proveedor === "gemini" ? "Ahora las respuestas van por Gemini." : "Ahora las respuestas van por Groq.");
   }
 
-  function barajar(lista) {
-    const a = (lista || []).slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
   function bancoPreguntas() {
     return Array.isArray(window.PREGUNTAS_TEORIA) ? window.PREGUNTAS_TEORIA : [];
   }
@@ -2300,47 +2289,15 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
   }
 
   function pintarPuntosClase6() {
-    const box = $("examen-grafico-puntos");
+    const box = $("practica-grafico-puntos");
     if (!box || !Array.isArray(window.PUNTOS_CLASE6)) return;
     box.innerHTML = window.PUNTOS_CLASE6.map((p, i) => `
       <div class="field">
-        <label for="ex-p-${i}"><strong>${i + 1}.</strong> ${escapeHtml(p.titulo)}${p.etiqueta ? ` — ${escapeHtml(p.etiqueta)}` : ""}</label>
-        <textarea id="ex-p-${i}" rows="2" placeholder="Describí este punto con tus palabras."></textarea>
+        <label for="diag-p-${i}"><strong>${i + 1}.</strong> ${escapeHtml(p.titulo)}${p.etiqueta ? ` — ${escapeHtml(p.etiqueta)}` : ""}</label>
+        <textarea id="diag-p-${i}" rows="2" placeholder="Describí este punto con tus palabras."></textarea>
         <p class="hint guia-clase6 hidden">${escapeHtml(p.guia)}</p>
       </div>
     `).join("");
-  }
-
-  function pintarModoExamen() {
-    $("banner-examen")?.classList.toggle("hidden", !state.examen);
-    $("bloque-examen")?.classList.toggle("hidden", !state.examen);
-    if (!state.examen) return;
-    const box = $("quiz-examen-box");
-    if (box) {
-      box.innerHTML = htmlQuiz(state.quizExamen, { id: "quiz-examen" });
-      cablearQuiz(state.quizExamen, { id: "quiz-examen" });
-    }
-    pintarPuntosClase6();
-  }
-
-  function entrarExamen() {
-    const banco = bancoPreguntas();
-    if (banco.length < 20) return toast("Falta el banco de preguntas.");
-    state.examen = true;
-    state.quizExamen = barajar(banco).slice(0, 20).map((q) => ({
-      ...q,
-      opciones: barajar(q.opciones)
-    }));
-    pintarModoExamen();
-    irTab("practica");
-    toast("Simulacro: primero la entrevista y el dominio; abajo, 20 preguntas y el gráfico.");
-  }
-
-  function salirExamen() {
-    state.examen = false;
-    state.quizExamen = [];
-    pintarModoExamen();
-    toast("Saliste del simulacro.");
   }
 
   function irTab(tab) {
@@ -2353,10 +2310,6 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
 
   function eventos() {
     document.querySelectorAll(".tab").forEach((b) => b.onclick = () => irTab(b.dataset.tab));
-    const btnExamen = $("btn-simular-examen");
-    if (btnExamen) btnExamen.onclick = entrarExamen;
-    const btnSalirEx = $("btn-salir-examen");
-    if (btnSalirEx) btnSalirEx.onclick = salirExamen;
     const btnGuia = $("btn-guia-clase6");
     if (btnGuia) btnGuia.onclick = () => {
       document.querySelectorAll(".guia-clase6").forEach((el) => el.classList.toggle("hidden"));
@@ -2452,6 +2405,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
     pintarSesionEnUI();
     pintarEstadoAula();
     renderListaSesiones();
+    pintarPuntosClase6();
   }
 
   init();
