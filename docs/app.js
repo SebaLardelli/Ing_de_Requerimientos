@@ -921,6 +921,128 @@
     art.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function parsearQuizzes(md) {
+    const bloques = [];
+    const re = /<!--quiz-->([\s\S]*?)<!--\/quiz-->/g;
+    let m;
+    while ((m = re.exec(String(md || "")))) bloques.push(m[1]);
+    const intro = String(md || "").replace(re, "").trim();
+    const items = bloques.map((raw) => {
+      const lineas = raw.replace(/\r/g, "").split("\n");
+      const pregunta = [];
+      const opciones = [];
+      const porQue = [];
+      let fase = "pregunta";
+      lineas.forEach((linea) => {
+        const op = linea.match(/^\s*-\s*\[(x| )\]\s*(.*)$/i);
+        if (op) {
+          fase = "opciones";
+          opciones.push({ texto: op[2].trim(), ok: op[1].toLowerCase() === "x" });
+          return;
+        }
+        const pq = linea.match(/^\s*(?:por\s*qu[eé]|porque)\s*:\s*(.*)$/i);
+        if (pq) {
+          fase = "porque";
+          if (pq[1].trim()) porQue.push(pq[1].trim());
+          return;
+        }
+        const t = linea.trim();
+        if (!t) return;
+        if (fase === "pregunta") pregunta.push(t);
+        else if (fase === "porque") porQue.push(t);
+      });
+      return {
+        pregunta: pregunta.join(" "),
+        opciones,
+        porque: porQue.join(" ")
+      };
+    }).filter((q) => q.pregunta && q.opciones.length);
+    return { intro, items };
+  }
+
+  function htmlQuiz(items) {
+    const preguntas = items.map((q, i) => {
+      const ops = q.opciones.map((op, j) => `
+        <label class="quiz-op">
+          <input type="radio" name="quiz-${i}" value="${j}" />
+          <span>${escapeHtml(op.texto)}</span>
+        </label>
+      `).join("");
+      return `
+        <article class="quiz-item" data-i="${i}">
+          <p class="quiz-q"><strong>${i + 1}.</strong> ${escapeHtml(q.pregunta)}</p>
+          <div class="quiz-ops">${ops}</div>
+          <p class="quiz-fb hint hidden"></p>
+        </article>
+      `;
+    }).join("");
+    return `
+      <div class="quiz" id="quiz-practica">
+        ${preguntas}
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="btn-quiz-comprobar" type="button">Comprobar</button>
+          <button class="btn ghost" id="btn-quiz-reintentar" type="button">Reintentar</button>
+        </div>
+        <p class="quiz-puntaje hint" id="quiz-puntaje"></p>
+      </div>
+    `;
+  }
+
+  function cablearQuiz(items) {
+    const box = $("quiz-practica");
+    if (!box) return;
+    const pintar = (corregir) => {
+      let bien = 0;
+      let hechas = 0;
+      items.forEach((q, i) => {
+        const art = box.querySelector(`.quiz-item[data-i="${i}"]`);
+        if (!art) return;
+        const radios = [...art.querySelectorAll("input[type=radio]")];
+        const labels = [...art.querySelectorAll(".quiz-op")];
+        const fb = art.querySelector(".quiz-fb");
+        labels.forEach((lb) => lb.classList.remove("ok", "mal", "omitida"));
+        const elegido = radios.findIndex((r) => r.checked);
+        if (!corregir) {
+          if (fb) {
+            fb.classList.add("hidden");
+            fb.textContent = "";
+          }
+          radios.forEach((r) => { r.disabled = false; });
+          return;
+        }
+        radios.forEach((r) => { r.disabled = true; });
+        const idxOk = q.opciones.findIndex((op) => op.ok);
+        if (elegido >= 0) hechas += 1;
+        if (elegido === idxOk && idxOk >= 0) {
+          bien += 1;
+          if (labels[elegido]) labels[elegido].classList.add("ok");
+        } else {
+          if (elegido >= 0 && labels[elegido]) labels[elegido].classList.add("mal");
+          if (idxOk >= 0 && labels[idxOk]) labels[idxOk].classList.add("ok");
+          if (elegido < 0 && labels[idxOk]) labels[idxOk].classList.add("omitida");
+        }
+        if (fb) {
+          fb.classList.remove("hidden");
+          fb.textContent = q.porque || (elegido === idxOk ? "Bien." : "Revisá la teoría de esa clase.");
+        }
+      });
+      const puntaje = $("quiz-puntaje");
+      if (!puntaje) return;
+      if (!corregir) {
+        puntaje.textContent = "";
+        return;
+      }
+      puntaje.textContent = `Salieron ${bien} bien de ${items.length}.` + (hechas < items.length ? ` Faltó marcar ${items.length - hechas}.` : "");
+    };
+    const btnOk = $("btn-quiz-comprobar");
+    const btnReset = $("btn-quiz-reintentar");
+    if (btnOk) btnOk.onclick = () => pintar(true);
+    if (btnReset) btnReset.onclick = () => {
+      box.querySelectorAll("input[type=radio]").forEach((r) => { r.checked = false; });
+      pintar(false);
+    };
+  }
+
   function mostrarTema(slug, { ir = false } = {}) {
     const tema = state.temas.find((t) => t.slug === slug) || state.temas[0];
     if (!tema) return;
@@ -928,7 +1050,13 @@
     $("tema-clase").textContent = tema.clase + (tema.actualizado_por ? ` · última edición: ${tema.actualizado_por}` : "");
     $("tema-titulo").textContent = tema.titulo;
     $("tema-resumen").textContent = tema.resumen || "";
-    $("tema-contenido").innerHTML = markdown(tema.contenido);
+    const quiz = parsearQuizzes(tema.contenido);
+    if (quiz.items.length) {
+      $("tema-contenido").innerHTML = (quiz.intro ? markdown(quiz.intro) : "") + htmlQuiz(quiz.items);
+      cablearQuiz(quiz.items);
+    } else {
+      $("tema-contenido").innerHTML = markdown(tema.contenido);
+    }
     $("tema-contenido").classList.remove("hidden");
     $("editor-teoria").classList.add("hidden");
     $("teoria-titulo").value = tema.titulo || "";

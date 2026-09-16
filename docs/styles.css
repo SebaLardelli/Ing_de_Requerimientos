@@ -353,6 +353,33 @@ a { color: var(--accent); }
 .content mark.hl-celeste { --hl: var(--hl-celeste); --hl-ink: var(--hl-celeste-ink); }
 .content mark.hl-violeta { --hl: var(--hl-violeta); --hl-ink: var(--hl-violeta-ink); }
 .content mark.hl-naranja { --hl: var(--hl-naranja); --hl-ink: var(--hl-naranja-ink); }
+.quiz { margin-top: 8px; }
+.quiz-item {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper-2);
+}
+.quiz-q { margin: 0 0 10px; }
+.quiz-ops { display: flex; flex-direction: column; gap: 6px; }
+.quiz-op {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  background: var(--paper);
+}
+.quiz-op input { margin-top: 3px; }
+.quiz-op.ok { border-color: var(--ok); background: rgba(111, 191, 102, 0.16); }
+.quiz-op.mal { border-color: var(--warn); background: rgba(242, 147, 52, 0.16); }
+.quiz-op.omitida { border-style: dashed; }
+.quiz-fb { margin: 10px 0 0; }
+.quiz-puntaje { margin-top: 10px; font-weight: 700; color: var(--title); }
 .content blockquote {
   margin: 12px 0;
   padding: 8px 14px;
