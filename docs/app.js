@@ -1031,15 +1031,111 @@
   }
 
   function htmlTemaImpresion(tema, nro) {
-    const quiz = parsearQuizzes(tema.contenido);
-    const md = quiz.intro || tema.contenido || "";
+    const md = resumirContenidoTema(tema);
+    const cuerpo = md.trim() ? `<div class="print-cuerpo">${markdownImpresion(md)}</div>` : "";
     return `
       <article class="print-tema">
         <h3><span class="print-n">${escapeHtml(String(nro))}</span>${escapeHtml(tema.titulo)}</h3>
         ${tema.resumen ? `<p class="print-lead">${escapeHtml(tema.resumen)}</p>` : ""}
-        <div class="print-cuerpo">${markdownImpresion(md)}</div>
+        ${cuerpo}
       </article>
     `;
+  }
+
+  function seccionesMarkdown(md) {
+    const text = String(md || "").replace(/\r/g, "");
+    const re = /^##\s+(.+)$/gm;
+    const matches = [];
+    let m;
+    while ((m = re.exec(text))) matches.push({ i: m.index, titulo: m[1].trim(), fin: m.index + m[0].length });
+    if (!matches.length) return [{ titulo: "", cuerpo: text.trim() }];
+    const partes = [];
+    if (matches[0].i > 0) partes.push({ titulo: "", cuerpo: text.slice(0, matches[0].i).trim() });
+    matches.forEach((s, idx) => {
+      const hasta = idx + 1 < matches.length ? matches[idx + 1].i : text.length;
+      partes.push({ titulo: s.titulo, cuerpo: text.slice(s.fin, hasta).trim() });
+    });
+    return partes.filter((s) => s.cuerpo);
+  }
+
+  function acortarBloque(txt, max) {
+    const t = String(txt || "").trim();
+    if (t.length <= max) return t;
+    const citas = t.split("\n").filter((l) => /^>\s?/.test(l)).join("\n");
+    const lineas = t.split("\n");
+    const lista = [];
+    let enLista = false;
+    lineas.forEach((l) => {
+      if (/^\s*([-*]|\d+\.)\s+/.test(l)) {
+        enLista = true;
+        lista.push(l);
+      } else if (enLista && l.trim() === "") lista.push(l);
+      else enLista = false;
+    });
+    const tabla = t.match(/(?:^\|.+\|[ \t]*\n)+/m);
+    const partes = [];
+    if (citas) partes.push(citas);
+    if (tabla) partes.push(tabla[0].trim());
+    if (lista.length && lista.join("\n").length < max) partes.push(lista.join("\n").trim());
+    if (!partes.length) {
+      const corte = t.slice(0, max);
+      partes.push(corte.replace(/\s+\S*$/, "") + "…");
+    }
+    return partes.join("\n\n");
+  }
+
+  function seccionDescartable(titulo) {
+    return /^(ejemplo|cómo pregunt|actividad|la consigna|cómo se obtiene|cómo se escribe|cómo se lee junto|relación con las clases|teor[ií]a que hay que usar|biblioteca \(como|hospital \(caso)/i.test(String(titulo || "").trim());
+  }
+
+  function resumirContenidoTema(tema) {
+    const crudo = parsearQuizzes(tema.contenido).intro || tema.contenido || "";
+    const secs = seccionesMarkdown(crudo);
+    const out = [];
+    const slug = String(tema.slug || "");
+    const esResumenClase = /^resumen-clase/i.test(slug);
+    const esProceso = /proceso-loucopoulos|clase6-proceso/i.test(slug);
+    let extras = 0;
+
+    secs.forEach((s) => {
+      const t = s.titulo || "";
+      if (seccionDescartable(t)) return;
+      if (/cada relación|punto por punto|el mismo proceso/i.test(t)) return;
+      if (esProceso && /el gráfico de la clase/i.test(t)) {
+        const img = s.cuerpo.match(/!\[[^\]]*\]\([^)]+\)/);
+        if (img) out.push(img[0]);
+        return;
+      }
+      if (/idea para llevarse|idea central/i.test(t)) {
+        const idea = s.cuerpo.replace(/^#+\s+.+$/gm, "").trim();
+        if (idea) out.push(`**Para llevarse.**\n\n${idea}`);
+        return;
+      }
+      if (esResumenClase) {
+        out.push(s.cuerpo);
+        return;
+      }
+      if (/qué es cada caja/i.test(t)) {
+        out.push(`**${t}.**\n\n${acortarBloque(s.cuerpo, 1200)}`);
+        return;
+      }
+      if (!t) {
+        out.push(acortarBloque(s.cuerpo, 420));
+        return;
+      }
+      if (extras >= 2) return;
+      const clave = /definición|ieee|las tres capas|la diferencia|criterios|esenciales versus|internas y externas|cualidades que se usan|formato recomendado|gap semántico|abstracción|trazabilidad|validación|standish|beneficios|técnicas|scrum|rup|modelo en v|tres miradas|tres aspectos|predictivo|deberes del usuario|ingeniería de requerimientos|qué se gestiona|qué implica|el proceso de requerimientos|software es varias|representaciones y conocimiento|cómo pasar de vago/i.test(t);
+      const denso = /^\s*([-*]|\d+\.)\s+/m.test(s.cuerpo) || /^>\s?/m.test(s.cuerpo) || /\|.+\|/.test(s.cuerpo);
+      if (!clave && !denso) return;
+      extras += 1;
+      out.push(`**${t}.**\n\n${acortarBloque(s.cuerpo, 640)}`);
+    });
+
+    if (!out.length) {
+      const primera = secs.find((s) => !seccionDescartable(s.titulo)) || secs[0];
+      if (primera) out.push(acortarBloque(primera.cuerpo, 520));
+    }
+    return out.join("\n\n");
   }
 
   function temasParaImpresion() {
@@ -1100,7 +1196,7 @@
       const items = temas.map((t, i) => `<li><span>${i + 1}.</span> ${escapeHtml(t.titulo)}</li>`).join("");
       return `<div class="print-indice-clase"><h2>${escapeHtml(clase)}</h2><ol>${items}</ol></div>`;
     }).join("");
-    return `<nav class="print-indice"><h1>Índice</h1>${bloques}</nav>`;
+    return `<nav class="print-indice"><h1>Índice</h1><p class="print-indice-nota">Versión de estudio: queda el resumen, la idea para llevarse y lo esencial. Sin ejemplos largos ni el detalle flecha por flecha.</p>${bloques}</nav>`;
   }
 
   function htmlTeoriaImpresion() {
@@ -1174,7 +1270,11 @@
       .print-indice { page-break-after: always; break-after: page; padding: 4mm 2mm 10mm; }
       .print-indice > h1 {
         font-family: "Segoe UI", sans-serif;
-        font-size: 18pt; margin: 0 0 18px; color: #171522;
+        font-size: 18pt; margin: 0 0 8px; color: #171522;
+      }
+      .print-indice-nota {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 10.5pt; color: #5c5870; margin: 0 0 18px; max-width: 42em;
       }
       .print-indice-clase { margin: 0 0 16px; page-break-inside: avoid; }
       .print-indice-clase h2 {
@@ -1268,14 +1368,14 @@
 </head>
 <body>
   <div class="print-barra">
-    <span>Vista para imprimir · Guardar como PDF</span>
+    <span>Apunte resumido · Imprimir o guardar como PDF</span>
     <button type="button" onclick="window.print()">Imprimir</button>
   </div>
   <div class="print-hoja">
     <header class="print-portada">
       <p class="marca">Laboratorio de requerimientos</p>
       <h1>Teoría de Ingeniería de Requerimientos</h1>
-      <p class="subtitulo">Apunte completo de las clases</p>
+      <p class="subtitulo">Apunte resumido · definiciones, ideas para llevarse y lo esencial de cada tema</p>
       <hr class="print-raya" />
       <p class="meta">${cuando}</p>
     </header>
@@ -1293,7 +1393,7 @@
     w.document.write(doc);
     w.document.close();
     w.focus();
-    toast("Se abrió la vista. Ahí tocá Imprimir y elegí Guardar como PDF.");
+    toast("Se abrió el apunte resumido. Ahí tocá Imprimir y elegí Guardar como PDF.");
   }
 
   function raizScrollTeoria() {
