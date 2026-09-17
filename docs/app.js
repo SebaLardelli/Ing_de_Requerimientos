@@ -977,11 +977,16 @@
     return temasOrdenados().filter((t) => t.clase === (clase || claseEnPantalla()));
   }
 
-  function htmlBloqueTema(tema) {
+  function htmlBloqueTema(tema, quizzesMontados) {
     const quiz = parsearQuizzes(tema.contenido);
-    const cuerpo = quiz.items.length
-      ? (quiz.intro ? markdown(quiz.intro) : "") + htmlQuiz(quiz.items, { id: "quiz-tema-" + tema.slug })
-      : markdown(tema.contenido);
+    let cuerpo;
+    if (quiz.items.length) {
+      const items = conOpcionesBarajadas(quiz.items);
+      if (quizzesMontados) quizzesMontados.push({ items, id: "quiz-tema-" + tema.slug });
+      cuerpo = (quiz.intro ? markdown(quiz.intro) : "") + htmlQuiz(items, { id: "quiz-tema-" + tema.slug });
+    } else {
+      cuerpo = markdown(tema.contenido);
+    }
     return `
       <section class="tema-bloque" id="tema-${escapeHtml(tema.slug)}" data-slug="${escapeHtml(tema.slug)}">
         <h3>${escapeHtml(tema.titulo)}</h3>
@@ -1001,16 +1006,14 @@
     const clase = claseEnPantalla();
     state.claseActual = clase;
     const temas = temasDeClase(clase);
+    const quizzesMontados = [];
     box.innerHTML = `
       <section class="clase-texto" data-clase="${escapeHtml(clase)}">
         <h2>${escapeHtml(clase)}</h2>
-        ${temas.map(htmlBloqueTema).join("") || "<p class='hint'>Todavía no hay apartados en esta clase.</p>"}
+        ${temas.map((t) => htmlBloqueTema(t, quizzesMontados)).join("") || "<p class='hint'>Todavía no hay apartados en esta clase.</p>"}
       </section>
     `;
-    temas.forEach((t) => {
-      const quiz = parsearQuizzes(t.contenido);
-      if (quiz.items.length) cablearQuiz(quiz.items, { id: "quiz-tema-" + t.slug });
-    });
+    quizzesMontados.forEach((q) => cablearQuiz(q.items, { id: q.id }));
     box.classList.remove("hidden");
     $("editor-teoria").classList.add("hidden");
     observarTemas();
@@ -1597,20 +1600,30 @@
     return { intro, items };
   }
 
-  function htmlQuiz(items, { id = "quiz-practica", mostrarClase = true } = {}) {
-    const preguntas = items.map((q, i) => {
-      const ops = q.opciones.map((op, j) => `
+  function htmlOpcionesQuiz(q, id, i) {
+    return q.opciones.map((op, j) => `
         <label class="quiz-op">
           <input type="radio" name="${id}-${i}" value="${j}" />
           <span>${escapeHtml(op.texto)}</span>
         </label>
       `).join("");
+  }
+
+  function conOpcionesBarajadas(items) {
+    return (items || []).map((q) => ({
+      ...q,
+      opciones: barajar((q.opciones || []).slice())
+    }));
+  }
+
+  function htmlQuiz(items, { id = "quiz-practica", mostrarClase = true } = {}) {
+    const preguntas = items.map((q, i) => {
       const clase = mostrarClase && q.clase ? `<span class="kicker">${escapeHtml(q.clase)}</span>` : "";
       return `
         <article class="quiz-item" data-i="${i}">
           ${clase}
           <p class="quiz-q"><strong>${i + 1}.</strong> ${escapeHtml(q.pregunta)}</p>
-          <div class="quiz-ops">${ops}</div>
+          <div class="quiz-ops">${htmlOpcionesQuiz(q, id, i)}</div>
           <p class="quiz-fb hint hidden"></p>
         </article>
       `;
@@ -1677,6 +1690,15 @@
     const btnReset = $("btn-" + id + "-reintentar");
     if (btnOk) btnOk.onclick = () => pintar(true);
     if (btnReset) btnReset.onclick = () => {
+      items.forEach((q) => {
+        q.opciones = barajar((q.opciones || []).slice());
+      });
+      items.forEach((q, i) => {
+        const art = box.querySelector(`.quiz-item[data-i="${i}"]`);
+        const opsBox = art && art.querySelector(".quiz-ops");
+        if (!opsBox) return;
+        opsBox.innerHTML = htmlOpcionesQuiz(q, id, i);
+      });
       box.querySelectorAll("input[type=radio]").forEach((r) => { r.checked = false; });
       pintar(false);
     };
@@ -2962,19 +2984,23 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
       `<button class="btn small quiz-modo-btn" type="button" data-modo="simulacro">Simulacro</button>`
     ].join("");
     const paneles = claves.map((c) => {
-      const items = grupos.get(c);
+      const items = conOpcionesBarajadas(barajar(grupos.get(c)));
       const id = "quiz-" + slugClase(c);
-      return `
+      return {
+        items,
+        id,
+        html: `
         <div class="quiz-panel hidden" data-modo="${escapeHtml(c)}">
           <h3>${escapeHtml(c)}</h3>
-          <p class="hint">Todas las preguntas de esta clase (${items.length}). Practicá acá, independiente de las otras. La explicación aparece al comprobar.</p>
+          <p class="hint">Todas las preguntas de esta clase (${items.length}). El orden y las opciones cambian cada vez. La explicación aparece al comprobar.</p>
           ${htmlQuiz(items, { id, mostrarClase: false })}
         </div>
-      `;
-    }).join("");
+      `
+      };
+    });
     box.innerHTML = `
       <div class="quiz-modos" id="quiz-modos">${botones}</div>
-      ${paneles}
+      ${paneles.map((p) => p.html).join("")}
       <div class="quiz-panel hidden" data-modo="simulacro">
         <h3>Simulacro de examen</h3>
         <p class="hint">Mezcla 20 preguntas de cualquier clase. Nueva tanda arma otro set.</p>
@@ -2984,7 +3010,7 @@ correcciones: SOLO los que hay que cambiar (incluí los de redacción). faltante
         <div id="quiz-simulacro-box"></div>
       </div>
     `;
-    claves.forEach((c) => cablearQuiz(grupos.get(c), { id: "quiz-" + slugClase(c) }));
+    paneles.forEach((p) => cablearQuiz(p.items, { id: p.id }));
     box.querySelectorAll(".quiz-modo-btn").forEach((b) => {
       b.onclick = () => mostrarModoQuiz(b.dataset.modo);
     });
