@@ -1037,14 +1037,65 @@
       <article class="print-tema">
         <h3><span class="print-n">${escapeHtml(String(nro))}</span>${escapeHtml(tema.titulo)}</h3>
         ${tema.resumen ? `<p class="print-lead">${escapeHtml(tema.resumen)}</p>` : ""}
-        <div class="print-cuerpo">${markdown(md)}</div>
+        <div class="print-cuerpo">${markdownImpresion(md)}</div>
       </article>
     `;
   }
 
+  function temasParaImpresion() {
+    const mapa = new Map();
+    (typeof TEORIA_INICIAL !== "undefined" ? TEORIA_INICIAL : []).forEach((t) => {
+      if (t?.slug) mapa.set(t.slug, { ...t });
+    });
+    temasUsables(state.temas).forEach((t) => {
+      if (t?.slug) mapa.set(t.slug, t);
+    });
+    return [...mapa.values()].sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+  }
+
+  function mismaClase(a, b) {
+    return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+  }
+
+  function clasesParaImpresion() {
+    const temas = temasParaImpresion();
+    return clasesDeTemas().filter((c) => temas.some((t) => mismaClase(t.clase, c)));
+  }
+
+  function temasDeClaseImpresion(clase) {
+    return temasParaImpresion().filter((t) => mismaClase(t.clase, clase));
+  }
+
+  function markdownImpresion(md) {
+    let texto = String(md || "");
+    const vistos = markdownImpresion._fotos || (markdownImpresion._fotos = new Set());
+    texto = texto.replace(/!\[[^\]]*\]\(([^)]+)\)/g, (full, url) => {
+      const clave = String(url || "").trim().split(/[?#]/)[0];
+      if (!clave) return full;
+      if (vistos.has(clave)) return "";
+      vistos.add(clave);
+      return full;
+    });
+    let html = markdown(texto);
+    html = html.replace(/<img\b[^>]*>/gi, (tag) => {
+      const m = tag.match(/\bsrc=["']([^"']+)["']/i);
+      const clave = m ? m[1].trim().split(/[?#]/)[0] : "";
+      if (!clave) return tag;
+      if (vistos.has("html:" + clave)) return "";
+      if (vistos.has(clave)) {
+        vistos.add("html:" + clave);
+        return tag;
+      }
+      vistos.add(clave);
+      vistos.add("html:" + clave);
+      return tag;
+    });
+    return html;
+  }
+
   function htmlIndiceImpresion() {
-    const bloques = clasesDeTemas().map((clase) => {
-      const temas = temasDeClase(clase);
+    const bloques = clasesParaImpresion().map((clase) => {
+      const temas = temasDeClaseImpresion(clase);
       if (!temas.length) return "";
       const items = temas.map((t, i) => `<li><span>${i + 1}.</span> ${escapeHtml(t.titulo)}</li>`).join("");
       return `<div class="print-indice-clase"><h2>${escapeHtml(clase)}</h2><ol>${items}</ol></div>`;
@@ -1053,8 +1104,9 @@
   }
 
   function htmlTeoriaImpresion() {
-    return clasesDeTemas().map((clase) => {
-      const temas = temasDeClase(clase);
+    markdownImpresion._fotos = new Set();
+    return clasesParaImpresion().map((clase) => {
+      const temas = temasDeClaseImpresion(clase);
       if (!temas.length) return "";
       return `
         <section class="print-clase">
@@ -1152,7 +1204,9 @@
         font-family: "Segoe UI", sans-serif;
         font-size: 22pt; margin: 0; letter-spacing: -0.03em; color: #171522;
       }
-      .print-tema { margin: 0 0 16px; }
+      .print-tema { margin: 0 0 16px; page-break-inside: auto; break-inside: auto; }
+      .print-cuerpo { page-break-inside: auto; break-inside: auto; }
+      .print-cuerpo p, .print-cuerpo li, .print-cuerpo h2, .print-cuerpo h3 { orphans: 3; widows: 3; }
       .print-tema > h3 {
         font-family: "Segoe UI", sans-serif;
         font-size: 13.5pt; line-height: 1.25; margin: 18px 0 6px;
@@ -1174,9 +1228,11 @@
       .print-cuerpo h3 { font-size: 11.5pt; margin: 12px 0 5px; }
       .print-cuerpo h4 { font-size: 11pt; margin: 10px 0 4px; }
       img {
-        display: block; max-width: 100%; max-height: 95mm; width: auto; height: auto;
+        display: block; max-width: 100%; max-height: 80mm; width: auto; height: auto;
         margin: 10px auto 14px; padding: 6px; background: #f7f6fb;
-        border: 1px solid #d8d4e6; page-break-inside: avoid;
+        border: 1px solid #d8d4e6;
+        page-break-inside: auto;
+        break-inside: auto;
       }
       table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 9.5pt; }
       thead { display: table-header-group; }
