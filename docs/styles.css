@@ -896,19 +896,43 @@ html[data-theme="light"] .modal-back { background: rgba(28, 25, 21, 0.35); }
   .layout, .practica, .diff { grid-template-columns: 1fr; }
   .layout, .practica, .panel.active { min-height: 0; }
   .layout, .practica { gap: 12px; }
+  .layout > .card { min-height: 0; }
   #panel-teoria.panel.active {
-    height: calc(100dvh - 168px);
-    max-height: calc(100dvh - 168px);
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    min-height: 0;
   }
   #panel-teoria .layout {
-    grid-template-rows: auto minmax(0, 1fr);
+    height: auto;
+    overflow: visible;
+    grid-template-rows: none;
+    align-items: start;
   }
-  .side { position: relative; top: auto; z-index: 1; max-height: 32vh; }
+  #panel-teoria .layout > .card {
+    height: auto;
+    min-height: 0;
+  }
+  #panel-teoria .side,
+  #panel-teoria .article,
+  #panel-teoria .teoria-unida {
+    overflow: visible;
+    max-height: none;
+    height: auto;
+  }
+  #panel-teoria .teoria-flujo,
+  #panel-teoria #editor-teoria,
+  #panel-teoria #revisiones-teoria {
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+  }
+  #panel-teoria .hint-print { display: none; }
+  .side { position: relative; top: auto; z-index: 1; max-height: none; }
   .topic-list {
-    max-height: 24vh;
+    max-height: none;
     flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: visible;
     gap: 10px;
     padding-bottom: 4px;
   }
@@ -966,6 +990,39 @@ html[data-theme="light"] .modal-back { background: rgba(28, 25, 21, 0.35); }
     border-radius: 12px;
     max-width: 100%;
     box-sizing: border-box;
+  }
+  #panel-teoria .content h2,
+  #panel-teoria .content h3 {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  #panel-teoria .content .clase-texto > h2 {
+    font-size: 0.78rem;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  #panel-teoria .content .tema-bloque > h3 {
+    display: block;
+    width: 100%;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  #panel-teoria .content img {
+    max-width: 100%;
+    padding: 6px;
+    border-radius: 12px;
+  }
+  #panel-teoria .content table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .editor { min-height: 220px; }
   .chat { min-height: 280px; }

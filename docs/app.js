@@ -1028,6 +1028,7 @@
     renderRevisionesTema();
     const root = raizScrollTeoria();
     if (root) root.scrollTop = 0;
+    else window.scrollTo(0, 0);
   }
 
   function htmlTemaImpresion(tema, nro) {
@@ -1483,7 +1484,12 @@
     toast("Se abrió el apunte resumido. Ahí tocá Imprimir y elegí Guardar como PDF.");
   }
 
+  function teoriaEnMovil() {
+    return window.matchMedia("(max-width: 980px)").matches;
+  }
+
   function raizScrollTeoria() {
+    if (teoriaEnMovil()) return null;
     return $("tema-contenido");
   }
 
@@ -1548,6 +1554,7 @@
     else if (cambioClase) {
       const root = raizScrollTeoria();
       if (root) root.scrollTop = 0;
+      else window.scrollTo(0, 0);
     }
   }
 
