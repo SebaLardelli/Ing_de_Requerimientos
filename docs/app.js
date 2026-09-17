@@ -1103,6 +1103,28 @@
     }).join("\n");
   }
 
+  function resumirFlechasLoucopoulos(cuerpo) {
+    const limpio = String(cuerpo || "")
+      .replace(/\r/g, "")
+      .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+      .trim();
+    const re = /^###\s+(.+)$/gm;
+    const matches = [];
+    let m;
+    while ((m = re.exec(limpio))) matches.push({ i: m.index, titulo: m[1].trim(), fin: m.index + m[0].length });
+    if (!matches.length) return "";
+    const items = matches.map((s, idx) => {
+      const hasta = idx + 1 < matches.length ? matches[idx + 1].i : limpio.length;
+      let bloque = limpio.slice(s.fin, hasta).trim();
+      bloque = bloque.replace(/\*Ejemplo\.\*[\s\S]*$/i, "").trim();
+      const etiqueta = (bloque.match(/\*\*Etiqueta:\s*(.+?)\*\*/i) || [])[1];
+      const resto = bloque.replace(/\*\*Etiqueta:[^*]+\*\*\s*/i, "").replace(/\s+/g, " ").trim();
+      const tag = etiqueta ? ` — *${etiqueta.replace(/\.$/, "")}*` : "";
+      return `- **${s.titulo}**${tag}. ${resto}`;
+    });
+    return `**Las relaciones (flechas).** Qué viaja por cada una y qué pasa si se corta.\n\n${items.join("\n")}`;
+  }
+
   function seccionDescartable(titulo) {
     return /^(ejemplo|cómo pregunt|actividad|la consigna|cómo se obtiene|cómo se escribe|relación con las clases|teor[ií]a que hay que usar|biblioteca \(como|hospital \(caso)/i.test(String(titulo || "").trim());
   }
@@ -1119,14 +1141,23 @@
     secs.forEach((s) => {
       const t = s.titulo || "";
       if (seccionDescartable(t)) return;
-      if (/cada relación|punto por punto|el mismo proceso/i.test(t)) return;
       if (esProceso && /el gráfico de la clase/i.test(t)) {
         const img = s.cuerpo.match(/!\[[^\]]*\]\([^)]+\)/);
+        const intro = s.cuerpo
+          .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+          .replace(/Hay \*\*cinco cajas\*\*[\s\S]*$/i, "")
+          .trim();
         if (img) out.push(img[0]);
+        if (intro) out.push(intro);
+        return;
+      }
+      if (esProceso && /cada relación|punto por punto/i.test(t)) {
+        const flechas = resumirFlechasLoucopoulos(s.cuerpo);
+        if (flechas) out.push(flechas);
         return;
       }
       if (esProceso && /cómo se lee junto/i.test(t)) {
-        out.push(`**Cómo se lee el gráfico.**\n\n${acortarBloque(s.cuerpo, 520)}`);
+        out.push(`**Cómo se lee el gráfico.**\n\n${s.cuerpo.replace(/ En la pestaña Práctica[\s\S]*$/i, "").trim()}`);
         return;
       }
       if (/idea para llevarse|idea central/i.test(t)) {
@@ -1226,7 +1257,7 @@
       const items = temas.map((t, i) => `<li><span>${i + 1}.</span> ${escapeHtml(t.titulo)}</li>`).join("");
       return `<div class="print-indice-clase"><h2>${escapeHtml(clase)}</h2><ol>${items}</ol></div>`;
     }).join("");
-    return `<nav class="print-indice"><h1>Índice</h1><p class="print-indice-nota">Apunte de estudio de todas las clases: resumen, idea para llevarse y lo esencial. Sin ejemplos largos ni el detalle flecha por flecha.</p>${bloques}</nav>`;
+    return `<nav class="print-indice"><h1>Índice</h1><p class="print-indice-nota">Apunte de estudio de todas las clases: resumen, idea para llevarse y lo esencial. En el gráfico de Loucopoulos se explican las flechas. Sin ejemplos largos.</p>${bloques}</nav>`;
   }
 
   function htmlMapaEstudio() {
