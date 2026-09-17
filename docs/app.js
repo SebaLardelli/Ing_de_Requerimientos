@@ -1073,7 +1073,9 @@
       else enLista = false;
     });
     const tabla = t.match(/(?:^\|.+\|[ \t]*\n)+/m);
+    const h3 = extraerSubapartados(t);
     const partes = [];
+    if (h3) partes.push(h3);
     if (citas) partes.push(citas);
     if (tabla) partes.push(tabla[0].trim());
     if (lista.length && lista.join("\n").length < max) partes.push(lista.join("\n").trim());
@@ -1081,11 +1083,28 @@
       const corte = t.slice(0, max);
       partes.push(corte.replace(/\s+\S*$/, "") + "…");
     }
-    return partes.join("\n\n");
+    let armado = partes.join("\n\n");
+    if (armado.length > max * 1.35) armado = armado.slice(0, Math.floor(max * 1.35)).replace(/\s+\S*$/, "") + "…";
+    return armado;
+  }
+
+  function extraerSubapartados(txt) {
+    const text = String(txt || "");
+    const re = /^###\s+(.+)$/gm;
+    const matches = [];
+    let m;
+    while ((m = re.exec(text))) matches.push({ i: m.index, titulo: m[1].trim(), fin: m.index + m[0].length });
+    if (matches.length < 2) return "";
+    return matches.map((s, idx) => {
+      const hasta = idx + 1 < matches.length ? matches[idx + 1].i : text.length;
+      const cuerpo = text.slice(s.fin, hasta).trim().replace(/\s+/g, " ");
+      const frase = (cuerpo.match(/^[^.!?]+[.!?]?/) || [cuerpo.slice(0, 180)])[0];
+      return `- **${s.titulo}.** ${frase}`;
+    }).join("\n");
   }
 
   function seccionDescartable(titulo) {
-    return /^(ejemplo|cómo pregunt|actividad|la consigna|cómo se obtiene|cómo se escribe|cómo se lee junto|relación con las clases|teor[ií]a que hay que usar|biblioteca \(como|hospital \(caso)/i.test(String(titulo || "").trim());
+    return /^(ejemplo|cómo pregunt|actividad|la consigna|cómo se obtiene|cómo se escribe|relación con las clases|teor[ií]a que hay que usar|biblioteca \(como|hospital \(caso)/i.test(String(titulo || "").trim());
   }
 
   function resumirContenidoTema(tema) {
@@ -1106,6 +1125,10 @@
         if (img) out.push(img[0]);
         return;
       }
+      if (esProceso && /cómo se lee junto/i.test(t)) {
+        out.push(`**Cómo se lee el gráfico.**\n\n${acortarBloque(s.cuerpo, 520)}`);
+        return;
+      }
       if (/idea para llevarse|idea central/i.test(t)) {
         const idea = s.cuerpo.replace(/^#+\s+.+$/gm, "").trim();
         if (idea) out.push(`**Para llevarse.**\n\n${idea}`);
@@ -1119,12 +1142,16 @@
         out.push(`**${t}.**\n\n${acortarBloque(s.cuerpo, 1200)}`);
         return;
       }
+      if (/^(scrum|modelo en v|rup)\b/i.test(t)) {
+        out.push(`**${t}.**\n\n${acortarBloque(s.cuerpo, 500)}`);
+        return;
+      }
       if (!t) {
         out.push(acortarBloque(s.cuerpo, 420));
         return;
       }
-      if (extras >= 2) return;
-      const clave = /definición|ieee|las tres capas|la diferencia|criterios|esenciales versus|internas y externas|cualidades que se usan|formato recomendado|gap semántico|abstracción|trazabilidad|validación|standish|beneficios|técnicas|scrum|rup|modelo en v|tres miradas|tres aspectos|predictivo|deberes del usuario|ingeniería de requerimientos|qué se gestiona|qué implica|el proceso de requerimientos|software es varias|representaciones y conocimiento|cómo pasar de vago/i.test(t);
+      if (extras >= 3) return;
+      const clave = /definición|ieee|las tres capas|la diferencia|criterios|esenciales versus|internas y externas|cualidades que se usan|formato recomendado|gap semántico|abstracción|trazabilidad|validación|standish|beneficios|técnicas|tres miradas|tres aspectos|predictivo|deberes del usuario|ingeniería de requerimientos|qué se gestiona|qué implica|el proceso de requerimientos|software es varias|representaciones y conocimiento|cómo pasar de vago|cómo llevar una entrevista|conocimiento no está|problemas al transmitir|dificultades con los stakeholders|no está estandarizado/i.test(t);
       const denso = /^\s*([-*]|\d+\.)\s+/m.test(s.cuerpo) || /^>\s?/m.test(s.cuerpo) || /\|.+\|/.test(s.cuerpo);
       if (!clave && !denso) return;
       extras += 1;
@@ -1155,7 +1182,10 @@
 
   function clasesParaImpresion() {
     const temas = temasParaImpresion();
-    return clasesDeTemas().filter((c) => temas.some((t) => mismaClase(t.clase, c)));
+    return clasesDeTemas().filter((c) => {
+      if (/^pr[aá]ctica$/i.test(String(c || "").trim())) return false;
+      return temas.some((t) => mismaClase(t.clase, c));
+    });
   }
 
   function temasDeClaseImpresion(clase) {
@@ -1196,7 +1226,20 @@
       const items = temas.map((t, i) => `<li><span>${i + 1}.</span> ${escapeHtml(t.titulo)}</li>`).join("");
       return `<div class="print-indice-clase"><h2>${escapeHtml(clase)}</h2><ol>${items}</ol></div>`;
     }).join("");
-    return `<nav class="print-indice"><h1>Índice</h1><p class="print-indice-nota">Versión de estudio: queda el resumen, la idea para llevarse y lo esencial. Sin ejemplos largos ni el detalle flecha por flecha.</p>${bloques}</nav>`;
+    return `<nav class="print-indice"><h1>Índice</h1><p class="print-indice-nota">Apunte de estudio de todas las clases: resumen, idea para llevarse y lo esencial. Sin ejemplos largos ni el detalle flecha por flecha.</p>${bloques}</nav>`;
+  }
+
+  function htmlMapaEstudio() {
+    const puntos = [
+      ["Clase 1", "El software es información y conocimiento, no solo el ejecutable. Cualidades (y quién las mira), deseconomía de escala y proceso con criterios de entrada y salida."],
+      ["Clase 2", "Dificultades esenciales de Brooks: complejidad, conformidad, modificabilidad e invisibilidad. Stakeholders, gap semántico y contrato social."],
+      ["Clase 3", "Los requerimientos descubren qué se desea y atraviesan el ciclo de vida. SCRUM, modelo en V y RUP cambian la forma, no los eliminan. Standish y el costo de detectar un error tarde."],
+      ["Clase 4", "Elicitar es un proceso social. IEEE 610: necesidad del usuario, capacidad del sistema y texto. Usuario vs sistema. RF / RFN. Necesidad, deseo y expectativa."],
+      ["Clase 5", "Comprender, describir y acordar: elicitación, especificación, validación y gestión. Trazabilidad. Un buen requerimiento es claro, preciso, consistente, verificable y factible."],
+      ["Clase 6", "Loucopoulos: dominio y usuario alimentan elicitación, especificación y validación (ciclo, no línea). Hawthorne, sesgos, política. Partir del usuario. 40 minutos al dominio, 15 a revisar, 5 a resolver."],
+    ];
+    const items = puntos.map(([clase, texto]) => `<div class="print-mapa-item"><h2>${escapeHtml(clase)}</h2><p>${escapeHtml(texto)}</p></div>`).join("");
+    return `<section class="print-mapa"><h1>Mapa rápido</h1><p class="print-indice-nota">Lo que no puede faltar si se estudia con este apunte.</p>${items}</section>`;
   }
 
   function htmlTeoriaImpresion() {
@@ -1276,6 +1319,18 @@
         font-family: "Segoe UI", sans-serif;
         font-size: 10.5pt; color: #5c5870; margin: 0 0 18px; max-width: 42em;
       }
+      .print-mapa { page-break-after: always; break-after: page; padding: 4mm 2mm 10mm; }
+      .print-mapa > h1 {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 18pt; margin: 0 0 8px; color: #171522;
+      }
+      .print-mapa-item { margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid #d8d4e6; page-break-inside: avoid; }
+      .print-mapa-item h2 {
+        font-family: "Segoe UI", sans-serif;
+        font-size: 11pt; letter-spacing: 0.08em; text-transform: uppercase;
+        color: #6149da; margin: 0 0 4px; font-weight: 700;
+      }
+      .print-mapa-item p { margin: 0; font-size: 11pt; }
       .print-indice-clase { margin: 0 0 16px; page-break-inside: avoid; }
       .print-indice-clase h2 {
         font-family: "Segoe UI", sans-serif;
@@ -1380,13 +1435,14 @@
       <p class="meta">${cuando}</p>
     </header>
     ${htmlIndiceImpresion()}
+    ${htmlMapaEstudio()}
     ${cuerpo}
   </div>
 </body>
 </html>`;
     const w = window.open("", "teoria-pdf");
     if (!w) {
-      toast("El navegador bloqueó la ventana. Permití popups y volvé a tocar Imprimir PDF.");
+      toast("El navegador bloqueó la ventana. Permití popups y volvé a tocar Imprimir apunte.");
       return;
     }
     w.document.open();
